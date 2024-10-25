@@ -56,7 +56,7 @@ use $**fetch** without having to resort to custom $**fetch** wrappers.
 
 ## Installation
 ### Standalone
-1. `composer install && yarn install`
+1. `composer install && npm install`
 2. `cp .env.example .env && php artisan key:generate && php artisan storage:link`
 3. `php artisan migrate && php artisan db:seed`
 4. `php artisan octane:install`
