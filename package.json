@@ -1,0 +1,27 @@
+{
+  "name": "laravel-nuxt",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "node nuxt/.output/server/index.mjs",
+    "build": "nuxi cleanup && nuxi build",
+    "cleanup": "nuxi cleanup",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "api": "php artisan octane:start --watch"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "^1.3.14",
+    "@nuxt/image": "^1.7.0",
+    "@nuxt/ui": "^2.18.4",
+    "@pinia/nuxt": "^0.5.4",
+    "chokidar": "^3.6.0",
+    "dayjs-nuxt": "^2.1.9",
+    "nuxt": "^3.13.0",
+    "nuxt-security": "2.0.0-rc.9",
+    "vue": "^3.4.38",
+    "vue-router": "^4.4.3"
+  }
+}
