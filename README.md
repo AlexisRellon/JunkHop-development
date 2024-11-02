@@ -61,7 +61,7 @@ use $**fetch** without having to resort to custom $**fetch** wrappers.
 3. `php artisan migrate && php artisan db:seed`
 4. `php artisan octane:install`
 5. `php artisan octane:start --watch --port=8000 --host=127.0.0.1`
-6. `yarn dev`
+6. `npm dev`
 
 ### Docker Deploy (Laravel Sail)
 [Laravel Sail](https://laravel.com/docs/11.x/sail) is a light-weight command-line interface for interacting with Laravel's default Docker development environment. Sail provides a great starting point for building a Laravel application using PHP, MySQL, and Redis without requiring prior Docker experience.
@@ -71,12 +71,12 @@ At its heart, Sail is the `docker-compose.yml` file and the `sail` script that i
 Laravel Sail is supported on macOS, Linux, and Windows (via [WSL2](https://docs.microsoft.com/en-us/windows/wsl/about)).
 1. Installing Composer Dependencies
 ```shell
-docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -v "$(pwd):/var/www/html" \
-    -w /var/www/html \
-    laravelsail/php83-composer:latest \
+docker run --rm `
+    -v "${PWD}:/var/www/html" `
+    -w /var/www/html `
+    laravelsail/php83-composer:latest `
     composer install --ignore-platform-reqs
+
 ```
 2. Configuring A Shell Alias (Optional)
 ```shell
