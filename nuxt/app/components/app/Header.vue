@@ -33,22 +33,42 @@ const userItems = [
 
 const navItems = [
   {
-    label: "Nuxt.js Docs",
-    to: "https://nuxt.com/docs/getting-started/introduction",
-    target: "_blank",
-    icon: "i-heroicons-link-20-solid",
+    label: "Home",
+    to: "/",
+    icon: "i-heroicons-home-20-solid",
+    target: "_self",
   },
   {
-    label: "Nuxt UI",
-    to: "https://ui.nuxt.com/getting-started",
-    target: "_blank",
-    icon: "i-heroicons-link-20-solid",
+    label: "Dashboard",
+    to: "/dashboard",
+    icon: "i-heroicons-view-grid-20-solid",
+    target: "_self",
+    condition: auth.logged,
   },
   {
-    label: "Laravel 11.x",
-    to: "https://laravel.com/docs/11.x",
-    target: "_blank",
-    icon: "i-heroicons-link-20-solid",
+    label: "Junk Shop Finder",
+    to: "/junk-shop-finder",
+    icon: "i-heroicons-map-20-solid",
+    target: "_self",
+  },
+  {
+    label: "Educational Resources",
+    to: "/educational-resources",
+    icon: "i-heroicons-book-open-20-solid",
+    target: "_self",
+  },
+  {
+    label: "Notifications",
+    to: "/notifications",
+    icon: "i-heroicons-bell-20-solid",
+    target: "_self",
+    condition: auth.logged,
+  },
+  {
+    label: "Support",
+    to: "/support",
+    icon: "i-heroicons-question-mark-circle-20-solid",
+    target: "_self",
   },
 ];
 
@@ -75,9 +95,12 @@ defineShortcuts({
       <AppLogo class="lg:flex-1" />
 
       <nav class="hidden lg:flex">
-        <ul class="flex flex-col items-end lg:flex-row lg:items-center lg:gap-x-8">
+        <ul
+          class="flex flex-col items-end lg:flex-row lg:items-center lg:gap-x-8"
+        >
           <li v-for="item in navItems" class="relative">
             <NuxtLink
+              v-if="item.condition === undefined || (item.condition && auth.logged)"
               class="text-sm/6 font-semibold flex items-center gap-1 hover:text-primary"
               :to="item.to"
               :target="item.target"
@@ -88,7 +111,7 @@ defineShortcuts({
       </nav>
 
       <div class="flex items-center justify-end gap-3 lg:flex-1">
-        <AppTheme />
+        <!-- <AppTheme /> -->
 
         <UDropdown
           v-if="auth.logged"
@@ -112,7 +135,13 @@ defineShortcuts({
             </div>
           </template>
         </UDropdown>
-        <UButton v-else label="Log In" to="/auth/login" variant="ghost" color="gray" />
+        <UButton
+          v-else
+          label="Log In"
+          to="/auth/login"
+          variant="ghost"
+          color="gray"
+        />
 
         <UButton
           class="lg:hidden"
@@ -140,7 +169,9 @@ defineShortcuts({
     <UContainer class="flex-1 py-4 sm:py-6">
       <UVerticalNavigation :links="navItems">
         <template #default="{ link }">
-          <span class="group-hover:text-primary relative">{{ link.label }}</span>
+          <span class="group-hover:text-primary relative">{{
+            link.label
+          }}</span>
         </template>
       </UVerticalNavigation>
     </UContainer>
