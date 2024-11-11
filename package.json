@@ -23,5 +23,9 @@
     "nuxt-security": "2.0.0-rc.9",
     "vue": "^3.4.38",
     "vue-router": "^4.4.3"
+  },
+  "dependencies": {
+    "laravel-nuxt": "file:",
+    "pinia": "^2.2.6"
   }
 }
