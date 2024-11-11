@@ -89,7 +89,7 @@ defineShortcuts({
 </script>
 <template>
   <header
-    class="bg-background/75 backdrop-blur -mb-px sticky top-0 z-50 border-b border-dashed border-gray-200/80 dark:border-gray-800/80"
+    class="bg-white -mb-px sticky top-0 z-50"
   >
     <UContainer class="flex items-center justify-between gap-3 h-16 py-2">
       <AppLogo class="lg:flex-1" />
@@ -100,7 +100,9 @@ defineShortcuts({
         >
           <li v-for="item in navItems" class="relative">
             <NuxtLink
-              v-if="item.condition === undefined || (item.condition && auth.logged)"
+              v-if="
+                item.condition === undefined || (item.condition && auth.logged)
+              "
               class="text-sm/6 font-semibold flex items-center gap-1 hover:text-primary"
               :to="item.to"
               :target="item.target"
