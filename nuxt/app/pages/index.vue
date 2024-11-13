@@ -227,9 +227,9 @@ onMounted(() => {
       <div class="social-media mt-8">
         <h3 class="text-2xl font-semibold mb-4">Follow Us</h3>
         <div class="flex justify-center gap-4">
-          <a href="#" class="text-white"><i class="mdi mdi-facebook text-2xl"></i></a>
-          <a href="#" class="text-white"><i class="mdi mdi-twitter text-2xl"></i></a>
-          <a href="#" class="text-white"><i class="mdi mdi-instagram text-2xl"></i></a>
+            <a href="#" class="text-white"><UIcon name="mdi-facebook" size="24" /></a>
+            <a href="#" class="text-white"><UIcon name="mdi-twitter" size="24" /></a>
+            <a href="#" class="text-white"><UIcon name="mdi-instagram" size="24" /></a>
         </div>
       </div>
     </div>
