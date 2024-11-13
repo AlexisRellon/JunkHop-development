@@ -43,17 +43,17 @@ const navItems = [
     to: "/dashboard",
     icon: "i-heroicons-view-grid-20-solid",
     target: "_self",
-    condition: auth.logged,
+    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
   },
   {
     label: "Junk Shop Finder",
-    to: "/junk-shop-finder",
+    to: "/finder",
     icon: "i-heroicons-map-20-solid",
     target: "_self",
   },
   {
     label: "Educational Resources",
-    to: "/educational-resources",
+    to: "/resources",
     icon: "i-heroicons-book-open-20-solid",
     target: "_self",
   },
@@ -62,7 +62,7 @@ const navItems = [
     to: "/notifications",
     icon: "i-heroicons-bell-20-solid",
     target: "_self",
-    condition: auth.logged,
+    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
   },
   {
     label: "Support",
@@ -89,9 +89,9 @@ defineShortcuts({
 </script>
 <template>
   <header
-    class="bg-white -mb-px sticky top-0 z-50"
+    class="bg-white -mb-px sticky top-0 z-50 flex items-center justify-center shadow-sm dark:bg-gray-900 dark:text-white"
   >
-    <UContainer class="flex items-center justify-between gap-3 h-16 py-2">
+    <UContainer class="w-full mx-auto flex items-center justify-between sm gap-3 h-16 py-2">
       <AppLogo class="lg:flex-1" />
 
       <nav class="hidden lg:flex">
