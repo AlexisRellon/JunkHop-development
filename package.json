@@ -26,6 +26,7 @@
     "vue-router": "^4.4.3"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.8.2",
     "laravel-nuxt": "file:",
     "pinia": "^2.2.6"
   }
