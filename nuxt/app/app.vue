@@ -5,7 +5,7 @@
 
   <UContainer
     as="main"
-    class="flex-grow flex flex-col mx-auto px-0 sm:px-0 lg:px-0 max-w-full"
+    class="flex-grow flex flex-col mx-0 px-0 sm:px-0 lg:px-0 max-w-screen-2xl"
   >
     <NuxtPage />
   </UContainer>
