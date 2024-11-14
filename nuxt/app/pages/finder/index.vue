@@ -188,7 +188,6 @@ const junkshops = ref<Junkshop[]>([
   },
 ]);
 
-
 const showOnMap = (shop: Junkshop) => {
   const googleMapsUrl = `https://www.google.com/maps?q=${shop.name}, ${shop.location}`;
   window.open(googleMapsUrl, "_blank");
@@ -205,6 +204,24 @@ const [parent] = useAutoAnimate();
 </script>
 
 <template>
+  <!-- Header Title -->
+  <div
+    class="h-fit flex flex-col items-center justify-center text-center gap-5 py-[4rem] text-white w-full"
+    style="
+      background: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.25),
+          rgba(0, 0, 0, 0.5)
+        ),
+        url('/images/junkshop-finder-bg.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+    "
+  >
+    <h1 class="text-5xl font-extrabold leading-tight">Junkshop Finder</h1>
+    <p class="text-xl mt-2">Dasmariñas Cavite</p>
+  </div>
   <div class="py-5 mx-auto flex flex-col items-center gap-4">
     <!-- Search Bar -->
     <div class="w-full flex gap-4">
@@ -219,7 +236,7 @@ const [parent] = useAutoAnimate();
       </div>
     </div>
     <div class="w-[90vw]">
-      <UCard class="p-5 w-full">
+      <UCard class="p-5 w-full" as="div">
         <ul class="grid grid-cols-1 md:grid-cols-2 gap-5" ref="parent">
           <!-- Show if there is no result -->
           <div v-if="filteredJunkshops.length === 0">
@@ -231,7 +248,7 @@ const [parent] = useAutoAnimate();
             class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
           >
             <!-- Card for Junk Shop List -->
-            <UCard @click="() => showOnMap(shop)" :shop="shop" class="cursor-auto">
+            <UCard :shop="shop" class="cursor-auto">
               <template #header>
                 <h3 class="font-bold text-lg">{{ shop.name }}</h3>
               </template>
@@ -251,10 +268,7 @@ const [parent] = useAutoAnimate();
                   <p class="text-sm">{{ shop.contact }}</p>
                 </div>
                 <div class="flex gap-2">
-                  <UIcon
-                    name="i-heroicons-plus"
-                    class="text-teal-500"
-                  />
+                  <UIcon name="i-heroicons-plus" class="text-teal-500" />
                   <p class="text-sm">{{ shop.plusCode }}</p>
                 </div>
               </div>

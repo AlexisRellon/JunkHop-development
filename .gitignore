@@ -27,7 +27,7 @@ yarn-error.log
 .nuxt
 .nitro
 .cache
-dist
+# dist
 
 # Node dependencies
 node_modules
