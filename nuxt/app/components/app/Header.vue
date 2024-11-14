@@ -33,22 +33,42 @@ const userItems = [
 
 const navItems = [
   {
-    label: "Nuxt.js Docs",
-    to: "https://nuxt.com/docs/getting-started/introduction",
-    target: "_blank",
-    icon: "i-heroicons-link-20-solid",
+    label: "Home",
+    to: "/",
+    icon: "i-heroicons-home-20-solid",
+    target: "_self",
   },
   {
-    label: "Nuxt UI",
-    to: "https://ui.nuxt.com/getting-started",
-    target: "_blank",
-    icon: "i-heroicons-link-20-solid",
+    label: "Dashboard",
+    to: "/dashboard",
+    icon: "i-heroicons-view-grid-20-solid",
+    target: "_self",
+    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
   },
   {
-    label: "Laravel 11.x",
-    to: "https://laravel.com/docs/11.x",
-    target: "_blank",
-    icon: "i-heroicons-link-20-solid",
+    label: "Junk Shop Finder",
+    to: "/finder",
+    icon: "i-heroicons-map-20-solid",
+    target: "_self",
+  },
+  {
+    label: "Educational Resources",
+    to: "/resources",
+    icon: "i-heroicons-book-open-20-solid",
+    target: "_self",
+  },
+  {
+    label: "Notifications",
+    to: "/notifications",
+    icon: "i-heroicons-bell-20-solid",
+    target: "_self",
+    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
+  },
+  {
+    label: "Support",
+    to: "/support",
+    icon: "i-heroicons-question-mark-circle-20-solid",
+    target: "_self",
   },
 ];
 
@@ -69,15 +89,20 @@ defineShortcuts({
 </script>
 <template>
   <header
-    class="bg-background/75 backdrop-blur -mb-px sticky top-0 z-50 border-b border-dashed border-gray-200/80 dark:border-gray-800/80"
+    class="bg-white -mb-px sticky top-0 z-50 flex items-center justify-center shadow-sm dark:bg-gray-900 dark:text-white"
   >
-    <UContainer class="flex items-center justify-between gap-3 h-16 py-2">
+    <UContainer class="w-full mx-auto flex items-center justify-between sm gap-3 h-16 py-2">
       <AppLogo class="lg:flex-1" />
 
       <nav class="hidden lg:flex">
-        <ul class="flex flex-col items-end lg:flex-row lg:items-center lg:gap-x-8">
+        <ul
+          class="flex flex-col items-end lg:flex-row lg:items-center lg:gap-x-8"
+        >
           <li v-for="item in navItems" class="relative">
             <NuxtLink
+              v-if="
+                item.condition === undefined || (item.condition && auth.logged)
+              "
               class="text-sm/6 font-semibold flex items-center gap-1 hover:text-primary"
               :to="item.to"
               :target="item.target"
@@ -88,7 +113,7 @@ defineShortcuts({
       </nav>
 
       <div class="flex items-center justify-end gap-3 lg:flex-1">
-        <AppTheme />
+        <!-- <AppTheme /> -->
 
         <UDropdown
           v-if="auth.logged"
@@ -112,7 +137,13 @@ defineShortcuts({
             </div>
           </template>
         </UDropdown>
-        <UButton v-else label="Log In" to="/auth/login" variant="ghost" color="gray" />
+        <UButton
+          v-else
+          label="Log In"
+          to="/auth/login"
+          variant="ghost"
+          color="gray"
+        />
 
         <UButton
           class="lg:hidden"
@@ -140,7 +171,9 @@ defineShortcuts({
     <UContainer class="flex-1 py-4 sm:py-6">
       <UVerticalNavigation :links="navItems">
         <template #default="{ link }">
-          <span class="group-hover:text-primary relative">{{ link.label }}</span>
+          <span class="group-hover:text-primary relative">{{
+            link.label
+          }}</span>
         </template>
       </UVerticalNavigation>
     </UContainer>

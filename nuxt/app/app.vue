@@ -3,7 +3,10 @@
 <template>
   <AppHeader />
 
-  <UContainer as="main" class="flex-grow py-4 sm:py-7 flex flex-col">
+  <UContainer
+    as="main"
+    class="flex-grow flex flex-col mx-auto px-0 sm:px-0 lg:px-0 max-w-full"
+  >
     <NuxtPage />
   </UContainer>
 
