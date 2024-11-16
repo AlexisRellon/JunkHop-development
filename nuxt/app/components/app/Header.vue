@@ -124,7 +124,7 @@ defineShortcuts({
           :popper="{ placement: 'bottom-end' }"
         >
           <!-- Notification Bell -->
-          <UIcon name="i-heroicons-bell-20-solid" class="w-[25px] h-[25px]" />
+          <UIcon name="i-heroicons-bell-20-solid" class="w-[25px] h-[25px] bg-gray-600" />
         </UDropdown>
 
         <UDropdown
