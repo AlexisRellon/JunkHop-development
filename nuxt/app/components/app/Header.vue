@@ -91,7 +91,9 @@ defineShortcuts({
   <header
     class="bg-white -mb-px sticky top-0 z-50 flex items-center justify-center shadow-sm dark:bg-gray-900 dark:text-white"
   >
-    <UContainer class="w-full mx-auto flex items-center justify-between sm gap-3 h-16 py-2">
+    <UContainer
+      class="w-full mx-auto flex items-center justify-between sm gap-3 h-16 py-2"
+    >
       <AppLogo class="lg:flex-1" />
 
       <nav class="hidden lg:flex">
@@ -114,6 +116,16 @@ defineShortcuts({
 
       <div class="flex items-center justify-end gap-3 lg:flex-1">
         <!-- <AppTheme /> -->
+
+        <UDropdown
+          v-if="auth.logged"
+          :items="userItems"
+          :ui="{ item: { disabled: 'cursor-text select-text' } }"
+          :popper="{ placement: 'bottom-end' }"
+        >
+          <!-- Notification Bell -->
+          <UIcon name="i-heroicons-bell-20-solid" class="w-[25px] h-[25px]" />
+        </UDropdown>
 
         <UDropdown
           v-if="auth.logged"
