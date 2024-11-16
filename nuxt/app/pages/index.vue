@@ -1,7 +1,18 @@
 <script setup lang="ts">
+
+/**
+ * Router instance for navigation.
+ */
 const router = useRouter();
+
+/**
+ * Authentication store instance.
+ */
 const auth = useAuthStore();
 
+/**
+ * Scrolls the page smoothly to the details section.
+ */
 function scrollToDetails() {
   const detailsSection = document.getElementById("details-section");
   if (detailsSection) {
@@ -9,6 +20,9 @@ function scrollToDetails() {
   }
 }
 
+/**
+ * Sets the SEO metadata for the page.
+ */
 useSeoMeta({
   title: "Home",
 });
@@ -16,20 +30,52 @@ useSeoMeta({
 /* Text Animation */
 import { ref, onMounted } from "vue";
 
+/**
+ * Reactive reference for waste collected value.
+ */
 const wasteCollected = ref(0);
+
+/**
+ * Reactive reference for recycling rate value.
+ */
 const recyclingRate = ref(0);
+
+/**
+ * Reactive reference for community participation value.
+ */
 const communityParticipation = ref(0);
 
+/**
+ * DOM element reference for waste collected.
+ */
 const wasteCollectedElement = ref(null);
+
+/**
+ * DOM element reference for recycling rate.
+ */
 const recyclingRateElement = ref(null);
+
+/**
+ * DOM element reference for community participation.
+ */
 const communityParticipationElement = ref(null);
 
+/**
+ * Object to track if animations are done for each metric.
+ */
 let animationDone = {
   wasteCollected: false,
   recyclingRate: false,
   communityParticipation: false,
 };
 
+/**
+ * Animates a value from start to end over a specified duration.
+ * @param {Ref} refValue - The reactive reference to update.
+ * @param {number} start - The starting value.
+ * @param {number} end - The ending value.
+ * @param {number} duration - The duration of the animation in milliseconds.
+ */
 function animateValue(refValue, start, end, duration) {
   let startTimestamp = null;
   const step = (timestamp) => {
@@ -43,6 +89,10 @@ function animateValue(refValue, start, end, duration) {
   window.requestAnimationFrame(step);
 }
 
+/**
+ * Handles intersection events for observed elements.
+ * @param {IntersectionObserverEntry[]} entries - The intersection entries.
+ */
 function handleIntersection(entries) {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
@@ -60,6 +110,9 @@ function handleIntersection(entries) {
   });
 }
 
+/**
+ * Sets up the intersection observer on mounted.
+ */
 onMounted(() => {
   const observer = new IntersectionObserver(handleIntersection, {
     threshold: 0.1,

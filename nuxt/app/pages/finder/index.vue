@@ -2,6 +2,16 @@
 import { ref, computed } from "vue";
 import { useAutoAnimate } from "@formkit/auto-animate/vue";
 
+/**
+ * Interface representing a Junkshop.
+ *
+ * @interface Junkshop
+ * @property {number} id - Unique identifier for the junkshop.
+ * @property {string} name - Name of the junkshop.
+ * @property {string} location - Physical location of the junkshop.
+ * @property {string} [plusCode] - Optional Plus Code for the junkshop's location.
+ * @property {string} contact - Contact information for the junkshop.
+ */
 interface Junkshop {
   id: number;
   name: string;
@@ -10,6 +20,16 @@ interface Junkshop {
   contact: string;
 }
 
+/**
+ * A list of junkshops with their details.
+ *
+ * @type {Ref<Junkshop[]>}
+ * @property {number} id - The unique identifier for the junkshop.
+ * @property {string} name - The name of the junkshop.
+ * @property {string} location - The physical address of the junkshop.
+ * @property {string} plusCode - The Google Plus Code for the junkshop's location.
+ * @property {string} contact - The contact number for the junkshop.
+ */
 const junkshops = ref<Junkshop[]>([
   {
     id: 1,
@@ -188,19 +208,41 @@ const junkshops = ref<Junkshop[]>([
   },
 ]);
 
+/**
+ * Opens a new tab with the Google Maps location of the specified junkshop.
+ *
+ * @param {Junkshop} shop - The junkshop object containing the name and location.
+ */
 const showOnMap = (shop: Junkshop) => {
   const googleMapsUrl = `https://www.google.com/maps?q=${shop.name}, ${shop.location}`;
   window.open(googleMapsUrl, "_blank");
 };
 
+
+/**
+ * A reactive reference to the search query input by the user.
+ * @type {Ref<string>}
+ */
 const searchQuery = ref("");
+
+/**
+ * A computed property that filters the list of junkshops based on the search query.
+ * It returns only those junkshops whose names include the search query (case-insensitive).
+ * @type {ComputedRef<Array<Object>>}
+ */
 const filteredJunkshops = computed(() =>
   junkshops.value.filter((shop) =>
     shop.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 );
 
+/**
+ * Destructures the `parent` element from the `useAutoAnimate` hook.
+ * `useAutoAnimate` is a custom hook that provides automatic animations for elements.
+ * The `parent` element will be used to apply these animations to its child elements.
+ */
 const [parent] = useAutoAnimate();
+
 </script>
 
 <template>

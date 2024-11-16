@@ -1,4 +1,18 @@
 <template>
+  <!--
+    This Vue component renders a resources page with a header and a grid of video tutorials.
+
+    Header Title:
+    - A div element that serves as the header section with a background image and gradient overlay.
+    - Contains an h1 element for the main title "Educational Resources".
+    - Contains a p element for a subtitle describing the content.
+
+    Video Tutorial:
+    - A div element that contains a grid layout for displaying video tutorials.
+    - Uses v-for to iterate over the 'videos' array and render each video.
+    - Each video is embedded using an iframe with the YouTube video ID.
+    - Below each video, a div element displays the video title.
+  -->
   <!-- Header Title -->
   <div
     class="h-fit flex flex-col items-center justify-center text-center gap-5 py-[4rem] text-white w-full"
@@ -39,8 +53,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
-
+/**
+ * A reactive reference to an array of video objects.
+ * Each video object contains the following properties:
+ * - id: A unique identifier for the video.
+ * - youtubeId: The YouTube video ID.
+ * - title: The title of the video.
+ */
 const videos = ref([
   { id: 1, youtubeId: "cNPEH0GOhRw", title: "How to Recycle Plastic Bottles" },
   {
