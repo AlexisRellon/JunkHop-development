@@ -1,4 +1,5 @@
-<script lang="ts" setup>
+<script setup>
+import { ref } from "vue";
 
 /**
  * Page metadata configuration for the account page.
@@ -15,20 +16,18 @@ definePageMeta({
  * - icon: The icon class for the link.
  * - to: The route path the link navigates to.
  */
-const links = [
-  [
-    {
-      label: "Account",
-      icon: "i-heroicons-user",
-      to: "/account/general",
-    },
-    {
-      label: "Devices",
-      icon: "i-heroicons-device-phone-mobile",
-      to: "/account/devices",
-    },
-  ],
-];
+const links = ref([
+  {
+    label: "Account",
+    icon: "i-heroicons-user",
+    to: "/account/general",
+  },
+  {
+    label: "Devices",
+    icon: "i-heroicons-device-phone-mobile",
+    to: "/account/devices",
+  },
+]);
 </script>
 <template>
   <!--
@@ -50,10 +49,14 @@ const links = [
         - md:col-span-8: Sets the column span to 8 on medium and larger screens.
   -->
   <NuxtLayout>
-    <UHorizontalNavigation
-      :links="links"
-      class="border-b border-gray-200 dark:border-gray-800 mb-4"
-    />
-    <NuxtPage class="col-span-10 md:col-span-8" />
+    <ClientOnly>
+      <UHorizontalNavigation
+        :links="links"
+        class="border-b border-gray-200 dark:border-gray-800 mb-4"
+      />
+    </ClientOnly>
+    <LazyClientOnly>
+      <NuxtPage class="col-span-10 md:col-span-8" />
+    </LazyClientOnly>
   </NuxtLayout>
 </template>

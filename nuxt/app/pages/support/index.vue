@@ -39,7 +39,7 @@ const submitForm = () => {
       - submitForm: Method to handle form submission.
   -->
   <div
-    class="support-container p-6 my-auto w-screen max-w-7xl mx-auto bg-white rounded-xl shadow-md space-y-4 relative"
+    class="support-container p-6 my-auto w-screen max-w-7xl mx-auto bg-white rounded-xl shadow-md space-y-4 relative md:my-3 sm:my-5"
   >
     <h1 class="text-2xl font-bold">Support</h1>
     <p class="text-gray-600">
