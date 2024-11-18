@@ -33,6 +33,7 @@
     class="flex-grow flex flex-col mx-auto px-0 sm:px-0 lg:px-0 max-w-full"
   >
     <NuxtPage />
+    <AppToTopBtn />
   </UContainer>
 
   <AppFooter />

@@ -43,7 +43,7 @@ const navItems = [
     to: "/dashboard",
     icon: "i-heroicons-view-grid-20-solid",
     target: "_self",
-    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
+    // condition: auth.logged, // Only show when user is logged in | comment this condition to show always
   },
   {
     label: "Junk Shop Finder",
@@ -62,7 +62,7 @@ const navItems = [
     to: "/notifications",
     icon: "i-heroicons-bell-20-solid",
     target: "_self",
-    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
+    // condition: auth.logged, // Only show when user is logged in | comment this condition to show always
   },
   {
     label: "Support",
@@ -124,7 +124,10 @@ defineShortcuts({
           :popper="{ placement: 'bottom-end' }"
         >
           <!-- Notification Bell -->
-          <UIcon name="i-heroicons-bell-20-solid" class="w-[25px] h-[25px] bg-gray-600" />
+          <UIcon
+            name="i-heroicons-bell-20-solid"
+            class="w-[25px] h-[25px] bg-gray-600"
+          />
         </UDropdown>
 
         <UDropdown

@@ -156,7 +156,7 @@ onMounted(() => {
       "
     ></div>
     <div class="container mx-auto text-center">
-      <h1 class="text-5xl font-bold text-white mb-4">
+      <h1 class="text-5xl font-bold text-white dark:text-white mb-4">
         Empowering Communities for a
         <span class="text-teal-300">Cleaner Tomorrow</span>
       </h1>
@@ -183,7 +183,7 @@ onMounted(() => {
   <ClientOnly> </ClientOnly>
 
   <ClientOnly>
-    <section id="details-section" class="overview py-20 bg-gray-100">
+    <section id="details-section" class="overview py-20 bg-gray-100 dark:bg-gray-800">
       <div class="container mx-auto px-4">
         <h2 class="text-4xl font-bold text-teal-500 text-center mb-8">
           About CleanSnap
@@ -230,7 +230,7 @@ onMounted(() => {
     </section>
   </ClientOnly>
 
-  <section id="key-features" class="key-features py-20 bg-white">
+  <section id="key-features" class="key-features py-20 bg-white dark:bg-gray-900">
     <div class="container mx-auto px-4">
       <h2 class="text-4xl font-bold text-center mb-8">Key Features</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -288,7 +288,7 @@ onMounted(() => {
     </div>
   </section>
 
-  <section id="how-it-works" class="how-it-works py-20 bg-gray-100">
+  <section id="how-it-works" class="how-it-works py-20 bg-gray-100 dark:bg-gray-800">
     <div class="container mx-auto px-4">
       <h2 class="text-4xl font-bold text-center mb-8">How It Works</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -325,7 +325,7 @@ onMounted(() => {
     </div>
   </section>
 
-  <section id="community-impact" class="community-impact py-20 bg-white">
+  <section id="community-impact" class="community-impact py-20 bg-white dark:bg-gray-900">
     <div class="container mx-auto px-4">
       <h2 class="text-4xl font-bold text-center mb-8">Community Impact</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">

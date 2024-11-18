@@ -31,7 +31,7 @@
           class="w-full h-64 rounded-lg shadow-md"
           loading="lazy"
         ></iframe>
-        <div class="py-3 text-black">
+        <div class="py-3 text-black dark:text-white">
           <p class="text-lg font-semibold">{{ video.title }}</p>
         </div>
       </div>

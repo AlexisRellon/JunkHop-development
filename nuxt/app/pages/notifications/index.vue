@@ -8,6 +8,4 @@
 
 </script>
 
-<style>
-
-</style>
+<style></style>
