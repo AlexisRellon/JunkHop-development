@@ -89,6 +89,12 @@ export default defineNuxtConfig({
     strict: false,
   },
 
+  // Server Configuration
+  server: {
+    host: '0.0.0.0',
+    port: process.env.PORT || 3000,
+  },
+
   /**
    * @see https://v3.nuxtjs.org/guide/features/runtime-config#exposing-runtime-config
    */
