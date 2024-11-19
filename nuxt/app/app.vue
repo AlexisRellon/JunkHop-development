@@ -30,7 +30,7 @@
 
   <UContainer
     as="main"
-    class="flex-grow flex flex-col mx-auto px-0 sm:px-0 lg:px-0 max-w-full"
+    class="flex flex-col flex-grow max-w-full px-0 mx-auto sm:px-0 lg:px-0"
   >
     <NuxtPage />
     <AppToTopBtn />

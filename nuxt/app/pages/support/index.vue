@@ -39,7 +39,7 @@ const submitForm = () => {
       - submitForm: Method to handle form submission.
   -->
   <div
-    class="support-container p-6 my-auto w-screen max-w-7xl mx-auto bg-white dark:bg-gray-700 rounded-xl shadow-md space-y-4 relative md:my-3 sm:my-5 dark:text-teal-500"
+    class="relative w-screen p-6 mx-auto my-auto space-y-4 bg-white shadow-md support-container max-w-7xl dark:bg-gray-700 rounded-xl md:my-3 sm:my-5 dark:text-teal-500"
   >
     <h1 class="text-2xl font-bold">Support</h1>
     <p class="text-gray-600 dark:text-white">
@@ -71,7 +71,7 @@ const submitForm = () => {
       </UFormGroup>
       <UButton
         type="submit"
-        class="w-full py-2 px-4 bg-teal-600 text-white text-center font-semibold rounded-md shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:text-white dark:bg-teal-600"
+        class="w-full px-4 py-2 font-semibold text-center text-white bg-teal-600 rounded-md shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:text-white dark:bg-teal-600"
         color="teal"
         label="Submit"
         block

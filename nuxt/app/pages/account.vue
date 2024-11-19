@@ -52,7 +52,7 @@ const links = ref([
     <ClientOnly>
       <UHorizontalNavigation
         :links="links"
-        class="border-b border-gray-200 dark:border-gray-800 mb-4"
+        class="mb-4 border-b border-gray-200 dark:border-gray-800"
       />
     </ClientOnly>
     <LazyClientOnly>

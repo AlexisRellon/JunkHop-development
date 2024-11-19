@@ -140,10 +140,10 @@ onMounted(() => {
 
 <template>
   <section
-    class="hero-section bg-cover bg-center py-20 h-screen flex items-center justify-center overflow-visible relative"
+    class="relative flex items-center justify-center h-screen py-20 overflow-visible bg-center bg-cover hero-section"
   >
     <div
-      class="hero-image absolute inset-0 -z-10"
+      class="absolute inset-0 hero-image -z-10"
       style="
         background: linear-gradient(
             to bottom,
@@ -156,11 +156,11 @@ onMounted(() => {
       "
     ></div>
     <div class="container mx-auto text-center">
-      <h1 class="text-5xl font-bold text-white dark:text-white mb-4">
+      <h1 class="mb-4 text-5xl font-bold text-white dark:text-white">
         Empowering Communities for a
         <span class="text-teal-300">Cleaner Tomorrow</span>
       </h1>
-      <p class="text-xl text-white mb-8">
+      <p class="mb-8 text-xl text-white">
         Join us in creating sustainable cities through smart waste management
         and community engagement.
       </p>
@@ -183,44 +183,44 @@ onMounted(() => {
   <ClientOnly> </ClientOnly>
 
   <ClientOnly>
-    <section id="details-section" class="overview py-20 bg-gray-100 dark:bg-gray-800">
-      <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-bold text-teal-500 text-center mb-8">
+    <section id="details-section" class="py-20 bg-gray-100 overview dark:bg-gray-800">
+      <div class="container px-4 mx-auto">
+        <h2 class="mb-8 text-4xl font-bold text-center text-teal-500">
           About CleanSnap
         </h2>
-        <p class="text-xl text-center mb-12">
+        <p class="mb-12 text-xl text-center">
           CleanSnap helps communities report waste, find recycling resources,
           and contribute to sustainability. Our goal is to create sustainable
           cities through smart waste management and community engagement.
         </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="feature text-center">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+          <div class="text-center feature">
             <UIcon
               name="mdi-report"
               class="mx-auto mb-4 text-teal-500"
               size="48"
             />
-            <h3 class="text-2xl font-semibold mb-2">Real-Time Reporting</h3>
+            <h3 class="mb-2 text-2xl font-semibold">Real-Time Reporting</h3>
             <p>Residents report waste issues directly to local authorities.</p>
           </div>
-          <div class="feature text-center">
+          <div class="text-center feature">
             <UIcon
               name="mdi-chart-bar"
               class="mx-auto mb-4 text-teal-500"
               size="48"
             />
-            <h3 class="text-2xl font-semibold mb-2">Data Analytics</h3>
+            <h3 class="mb-2 text-2xl font-semibold">Data Analytics</h3>
             <p>
               Cities optimize resources through insights on waste collection.
             </p>
           </div>
-          <div class="feature text-center">
+          <div class="text-center feature">
             <UIcon
               name="mdi-account-group"
               class="mx-auto mb-4 text-teal-500"
               size="48"
             />
-            <h3 class="text-2xl font-semibold mb-2">Community Engagement</h3>
+            <h3 class="mb-2 text-2xl font-semibold">Community Engagement</h3>
             <p>
               Tools for community involvement and environmental impact tracking.
             </p>
@@ -230,29 +230,29 @@ onMounted(() => {
     </section>
   </ClientOnly>
 
-  <section id="key-features" class="key-features py-20 bg-white dark:bg-gray-900">
-    <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-bold text-center mb-8">Key Features</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div class="feature text-center">
+  <section id="key-features" class="py-20 bg-white key-features dark:bg-gray-900">
+    <div class="container px-4 mx-auto">
+      <h2 class="mb-8 text-4xl font-bold text-center">Key Features</h2>
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div class="text-center feature">
           <UIcon
             name="mdi-account-circle"
             class="mx-auto mb-4 text-teal-500"
             size="48"
           />
-          <h3 class="text-2xl font-semibold mb-2">User Dashboard</h3>
+          <h3 class="mb-2 text-2xl font-semibold">User Dashboard</h3>
           <p>
             Quick Access: Displays rewards, badges, and environmental stats.
           </p>
           <p>Leaderboard: User’s ranking based on recycled items.</p>
         </div>
-        <div class="feature text-center">
+        <div class="text-center feature">
           <UIcon
             name="mdi-map-marker"
             class="mx-auto mb-4 text-teal-500"
             size="48"
           />
-          <h3 class="text-2xl font-semibold mb-2">Junk Shop Finder</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Junk Shop Finder</h3>
           <p>
             Map View: Displays junk shops with accepted materials and shop
             details.
@@ -262,13 +262,13 @@ onMounted(() => {
             reviews.
           </p>
         </div>
-        <div class="feature text-center">
+        <div class="text-center feature">
           <UIcon
             name="mdi-book-open"
             class="mx-auto mb-4 text-teal-500"
             size="48"
           />
-          <h3 class="text-2xl font-semibold mb-2">Educational Resources</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Educational Resources</h3>
           <p>Recycling Tips: Guides on sorting and preparing items.</p>
           <p>
             Accepted Items List: Lists recyclable materials and items for junk
@@ -279,26 +279,26 @@ onMounted(() => {
             environment.
           </p>
         </div>
-        <div class="feature text-center">
+        <div class="text-center feature">
           <UIcon name="mdi-bell" class="mx-auto mb-4 text-teal-500" size="48" />
-          <h3 class="text-2xl font-semibold mb-2">Push Notifications</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Push Notifications</h3>
           <p>Tips and Updates: Reminders and eco-friendly guidelines.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="how-it-works" class="how-it-works py-20 bg-gray-100 dark:bg-gray-800">
-    <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-bold text-center mb-8">How It Works</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+  <section id="how-it-works" class="py-20 bg-gray-100 how-it-works dark:bg-gray-800">
+    <div class="container px-4 mx-auto">
+      <h2 class="mb-8 text-4xl font-bold text-center">How It Works</h2>
+      <div class="grid grid-cols-1 gap-8 text-center md:grid-cols-3">
         <div class="step">
           <UIcon
             name="mdi-account-plus"
             class="mx-auto mb-4 text-teal-500 animate-bounce"
             size="48"
           />
-          <h3 class="text-2xl font-semibold mb-2">Step 1</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Step 1</h3>
           <p>Sign up and log in to access personalized features.</p>
         </div>
         <div class="step">
@@ -307,7 +307,7 @@ onMounted(() => {
             class="mx-auto mb-4 text-teal-500 animate-spin"
             size="48"
           />
-          <h3 class="text-2xl font-semibold mb-2">Step 2</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Step 2</h3>
           <p>
             Report waste issues, track activities, and find recycling options.
           </p>
@@ -318,19 +318,19 @@ onMounted(() => {
             class="mx-auto mb-4 text-teal-500 animate-pulse"
             size="48"
           />
-          <h3 class="text-2xl font-semibold mb-2">Step 3</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Step 3</h3>
           <p>Earn rewards, badges, and monitor your environmental impact.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="community-impact" class="community-impact py-20 bg-white dark:bg-gray-900">
-    <div class="container mx-auto px-4">
-      <h2 class="text-4xl font-bold text-center mb-8">Community Impact</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+  <section id="community-impact" class="py-20 bg-white community-impact dark:bg-gray-900">
+    <div class="container px-4 mx-auto">
+      <h2 class="mb-8 text-4xl font-bold text-center">Community Impact</h2>
+      <div class="grid grid-cols-1 gap-8 text-center md:grid-cols-3">
         <div class="stat">
-          <h3 class="text-2xl font-semibold mb-2">Waste Collected</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Waste Collected</h3>
           <p
             class="text-4xl font-bold text-teal-500"
             ref="wasteCollectedElement"
@@ -339,7 +339,7 @@ onMounted(() => {
           </p>
         </div>
         <div class="stat">
-          <h3 class="text-2xl font-semibold mb-2">Recycling Rate</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Recycling Rate</h3>
           <p
             class="text-4xl font-bold text-teal-500"
             ref="recyclingRateElement"
@@ -348,7 +348,7 @@ onMounted(() => {
           </p>
         </div>
         <div class="stat">
-          <h3 class="text-2xl font-semibold mb-2">Community Participation</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Community Participation</h3>
           <p
             class="text-4xl font-bold text-teal-500"
             ref="communityParticipationElement"
@@ -357,9 +357,9 @@ onMounted(() => {
           </p>
         </div>
       </div>
-      <div class="testimonials mt-12">
-        <h3 class="text-3xl font-semibold text-center mb-8">Success Stories</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="mt-12 testimonials">
+        <h3 class="mb-8 text-3xl font-semibold text-center">Success Stories</h3>
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
           <div class="testimonial">
             <p class="italic">
               "CleanSnap has transformed our city's waste management. The
@@ -376,11 +376,11 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      <div class="leaderboard-preview mt-12">
-        <h3 class="text-3xl font-semibold text-center mb-8">
+      <div class="mt-12 leaderboard-preview">
+        <h3 class="mb-8 text-3xl font-semibold text-center">
           Top Contributors
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div class="grid grid-cols-1 gap-8 text-center md:grid-cols-3">
           <div class="contributor">
             <p class="text-2xl font-bold">User123</p>
             <p class="text-teal-500">500 Points</p>
@@ -400,11 +400,11 @@ onMounted(() => {
 
   <section
     id="join-movement"
-    class="join-movement py-20 bg-teal-500 text-white"
+    class="py-20 text-white bg-teal-500 join-movement"
   >
-    <div class="container mx-auto px-4 text-center">
-      <h2 class="text-4xl font-bold mb-8">Join the Movement</h2>
-      <p class="text-xl mb-8">
+    <div class="container px-4 mx-auto text-center">
+      <h2 class="mb-8 text-4xl font-bold">Join the Movement</h2>
+      <p class="mb-8 text-xl">
         Become part of the CleanSnap community and make a positive impact on the
         environment.
       </p>
@@ -415,8 +415,8 @@ onMounted(() => {
         variant="outline"
         size="xl"
       />
-      <div class="social-media mt-8">
-        <h3 class="text-2xl font-semibold mb-4">Follow Us</h3>
+      <div class="mt-8 social-media">
+        <h3 class="mb-4 text-2xl font-semibold">Follow Us</h3>
         <div class="flex justify-center gap-4">
           <a href="#" class="text-white"
             ><UIcon name="mdi-facebook" size="24"

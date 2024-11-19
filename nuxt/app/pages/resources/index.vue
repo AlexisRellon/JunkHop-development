@@ -15,12 +15,12 @@
     "
   >
     <h1 class="text-5xl font-extrabold leading-tight">Educational Resources</h1>
-    <p class="text-xl mt-2">
+    <p class="mt-2 text-xl">
       Discover a variety of video resources to enhance your learning experience
     </p>
   </div>
   <!-- Video Tutorial -->
-  <div class="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+  <div class="grid grid-cols-1 gap-6 p-6 mx-auto sm:grid-cols-2 lg:grid-cols-3">
     <LazyClientOnly>
       <div v-for="video in videos" :key="video.id" class="relative">
         <iframe
