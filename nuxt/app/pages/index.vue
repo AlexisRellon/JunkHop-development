@@ -170,6 +170,7 @@ onMounted(() => {
           @click="router.push('/auth/register')"
           color="teal"
           size="xl"
+          class="dark:text-white"
         />
         <UButton
           label="Learn More"
