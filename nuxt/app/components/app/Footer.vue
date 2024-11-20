@@ -30,6 +30,9 @@
             <li>
               <NuxtLink to="/support" class="hover:underline">Support</NuxtLink>
             </li>
+            <li>
+              <NuxtLink to="/faq" class="hover:underline">FAQs</NuxtLink>
+            </li>
           </ul>
         </div>
         <div class="flex flex-col gap-5 mb-4 md:mb-0">

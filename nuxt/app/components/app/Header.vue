@@ -2,7 +2,11 @@
 const auth = useAuthStore();
 const { $storage } = useNuxtApp();
 
-const userItems = [
+const isDarkMode = ref(true);
+
+// Save user's dark mode preference
+
+const userItems = computed(() => [
   [
     {
       label: "User",
@@ -24,12 +28,24 @@ const userItems = [
   ],
   [
     {
+      label: isDarkMode.value ? "Light Mode" : "Dark Mode",
+      icon: "i-heroicons-moon-20-solid",
+      type: "checkbox" as const,
+      checked: isDarkMode.value,
+      click: () => {
+        isDarkMode.value = !isDarkMode.value;
+        document.documentElement.classList.toggle("dark");
+      },
+    },
+  ],
+  [
+    {
       label: "Sign out",
       click: auth.logout,
       icon: "i-heroicons-arrow-left-on-rectangle",
     },
   ],
-];
+]);
 
 const navItems = [
   {
@@ -43,7 +59,7 @@ const navItems = [
     to: "/dashboard",
     icon: "i-heroicons-view-grid-20-solid",
     target: "_self",
-    // condition: auth.logged, // Only show when user is logged in | comment this condition to show always
+    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
   },
   {
     label: "Junk Shop Finder",
@@ -62,7 +78,7 @@ const navItems = [
     to: "/notifications",
     icon: "i-heroicons-bell-20-solid",
     target: "_self",
-    // condition: auth.logged, // Only show when user is logged in | comment this condition to show always
+    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
   },
   {
     label: "Support",
@@ -89,10 +105,10 @@ defineShortcuts({
 </script>
 <template>
   <header
-    class="bg-white -mb-px sticky top-0 z-50 flex items-center justify-center shadow-sm dark:bg-gray-900 dark:text-white"
+    class="sticky top-0 z-50 flex items-center justify-center -mb-px bg-white shadow-sm dark:bg-gray-900 dark:text-white"
   >
     <UContainer
-      class="w-full mx-auto flex items-center justify-between sm gap-3 h-16 py-2"
+      class="flex items-center justify-between w-full h-16 gap-3 py-2 mx-auto sm"
     >
       <AppLogo class="lg:flex-1" />
 
@@ -105,7 +121,7 @@ defineShortcuts({
               v-if="
                 item.condition === undefined || (item.condition && auth.logged)
               "
-              class="text-sm/6 font-semibold flex items-center gap-1 hover:text-primary"
+              class="flex items-center gap-1 font-semibold text-sm/6 hover:text-primary"
               :to="item.to"
               :target="item.target"
               >{{ item.label }}</NuxtLink
@@ -146,7 +162,7 @@ defineShortcuts({
           <template #overview>
             <div class="text-left">
               <p>Signed in as</p>
-              <p class="truncate font-medium text-gray-900 dark:text-white">
+              <p class="font-medium text-gray-900 truncate dark:text-white">
                 {{ auth.user.email }}
               </p>
             </div>
@@ -173,7 +189,7 @@ defineShortcuts({
 
   <USlideover v-model="isSideOpen" :ui="{ width: 'max-w-xs' }" @close="">
     <UContainer
-      class="flex items-center justify-between gap-3 h-16 py-2 border-b border-dashed border-gray-200/80 dark:border-gray-800/80"
+      class="flex items-center justify-between h-16 gap-3 py-2 border-b border-dashed border-gray-200/80 dark:border-gray-800/80"
     >
       <AppLogo />
       <UButton
@@ -186,7 +202,7 @@ defineShortcuts({
     <UContainer class="flex-1 py-4 sm:py-6">
       <UVerticalNavigation :links="navItems">
         <template #default="{ link }">
-          <span class="group-hover:text-primary relative">{{
+          <span class="relative group-hover:text-primary">{{
             link.label
           }}</span>
         </template>
