@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\JunkshopController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,5 +33,16 @@ Route::prefix('api/v1')->group(function () {
         Route::middleware(['throttle:uploads'])->group(function () {
             Route::post('upload', [UploadController::class, 'image'])->name('upload.image');
         });
+
+        // Junkshop routes
+        Route::get('junkshop/{ulid}', [JunkshopController::class, 'show'])->name('junkshop.show');
+        Route::put('junkshop/{ulid}', [JunkshopController::class, 'update'])->name('junkshop.update');
+        Route::post('junkshop', [JunkshopController::class, 'store'])->name('junkshop.store');
+
+        // Item routes
+        Route::get('junkshop/{ulid}/items', [ItemController::class, 'index'])->name('items.index');
+        Route::post('junkshop/{ulid}/items', [ItemController::class, 'store'])->name('items.store');
+        Route::put('junkshop/{ulid}/items/{itemId}', [ItemController::class, 'update'])->name('items.update');
+        Route::delete('junkshop/{ulid}/items/{itemId}', [ItemController::class, 'destroy'])->name('items.destroy');
     });
 });
