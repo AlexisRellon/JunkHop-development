@@ -5,7 +5,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JunkshopController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\DashboardStatisticsController;
+use App\Models\DashboardStatistic;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return ['ok' => true, 'message' => 'Welcome to the API'];
@@ -20,6 +24,12 @@ Route::prefix('api/v1')->group(function () {
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.store');
     Route::post('verification-notification', [AuthController::class, 'verificationNotification'])->middleware('throttle:verification-notification')->name('verification.send');
     Route::get('verify-email/{ulid}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+
+    // Dashboard endpoint
+    Route::get('/dashboard-statistics', [DashboardController::class, 'getStatistics']);
+
+    // Route to fetch all junkshops
+    Route::get('junkshop', [JunkshopController::class, 'index'])->name('junkshops.index');
 
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
@@ -44,5 +54,12 @@ Route::prefix('api/v1')->group(function () {
         Route::post('junkshop/{ulid}/items', [ItemController::class, 'store'])->name('items.store');
         Route::put('junkshop/{ulid}/items/{itemId}', [ItemController::class, 'update'])->name('items.update');
         Route::delete('junkshop/{ulid}/items/{itemId}', [ItemController::class, 'destroy'])->name('items.destroy');
+
+        Route::apiResource('junkshops', JunkshopController::class);
+
+        // User routes
+        Route::get('users', [UserController::class, 'index']);
+        Route::delete('users/{id}', [UserController::class, 'destroy']);
+        Route::put('users/{id}', [UserController::class, 'update']);
     });
 });
