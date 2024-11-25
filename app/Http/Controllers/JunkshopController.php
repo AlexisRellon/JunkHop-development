@@ -6,6 +6,7 @@ use App\Models\Junkshop;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class JunkshopController extends Controller
 {
@@ -63,5 +64,25 @@ class JunkshopController extends Controller
         $user->assignRole('junkshop_owner');
 
         return response()->json($junkshop, 201);
+    }
+
+    /**
+     * Display a listing of the Junkshops.
+     */
+    public function index(): JsonResponse
+    {
+        $junkshops = Junkshop::all();
+        return response()->json($junkshops);
+    }
+
+    /**
+     * Remove the specified Junkshop.
+     */
+    public function destroy(string $ulid): JsonResponse
+    {
+        $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
+        $junkshop->delete();
+
+        return response()->json(['message' => 'Junkshop deleted successfully']);
     }
 }
