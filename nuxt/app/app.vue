@@ -23,20 +23,28 @@
         - Props:
           - description: The description of the notification.
 -->
-<script lang="ts" setup></script>
+<script setup lang="ts">
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
+
+const route = useRoute();
+
+const isAdminPanel = computed(() => route.path.startsWith('/playgroundAdmin'));
+</script>
 
 <template>
-  <AppHeader />
+  <AppHeader v-if="!isAdminPanel" />
 
   <UContainer
     as="main"
     class="flex flex-col flex-grow max-w-full px-0 mx-auto sm:px-0 lg:px-0"
-  >
+    :class="{'h-max flex flex-col flex-grow max-w-full px-0 mx-auto sm:px-0 lg:px-0': isAdminPanel}"
+    >
     <NuxtPage />
     <AppToTopBtn />
   </UContainer>
 
-  <AppFooter />
+  <AppFooter v-if="!isAdminPanel" />
 
   <NuxtLoadingIndicator class="!opacity-100" :throttle="0" />
 
@@ -51,3 +59,6 @@
     </template>
   </UNotifications>
 </template>
+
+<style>
+</style>

@@ -50,7 +50,7 @@ const onSelect = async (e: any) => {
           title: response._data?.message ?? response.statusText ?? 'Something went wrong',
         });
       } else if (response._data?.ok) {
-        value.value = response._data?.path;
+        value.value = response._data?.url.toString(); // Ensure the URL is a string
       }
 
       loading.value = false;

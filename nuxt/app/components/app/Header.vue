@@ -102,10 +102,20 @@ defineShortcuts({
     },
   },
 });
+
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
+
+const route = useRoute();
+
+const isAdminPanel = computed(() => route.path.startsWith('/playgroundAdmin'));
 </script>
 <template>
   <header
-    class="sticky top-0 z-50 flex items-center justify-center -mb-px bg-white shadow-sm dark:bg-gray-900 dark:text-white"
+    :class="{
+      'fixed top-0 z-50 w-full flex items-center justify-center -mb-px bg-white shadow-sm dark:bg-gray-900 dark:text-white': !isAdminPanel,
+      'top-0 w-full flex items-center justify-center -mb-px bg-white shadow-sm dark:bg-gray-900 dark:text-white': isAdminPanel
+    }"
   >
     <UContainer
       class="flex items-center justify-between w-full h-16 gap-3 py-2 mx-auto sm"
