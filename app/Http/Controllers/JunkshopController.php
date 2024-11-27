@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Junkshop;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,11 +32,20 @@ class JunkshopController extends Controller
             'contact' => 'required|string|max:255',
             'description' => 'nullable|string',
             'address' => 'required|string|max:255',
+            'owner_ulid' => 'required|string|exists:users,ulid',
         ]);
 
-        $junkshop->update($request->only(['name', 'contact', 'description', 'address']));
+        $owner = User::where('ulid', $request->owner_ulid)->firstOrFail();
 
-        return response()->json(['message' => 'Junkshop updated successfully']);
+        $junkshop->update([
+            'name' => $request->name,
+            'contact' => $request->contact,
+            'description' => $request->description,
+            'address' => $request->address,
+            'owner_id' => $owner->id,
+        ]);
+
+        return response()->json($junkshop);
     }
 
     /**
@@ -43,27 +53,26 @@ class JunkshopController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'contact' => 'required|string|max:255',
             'description' => 'nullable|string',
             'address' => 'required|string|max:255',
+            'owner_ulid' => 'required|string|exists:users,ulid',
         ]);
+
+        $owner = User::where('ulid', $validatedData['owner_ulid'])->firstOrFail();
 
         $junkshop = Junkshop::create([
             'ulid' => Str::ulid()->toBase32(),
-            'name' => $request->name,
-            'contact' => $request->contact,
-            'description' => $request->description,
-            'address' => $request->address,
-            'user_id' => Auth::id(),
+            'name' => $validatedData['name'],
+            'contact' => $validatedData['contact'],
+            'description' => $validatedData['description'],
+            'address' => $validatedData['address'],
+            'user_id' => $owner->id, // Convert owner_ulid to user_id
         ]);
 
-        // Assign the 'junkshop_owner' role to the user
-        $user = Auth::user();
-        $user->assignRole('junkshop_owner');
-
-        return response()->json($junkshop, 201);
+        return response()->json(['message' => 'Junkshop created successfully', 'junkshop' => $junkshop]);
     }
 
     /**

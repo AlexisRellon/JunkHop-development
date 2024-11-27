@@ -42,4 +42,31 @@ class UserController extends Controller
             ], 422);
         }
     }
+
+    public function store(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin',
+                'password' => 'required|string|min:8',
+            ]);
+
+            $user = User::create([
+                'ulid' => Str::ulid()->toBase32(),
+                'name' => $validatedData['name'],
+                'email' => $validatedData['email'],
+                'role' => $validatedData['role'],
+                'password' => bcrypt($validatedData['password']),
+            ]);
+
+            return response()->json(['message' => 'User created successfully', 'user' => $user]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+    }
 }
