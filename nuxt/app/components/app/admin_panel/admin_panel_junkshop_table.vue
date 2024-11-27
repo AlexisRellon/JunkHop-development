@@ -3,7 +3,15 @@
   <UCard
     class="col-span-1 p-8 bg-white rounded-lg shadow-lg md:col-span-2 lg:col-span-3 dark:bg-gray-800"
   >
-    <h2 class="mb-4 text-2xl font-bold dark:text-gray-100">Junkshops</h2>
+    <span class="flex justify-between items-center">
+      <h2 class="mb-4 text-2xl font-bold dark:text-gray-100">Junkshops</h2>
+      <UButton
+        @click="openAddJunkshopDrawer"
+        color="teal"
+        variant="solid"
+        class="mb-4"
+      >Add Junkshop</UButton>
+    </span>
     <UTable
       :rows="junkshops"
       :columns="junkshopColumns"
@@ -17,15 +25,13 @@
             color="teal"
             variant="solid"
             class="px-3 py-1 rounded-md"
-            >Edit</UButton
-          >
+          >Edit</UButton>
           <UButton
             @click="deleteJunkshop(row.ulid)"
             color="red"
             variant="solid"
             class="px-3 py-1 rounded-md"
-            >Delete</UButton
-          >
+          >Delete</UButton>
         </div>
       </template>
     </UTable>
@@ -48,70 +54,95 @@
             @error="onErrorJunkshop"
             class="space-y-6"
           >
-            <div>
+            <div class="flex flex-col gap-2">
               <label
                 for="name"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Name</label
-              >
+                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Name</label>
               <UInput
                 v-model="editingJunkshop.name"
                 size="lg"
                 type="text"
                 id="name"
                 ref="nameInput"
-                class="block w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop name"
                 autofocus
                 required
-              />
+              >
+                <template #leading>
+                  <UIcon name="mdi-factory" class="text-gray-400"></UIcon>
+                </template>
+              </UInput>
             </div>
-            <div>
+            <div class="flex flex-col gap-2">
               <label
                 for="address"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Address</label
-              >
+                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Address</label>
               <UInput
                 v-model="editingJunkshop.address"
                 size="lg"
                 type="text"
                 id="address"
-                class="block w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop address"
                 required
-              />
+              >
+                <template #leading>
+                  <UIcon name="mdi-map-marker" class="text-gray-400"></UIcon>
+                </template>
+              </UInput>
             </div>
-            <div>
+            <div class="flex flex-col gap-2">
               <label
                 for="contact"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Contact</label
-              >
+                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Contact</label>
               <UInput
                 v-model="editingJunkshop.contact"
                 size="lg"
                 type="text"
                 id="contact"
-                class="block w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop contact"
                 required
-              />
+              >
+                <template #leading>
+                  <UIcon name="mdi-phone" class="text-gray-400"></UIcon>
+                </template>
+              </UInput>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label
+                for="owner"
+                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Owner</label>
+              <UInputMenu
+                v-model="editingJunkshop.owner"
+                :options="users.map(user => ({ value: user.ulid, label: user.name }))"
+                placeholder="Select Owner"
+                class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                size="lg"
+                required
+              >
+                <template #leading>
+                  <UIcon name="mdi-account" class="text-gray-400"></UIcon>
+                </template>
+              </UInputMenu>
             </div>
             <UButton
               type="submit"
               color="teal"
               variant="solid"
               class="flex justify-center w-full py-2 rounded-md"
-              >Update</UButton
-            >
+            >{{ isEditingJunkshop ? "Update" : "Add" }}</UButton>
             <UButton
               @click="cancelEditJunkshop"
               color="gray"
               variant="outline"
               class="flex justify-center w-full py-2 rounded-md"
-              >Cancel</UButton
-            >
+            >Cancel</UButton>
           </UForm>
         </div>
       </UCard>
@@ -124,32 +155,44 @@ import { ref, reactive, nextTick, onMounted } from "vue";
 
 const junkshops = ref([]);
 const loadingJunkshops = ref(false);
+const users = ref([]); // Add users list
 const editingJunkshop = reactive({
   ulid: "",
   name: "",
   address: "",
   contact: "",
+  owner: "", // Add owner field
 });
 const drawerOpenJunkshop = ref(false);
+const isEditingJunkshop = ref(false);
 
 const junkshopColumns = [
   { key: "name", label: "Name" },
   { key: "address", label: "Address" },
   { key: "contact", label: "Contact" },
+  { key: "owner", label: "Owner" }, // Add owner column
   { key: "actions", label: "Actions" },
 ];
+
+const openAddJunkshopDrawer = () => {
+  Object.assign(editingJunkshop, { ulid: "", name: "", address: "", contact: "", owner: "" });
+  isEditingJunkshop.value = false;
+  drawerOpenJunkshop.value = true;
+};
 
 const editJunkshop = async (junkshop) => {
   editingJunkshop.ulid = junkshop.ulid;
   editingJunkshop.name = junkshop.name;
   editingJunkshop.address = junkshop.address;
   editingJunkshop.contact = junkshop.contact;
+  editingJunkshop.owner = junkshop.owner;
   drawerOpenJunkshop.value = true;
   await nextTick();
+  isEditingJunkshop.value = true;
 };
 
 const cancelEditJunkshop = () => {
-  Object.assign(editingJunkshop, { ulid: "", name: "", address: "", contact: "" });
+  Object.assign(editingJunkshop, { ulid: "", name: "", address: "", contact: "", owner: "" });
   drawerOpenJunkshop.value = false;
 };
 
@@ -158,43 +201,75 @@ const validateJunkshop = (state) => {
   if (!state.name) errors.push({ path: "name", message: "Required" });
   if (!state.address) errors.push({ path: "address", message: "Required" });
   if (!state.contact) errors.push({ path: "contact", message: "Required" });
+  if (!state.owner) errors.push({ path: "owner", message: "Required" });
   return errors;
 };
 
 const onSubmitJunkshop = async () => {
-  console.log("Editing Junkshop:", editingJunkshop); // Debugging line
-  if (!editingJunkshop.ulid) {
-    console.error("Junkshop ULID is undefined");
-    return;
-  }
-  try {
-    await $fetch(`/junkshop/${editingJunkshop.ulid}`, {
-      method: "PUT",
-      body: JSON.stringify({
-        name: editingJunkshop.name,
-        address: editingJunkshop.address,
-        contact: editingJunkshop.contact,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    // Update the junkshop in the local list
-    const index = junkshops.value.findIndex((j) => j.ulid === editingJunkshop.ulid);
-    if (index !== -1) {
-      junkshops.value[index] = { ...editingJunkshop };
+  console.log(isEditingJunkshop.value ? "Editing Junkshop:" : "Adding Junkshop:", editingJunkshop); // Debugging line
+  if (isEditingJunkshop.value) {
+    if (!editingJunkshop.ulid) {
+      console.error("Junkshop ULID is undefined");
+      return;
     }
-    cancelEditJunkshop();
-  } catch (error) {
-    if (error.response && error.response.status === 422) {
-      console.error("Validation error:", error.response.data.errors);
-      alert("Validation error: " + JSON.stringify(error.response.data.errors));
-    } else {
-      console.error("Error updating junkshop:", error);
-      console.error(
-        "Error details:",
-        error.response ? error.response.data : error.message
-      );
+    try {
+      await $fetch(`/junkshop/${editingJunkshop.ulid}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          name: editingJunkshop.name,
+          address: editingJunkshop.address,
+          contact: editingJunkshop.contact,
+          owner_ulid: editingJunkshop.owner,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      // Update the junkshop in the local list
+      const index = junkshops.value.findIndex((j) => j.ulid === editingJunkshop.ulid);
+      if (index !== -1) {
+        junkshops.value[index] = { ...editingJunkshop };
+      }
+      cancelEditJunkshop();
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        console.error("Validation error:", error.response.data.errors);
+        alert("Validation error: " + JSON.stringify(error.response.data.errors));
+      } else {
+        console.error("Error updating junkshop:", error);
+        console.error(
+          "Error details:",
+          error.response ? error.response.data : error.message
+        );
+      }
+    }
+  } else {
+    try {
+      const newJunkshop = await $fetch(`/junkshop`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: editingJunkshop.name,
+          address: editingJunkshop.address,
+          contact: editingJunkshop.contact,
+          owner_ulid: editingJunkshop.owner,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      junkshops.value.push(newJunkshop);
+      cancelEditJunkshop();
+    } catch (error) {
+      if (error.response && error.response.status === 422) {
+        console.error("Validation error:", error.response.data.errors);
+        alert("Validation error: " + JSON.stringify(error.response.data.errors));
+      } else {
+        console.error("Error adding junkshop:", error);
+        console.error(
+          "Error details:",
+          error.response ? error.response.data : error.message
+        );
+      }
     }
   }
 };
@@ -228,8 +303,26 @@ const fetchJunkshops = async () => {
   }
 };
 
+const fetchUsers = async () => {
+  try {
+    const data = await $fetch("/users", {
+      method: "GET",
+    });
+    users.value = data;
+    console.log("Users:", data);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    console.error(
+      "Error details:",
+      error.response ? error.response.data : error.message
+    );
+  }
+};
+
 onMounted(async () => {
   try {
+
+    await fetchUsers();
     await fetchJunkshops();
   } catch (error) {
     console.error("Error during mounted hook:", error);

@@ -9,13 +9,6 @@
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
           Manage your users from here.
         </p>
-        <div class="mt-4">
-          <button
-            class="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-          >
-            Add New User
-          </button>
-        </div>
       </div>
       <UDivider />
       <h3 class="px-6 py-2 text-lg font-semibold text-gray-700 dark:text-gray-300">
