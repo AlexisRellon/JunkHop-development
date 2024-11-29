@@ -76,4 +76,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return $sanctumToken->plainTextToken;
     }
+
+    /**
+     * Get the junkshops owned by the user.
+     */
+    public function junkshops()
+    {
+        return $this->hasMany(Junkshop::class);
+    }
 }
