@@ -11,6 +11,7 @@ class CreateJunkshopsTable extends Migration
      */
     public function up()
     {
+        Schema::dropIfExists('junkshops');
         Schema::create('junkshops', function (Blueprint $table) {
             $table->id();
             $table->string('ulid')->unique();
@@ -18,7 +19,8 @@ class CreateJunkshopsTable extends Migration
             $table->string('contact');
             $table->text('description')->nullable();
             $table->string('address');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('user_id');
+            $table->foreign('user_id')->references('ulid')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
