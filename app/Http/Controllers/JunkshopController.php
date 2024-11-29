@@ -42,7 +42,7 @@ class JunkshopController extends Controller
             'contact' => $request->contact,
             'description' => $request->description,
             'address' => $request->address,
-            'owner_id' => $owner->id,
+            'user_id' => $owner->ulid, // Use ulid instead of id
         ]);
 
         return response()->json($junkshop);
@@ -69,7 +69,7 @@ class JunkshopController extends Controller
             'contact' => $validatedData['contact'],
             'description' => $validatedData['description'],
             'address' => $validatedData['address'],
-            'user_id' => $owner->id, // Convert owner_ulid to user_id
+            'user_id' => $owner->ulid, // Use ulid instead of id
         ]);
 
         return response()->json(['message' => 'Junkshop created successfully', 'junkshop' => $junkshop]);

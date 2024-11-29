@@ -14,9 +14,19 @@ class ItemController extends Controller
      */
     public function index(string $ulid): JsonResponse
     {
-        $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
-        $items = $junkshop->items;
-        return response()->json($items);
+        // First try to find junkshop by ULID
+        $junkshop = Junkshop::findByUlid($ulid);
+
+        // If not found, try to find by user_id
+        if (!$junkshop) {
+            $junkshop = Junkshop::findByUserId($ulid);
+        }
+
+        if (!$junkshop) {
+            return response()->json(['message' => 'Junkshop not found'], 404);
+        }
+
+        return response()->json($junkshop->items);
     }
 
     /**
