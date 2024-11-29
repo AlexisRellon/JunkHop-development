@@ -1,0 +1,5 @@
+docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan
+docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan route:clear
+docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan route:list
+docker-compose build
+alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
