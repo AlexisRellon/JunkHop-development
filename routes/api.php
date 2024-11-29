@@ -62,5 +62,18 @@ Route::prefix('api/v1')->group(function () {
         Route::post('users', [UserController::class, 'store']); // Add POST route for creating a new user
         Route::delete('users/{id}', [UserController::class, 'destroy']);
         Route::put('users/{id}', [UserController::class, 'update']);
+        Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::put('/users/{user}/update-role', [UserController::class, 'updateRole'])->middleware('can:edit roles');
+        Route::put('/users/{ulid}', [UserController::class, 'update']);
     });
+});
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    // User routes with clean path definitions
+    Route::get('/users', [UserController::class, 'index']);
+    Route::put('/users/{ulid}', [UserController::class, 'update']);
+    Route::delete('/users/{ulid}', [UserController::class, 'destroy']);
+    Route::post('/users', [UserController::class, 'store']);
+
+    // Remove all duplicate routes
 });
