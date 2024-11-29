@@ -34,6 +34,9 @@
           >Delete</UButton>
         </div>
       </template>
+      <template #user_id-data="{ row }">
+        <span>{{ getUserName(row.user_id) }}</span>
+      </template>
     </UTable>
   </UCard>
   <USlideover v-model="drawerOpenJunkshop" side="bottom" :ui="{ height: 'h-fit' }">
@@ -54,11 +57,7 @@
             @error="onErrorJunkshop"
             class="space-y-6"
           >
-            <div class="flex flex-col gap-2">
-              <label
-                for="name"
-                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
-              >Name</label>
+            <UFormGroup label="Name" name="name" required>
               <UInput
                 v-model="editingJunkshop.name"
                 size="lg"
@@ -68,18 +67,14 @@
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop name"
                 autofocus
-                required
               >
                 <template #leading>
                   <UIcon name="mdi-factory" class="text-gray-400"></UIcon>
                 </template>
               </UInput>
-            </div>
-            <div class="flex flex-col gap-2">
-              <label
-                for="address"
-                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
-              >Address</label>
+            </UFormGroup>
+
+            <UFormGroup label="Address" name="address" required>
               <UInput
                 v-model="editingJunkshop.address"
                 size="lg"
@@ -87,18 +82,14 @@
                 id="address"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop address"
-                required
               >
                 <template #leading>
                   <UIcon name="mdi-map-marker" class="text-gray-400"></UIcon>
                 </template>
               </UInput>
-            </div>
-            <div class="flex flex-col gap-2">
-              <label
-                for="contact"
-                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
-              >Contact</label>
+            </UFormGroup>
+
+            <UFormGroup label="Contact" name="contact" required>
               <UInput
                 v-model="editingJunkshop.contact"
                 size="lg"
@@ -106,31 +97,26 @@
                 id="contact"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop contact"
-                required
               >
                 <template #leading>
                   <UIcon name="mdi-phone" class="text-gray-400"></UIcon>
                 </template>
               </UInput>
-            </div>
-            <div class="flex flex-col gap-2">
-              <label
-                for="owner"
-                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
-              >Owner</label>
+            </UFormGroup>
+
+            <UFormGroup label="Owner" name="owner" required>
               <UInputMenu
-                v-model="editingJunkshop.owner"
+                v-model="editingJunkshop.owner.ulid"
                 :options="users.map(user => ({ value: user.ulid, label: user.name }))"
                 placeholder="Select Owner"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                size="lg"
-                required
-              >
+                size="lg">
                 <template #leading>
                   <UIcon name="mdi-account" class="text-gray-400"></UIcon>
                 </template>
               </UInputMenu>
-            </div>
+            </UFormGroup>
+
             <UButton
               type="submit"
               color="teal"
@@ -152,6 +138,7 @@
 
 <script setup>
 import { ref, reactive, nextTick, onMounted } from "vue";
+import { useRouter } from 'vue-router';
 
 const junkshops = ref([]);
 const loadingJunkshops = ref(false);
@@ -161,7 +148,7 @@ const editingJunkshop = reactive({
   name: "",
   address: "",
   contact: "",
-  owner: "", // Add owner field
+  owner: { ulid: "", name: "" }, // Change owner to an object with ulid and name
 });
 const drawerOpenJunkshop = ref(false);
 const isEditingJunkshop = ref(false);
@@ -170,107 +157,137 @@ const junkshopColumns = [
   { key: "name", label: "Name" },
   { key: "address", label: "Address" },
   { key: "contact", label: "Contact" },
-  { key: "owner", label: "Owner" }, // Add owner column
+  { key: "user_id", label: "Owner" }, // Use user_id for owner column
   { key: "actions", label: "Actions" },
 ];
 
+const router = useRouter();
+const toast = useToast();
+
+const getUserName = (ulid) => {
+  const user = users.value.find(user => user.ulid === ulid);
+  return user ? user.name : 'Unknown';
+};
+
 const openAddJunkshopDrawer = () => {
-  Object.assign(editingJunkshop, { ulid: "", name: "", address: "", contact: "", owner: "" });
+  Object.assign(editingJunkshop, { ulid: "", name: "", address: "", contact: "", owner: { ulid: "", name: "" } });
   isEditingJunkshop.value = false;
   drawerOpenJunkshop.value = true;
 };
 
 const editJunkshop = async (junkshop) => {
-  editingJunkshop.ulid = junkshop.ulid;
-  editingJunkshop.name = junkshop.name;
-  editingJunkshop.address = junkshop.address;
-  editingJunkshop.contact = junkshop.contact;
-  editingJunkshop.owner = junkshop.owner;
-  drawerOpenJunkshop.value = true;
-  await nextTick();
   isEditingJunkshop.value = true;
+  drawerOpenJunkshop.value = true;
+
+  await nextTick();
+
+  const ownerName = getUserName(junkshop.user_id);
+
+  // Create a new object with the junkshop data
+  const junkshopData = {
+    ulid: junkshop.ulid,
+    name: junkshop.name,
+    address: junkshop.address,
+    contact: junkshop.contact,
+    owner: {
+      ulid: junkshop.user_id,
+      name: ownerName
+    }
+  };
+
+  // Set the values after the drawer is opened
+  Object.keys(junkshopData).forEach(key => {
+    editingJunkshop[key] = junkshopData[key];
+  });
 };
 
 const cancelEditJunkshop = () => {
-  Object.assign(editingJunkshop, { ulid: "", name: "", address: "", contact: "", owner: "" });
+  Object.assign(editingJunkshop, { ulid: "", name: "", address: "", contact: "", owner: { ulid: "", name: "" } });
   drawerOpenJunkshop.value = false;
 };
 
 const validateJunkshop = (state) => {
   const errors = [];
-  if (!state.name) errors.push({ path: "name", message: "Required" });
-  if (!state.address) errors.push({ path: "address", message: "Required" });
-  if (!state.contact) errors.push({ path: "contact", message: "Required" });
-  if (!state.owner) errors.push({ path: "owner", message: "Required" });
+  if (!state.name?.trim()) errors.push({ path: "name", message: "Name is required" });
+  if (!state.address?.trim()) errors.push({ path: "address", message: "Address is required" });
+  if (!state.contact?.trim()) errors.push({ path: "contact", message: "Contact is required" });
+  if (!state.owner?.ulid) errors.push({ path: "owner", message: "Owner is required" });
+  return errors;
+};
+
+const validateJunkshopData = (data) => {
+  const errors = [];
+  if (!data.name?.trim()) errors.push("Name is required");
+  if (!data.address?.trim()) errors.push("Address is required");
+  if (!data.contact?.trim()) errors.push("Contact is required");
+  if (!data.owner_ulid) errors.push("Owner is required");
   return errors;
 };
 
 const onSubmitJunkshop = async () => {
-  console.log(isEditingJunkshop.value ? "Editing Junkshop:" : "Adding Junkshop:", editingJunkshop); // Debugging line
-  if (isEditingJunkshop.value) {
-    if (!editingJunkshop.ulid) {
-      console.error("Junkshop ULID is undefined");
-      return;
+  try {
+    const ownerUlid = editingJunkshop.owner.ulid?.value || editingJunkshop.owner.ulid;
+
+    const junkshopData = {
+      name: editingJunkshop.name.trim(),
+      address: editingJunkshop.address.trim(),
+      contact: editingJunkshop.contact.trim(),
+      owner_ulid: ownerUlid, // Changed from user_id to owner_ulid to match server expectation
+      description: ""
+    };
+
+    // Add debug logging
+    console.log('Form Data:', editingJunkshop);
+    console.log('Owner ULID:', ownerUlid);
+    console.log('Prepared Data:', junkshopData);
+
+    const errors = validateJunkshopData(junkshopData);
+    if (errors.length > 0) {
+      throw new Error(errors.join(', '));
     }
-    try {
-      await $fetch(`/junkshop/${editingJunkshop.ulid}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          name: editingJunkshop.name,
-          address: editingJunkshop.address,
-          contact: editingJunkshop.contact,
-          owner_ulid: editingJunkshop.owner,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      // Update the junkshop in the local list
-      const index = junkshops.value.findIndex((j) => j.ulid === editingJunkshop.ulid);
-      if (index !== -1) {
-        junkshops.value[index] = { ...editingJunkshop };
+
+    const requestConfig = {
+      method: isEditingJunkshop.value ? 'PUT' : 'POST',
+      body: junkshopData, // $fetch will handle JSON stringification
+      headers: {
+        'Accept': 'application/json'
       }
-      cancelEditJunkshop();
-    } catch (error) {
-      if (error.response && error.response.status === 422) {
-        console.error("Validation error:", error.response.data.errors);
-        alert("Validation error: " + JSON.stringify(error.response.data.errors));
-      } else {
-        console.error("Error updating junkshop:", error);
-        console.error(
-          "Error details:",
-          error.response ? error.response.data : error.message
-        );
-      }
+    };
+
+    if (isEditingJunkshop.value) {
+      junkshopData.ulid = editingJunkshop.ulid;
+      await $fetch(`/junkshop/${editingJunkshop.ulid}`, requestConfig);
+    } else {
+      const response = await $fetch('/junkshop', requestConfig);
+      console.log('Server Response:', response);
     }
-  } else {
-    try {
-      const newJunkshop = await $fetch(`/junkshop`, {
-        method: "POST",
-        body: JSON.stringify({
-          name: editingJunkshop.name,
-          address: editingJunkshop.address,
-          contact: editingJunkshop.contact,
-          owner_ulid: editingJunkshop.owner,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      junkshops.value.push(newJunkshop);
-      cancelEditJunkshop();
-    } catch (error) {
-      if (error.response && error.response.status === 422) {
-        console.error("Validation error:", error.response.data.errors);
-        alert("Validation error: " + JSON.stringify(error.response.data.errors));
-      } else {
-        console.error("Error adding junkshop:", error);
-        console.error(
-          "Error details:",
-          error.response ? error.response.data : error.message
-        );
-      }
+
+    await fetchJunkshops();
+    toast.add({
+      icon: 'i-heroicons-check-circle-20-solid',
+      title: `Junkshop ${isEditingJunkshop.value ? 'updated' : 'added'} successfully`,
+      color: 'emerald'
+    });
+    cancelEditJunkshop();
+
+  } catch (error) {
+    console.error('Error Object:', error);
+    console.error('Response Data:', error.response?._data);
+
+    let message = 'An error occurred';
+    if (error.response?.status === 422) {
+      const serverErrors = error.response._data?.errors || {};
+      message = Object.values(serverErrors).flat().join(', ');
+    } else if (error.message) {
+      message = error.message;
     }
+
+    toast.add({
+      icon: 'i-heroicons-x-circle',
+      title: 'Error',
+      description: message,
+      color: 'red'
+    });
   }
 };
 
@@ -281,10 +298,19 @@ const onErrorJunkshop = (event) => {
 };
 
 const deleteJunkshop = async (junkshopUlid) => {
-  await $fetch(`/junkshop/${junkshopUlid}`, {
-    method: "DELETE",
-  });
-  junkshops.value = junkshops.value.filter((junkshop) => junkshop.ulid !== junkshopUlid);
+  try {
+    await $fetch(`/junkshop/${junkshopUlid}`, {
+      method: "DELETE",
+    });
+    junkshops.value = junkshops.value.filter((junkshop) => junkshop.ulid !== junkshopUlid);
+    toast.add({
+      icon: "i-heroicons-check-circle-20-solid",
+      title: "Junkshop has been deleted successfully.",
+      color: "emerald",
+    });
+  } catch (error) {
+    handleError(error, "deleting junkshop");
+  }
 };
 
 const fetchJunkshops = async () => {
@@ -319,9 +345,22 @@ const fetchUsers = async () => {
   }
 };
 
+const handleError = (error, action) => {
+  if (error.response && error.response.status === 422) {
+    const errors = error.response.data?.errors || {};
+    console.error(`Validation error while ${action}:`, errors);
+    alert(`Validation error: ${JSON.stringify(errors)}`);
+  } else {
+    console.error(`Error ${action}:`, error);
+    console.error(
+      "Error details:",
+      error.response ? error.response.data : error.message
+    );
+  }
+};
+
 onMounted(async () => {
   try {
-
     await fetchUsers();
     await fetchJunkshops();
   } catch (error) {

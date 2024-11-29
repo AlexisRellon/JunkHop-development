@@ -52,13 +52,9 @@
             @submit="onSubmit"
             @error="onError"
             class="space-y-6"
+            autocomplete="off"
           >
-            <div class="flex flex-col gap-2">
-              <label
-                for="name"
-                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Name</label
-              >
+            <UFormGroup label="Name" name="name" required>
               <UInput
                 v-model="editingUser.name"
                 size="lg"
@@ -68,19 +64,14 @@
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="User name"
                 autofocus
-                required
               >
                 <template #leading>
                   <UIcon name="mdi-account" class="text-gray-400"></UIcon>
                 </template>
               </UInput>
-            </div>
-            <div class="flex flex-col gap-2">
-              <label
-                for="email"
-                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Email</label
-              >
+            </UFormGroup>
+
+            <UFormGroup label="Email" name="email" required>
               <UInput
                 v-model="editingUser.email"
                 size="lg"
@@ -88,45 +79,29 @@
                 id="email"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="User email"
-                required
               >
                 <template #leading>
                   <UIcon name="mdi-at" class="text-gray-100" />
                 </template>
               </UInput>
-            </div>
-            <div class="flex flex-col gap-2">
-              <label
-                for="role"
-                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Role</label
-              >
+            </UFormGroup>
+
+            <UFormGroup label="Role" name="role" required>
               <USelect
                 v-model="editingUser.role"
-                value-key="id"
-                label-key="label"
-                :options="[
-                  'admin',
-                  'user',
-                  'junkshop_owner',
-                  'baranggay_admin',
-                ]"
+                :options="roleOptions"
                 placeholder="Choose Role for the user"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 size="lg"
-                required
               >
                 <template #leading>
                   <UIcon name="mdi-account-cog" class="text-gray-400"></UIcon>
                 </template>
               </USelect>
-            </div>
-            <div v-if="!isEditing" class="flex flex-col gap-2">
-              <label
-                for="password"
-                class="relative text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Password</label
-              >
+            </UFormGroup>
+
+            <UFormGroup v-if="!isEditing" label="Password" name="password" hint="min 8 characters"
+            :ui="{ hint: 'text-xs text-gray-500 dark:text-gray-400' }" required>
               <UInput
                 v-model="editingUser.password"
                 size="lg"
@@ -134,27 +109,25 @@
                 id="password"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="User password"
-                required
               >
                 <template #leading>
                   <UIcon name="mdi-lock" class="text-gray-400"></UIcon>
                 </template>
               </UInput>
-            </div>
+            </UFormGroup>
+
             <UButton
               type="submit"
               color="teal"
               variant="solid"
               class="flex justify-center w-full py-2 rounded-md"
-              >{{ isEditing ? "Update" : "Add" }}</UButton
-            >
+            >{{ isEditing ? "Update" : "Add" }}</UButton>
             <UButton
               @click="cancelEdit"
               color="gray"
               variant="outline"
               class="flex justify-center w-full py-2 rounded-md"
-              >Cancel</UButton
-            >
+            >Cancel</UButton>
           </UForm>
         </div>
       </UCard>
@@ -164,6 +137,7 @@
 
 <script setup>
 import { ref, reactive, nextTick, onMounted } from "vue";
+import { useRouter } from 'vue-router';
 
 const users = ref([]);
 const loading = ref(false);
@@ -184,27 +158,71 @@ const userColumns = [
   { key: "actions", label: "Actions" },
 ];
 
+const router = useRouter();
+const toast = useToast();
+
+// Add roleOptions as a constant
+const roleOptions = [
+  'admin',
+  'user',
+  'junkshop_owner',
+  'baranggay_admin',
+];
+
+/**
+ * Edit user details.
+ *
+ * @param {Object} user - The user object to edit.
+ */
 const editUser = async (user) => {
+  console.log('Original user data:', user); // Debug log
+
+  // First set the editing mode and open drawer
+  isEditing.value = true;
+  drawerOpen.value = true;
+
+  await nextTick();
+
+  // Then set the user data
   editingUser.ulid = user.ulid;
   editingUser.name = user.name;
   editingUser.email = user.email;
   editingUser.role = user.role;
-  drawerOpen.value = true;
-  await nextTick();
-  isEditing.value = true;
+  editingUser.password = '';
+
+  console.log('Edited user data:', editingUser); // Debug log
 };
 
+/**
+ * Open the drawer to add a new user.
+ */
 const openAddUserDrawer = () => {
-  Object.assign(editingUser, { ulid: "", name: "", email: "", role: "" });
+  // Reset the form with empty values
+  Object.assign(editingUser, {
+    ulid: '',
+    name: '',
+    email: '',
+    role: '',
+    password: ''
+  });
   isEditing.value = false;
   drawerOpen.value = true;
 };
 
+/**
+ * Cancel the edit operation.
+ */
 const cancelEdit = () => {
   Object.assign(editingUser, { ulid: "", name: "", email: "", role: "" });
   drawerOpen.value = false;
 };
 
+/**
+ * Validate the form state.
+ *
+ * @param {Object} state - The form state to validate.
+ * @returns {Array} - An array of validation errors.
+ */
 const validate = (state) => {
   const errors = [];
   if (!state.name) errors.push({ path: "name", message: "Required" });
@@ -213,91 +231,135 @@ const validate = (state) => {
   return errors;
 };
 
+/**
+ * Handle form submission.
+ */
 const onSubmit = async () => {
-  console.log(isEditing.value ? "Editing User:" : "Adding User:", editingUser); // Debugging line
   if (isEditing.value) {
     if (!editingUser.ulid) {
       console.error("User ULID is undefined");
       return;
     }
     try {
-      await $fetch(`/users/${editingUser.ulid}`, {
+      const updateData = {
+        name: editingUser.name.trim(),
+        email: editingUser.email.trim(),
+        role: editingUser.role, // Include role in the main update
+      };
+
+      console.log('Sending update request with data:', updateData);
+
+      const response = await $fetch(`/users/${editingUser.ulid}`, {
         method: "PUT",
-        body: JSON.stringify({
-          name: editingUser.name,
-          email: editingUser.email,
-          role: editingUser.role,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        body: updateData,
       });
-      // Update the user in the local list
+
+      console.log('Server response:', response);
+
+      // Update local state with the server response data
       const index = users.value.findIndex((u) => u.ulid === editingUser.ulid);
       if (index !== -1) {
-        users.value[index] = { ...editingUser };
+        users.value[index] = { ...users.value[index], ...response.user };
       }
+
+      await fetchUsers();
+
+      toast.add({
+        icon: "i-heroicons-check-circle-20-solid",
+        title: "User has been updated successfully.",
+        color: "emerald",
+      });
+
       cancelEdit();
     } catch (error) {
-      if (error.response && error.response.status === 422) {
-        console.error("Validation error:", error.response.data.errors);
-        alert(
-          "Validation error: " + JSON.stringify(error.response.data.errors)
-        );
-      } else {
-        console.error("Error updating user:", error);
-        console.error(
-          "Error details:",
-          error.response ? error.response.data : error.message
-        );
+      console.error('Update error:', error);
+
+      let errorMessage = 'Failed to update user';
+      if (error.response?.status === 422) {
+        const validationErrors = error.response._data?.errors || {};
+        errorMessage = Object.values(validationErrors).flat().join(', ');
+      } else if (error.response?.status === 403) {
+        errorMessage = 'You do not have permission to update user roles';
       }
+
+      toast.add({
+        icon: "i-heroicons-x-circle",
+        title: "Error",
+        description: errorMessage,
+        color: "red",
+      });
     }
   } else {
     try {
-      const newUser = await $fetch(`/users`, {
+      await $fetch(`/register`, {
         method: "POST",
-        body: JSON.stringify({
+        body: {  // Remove JSON.stringify - $fetch handles this automatically
           name: editingUser.name,
           email: editingUser.email,
-          role: editingUser.role,
-          password: editingUser.password, // Include password
-        }),
-        headers: {
-          "Content-Type": "application/json",
+          password: editingUser.password,
+          password_confirmation: editingUser.password,
+          role: editingUser.role,  // Add role to registration
         },
       });
-      users.value.push(newUser);
+      await fetchUsers();
+      toast.add({
+        icon: "i-heroicons-check-circle-20-solid",
+        title: "User has been added successfully.",
+        color: "emerald",
+      });
       cancelEdit();
     } catch (error) {
       if (error.response && error.response.status === 422) {
-        console.error("Validation error:", error.response.data.errors);
-        alert(
-          "Validation error: " + JSON.stringify(error.response.data.errors)
-        );
+        const errors = error.response.data?.errors || {};
+        console.error(`Validation error while adding user:`, errors);
+        toast.add({
+          icon: "i-heroicons-x-circle-20-solid",
+          title: "Validation Error",
+          description: Object.values(errors).flat().join(", "),
+          color: "red",
+        });
       } else {
-        console.error("Error adding user:", error);
-        console.error(
-          "Error details:",
-          error.response ? error.response.data : error.message
-        );
+        handleError(error, "adding user");
       }
     }
   }
 };
 
+/**
+ * Handle form errors.
+ *
+ * @param {Object} event - The error event.
+ */
 const onError = (event) => {
   const element = document.getElementById(event.errors[0].id);
   element?.focus();
   element?.scrollIntoView({ behavior: "smooth", block: "center" });
 };
 
+/**
+ * Delete a user.
+ *
+ * @param {string} userUlid - The ULID of the user to delete.
+ */
 const deleteUser = async (userUlid) => {
-  await $fetch(`/users/${userUlid}`, {
-    method: "DELETE",
-  });
-  users.value = users.value.filter((user) => user.ulid !== userUlid);
+  try {
+    await $fetch(`/users/${userUlid}`, {
+      method: "DELETE",
+    });
+    users.value = users.value.filter((user) => user.ulid !== userUlid);
+    toast.add({
+      icon: "i-heroicons-check-circle-20-solid",
+      title: "User has been deleted successfully.",
+      color: "emerald",
+    });
+  } catch (error) {
+    handleError(error, "deleting user");
+  }
 };
 
+/**
+ * Fetch the list of users.
+ */
 const fetchUsers = async () => {
   try {
     loading.value = true;
@@ -314,6 +376,27 @@ const fetchUsers = async () => {
     );
   } finally {
     loading.value = false;
+  }
+};
+
+/**
+ * Handle errors during API calls.
+ *
+ * @param {Object} error - The error object.
+ * @param {string} action - The action being performed.
+ */
+
+const handleError = (error, action) => {
+  if (error.response && error.response.status === 422) {
+    const errors = error.response.data?.errors || {};
+    console.error(`Validation error while ${action}:`, errors);
+    alert(`Validation error: ${JSON.stringify(errors)}`);
+  } else {
+    console.error(`Error ${action}:`, error);
+    console.error(
+      "Error details:",
+      error.response ? error.response.data : error.message
+    );
   }
 };
 

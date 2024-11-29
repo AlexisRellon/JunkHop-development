@@ -101,7 +101,7 @@
 <script setup>
 import AdminPanelUserTable from "./admin_panel_user_table.vue";
 import AdminPanelJunkshopTable from "./admin_panel_junkshop_table.vue";
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
@@ -146,29 +146,20 @@ const links = [
   { label: "Junkshops", to: "#", icon: "mdi-home" },
 ];
 
-const fetchDashboardStatistics = async () => {
-  try {
-    const data = await $fetch("/dashboard-statistics", {
-      method: "GET",
-    });
-    totalUsers.value = data.statistics.total_users;
-    activeUsers.value = data.statistics.online_users;
-    totalJunkshops.value = data.statistics.total_junkshops;
-    console.log("Dashboard statistics:", data);
-  } catch (error) {
-    console.error("Error fetching dashboard statistics:", error);
-    console.error(
-      "Error details:",
-      error.response ? error.response.data : error.message
-    );
-  }
+const updateStatistics = () => {
+  const userTable = document.querySelectorAll(".user-table-row");
+  const junkshopTable = document.querySelectorAll(".junkshop-table-row");
+  totalUsers.value = userTable.length;
+  totalJunkshops.value = junkshopTable.length;
+  // Assuming active users are a subset of total users
+  activeUsers.value = userTable.length; // Update this logic as needed
 };
 
-onMounted(async () => {
-  try {
-    await fetchDashboardStatistics();
-  } catch (error) {
-    console.error("Error during mounted hook:", error);
-  }
+onMounted(() => {
+  updateStatistics();
+});
+
+watch([totalUsers, totalJunkshops], () => {
+  updateStatistics();
 });
 </script>
