@@ -148,6 +148,7 @@ const editingJunkshop = reactive({
   name: "",
   address: "",
   contact: "",
+  description: "", // Add description field
   owner: { ulid: "", name: "" }, // Change owner to an object with ulid and name
 });
 const drawerOpenJunkshop = ref(false);
@@ -221,6 +222,8 @@ const validateJunkshopData = (data) => {
   if (!data.address?.trim()) errors.push("Address is required");
   if (!data.contact?.trim()) errors.push("Contact is required");
   if (!data.owner_ulid) errors.push("Owner is required");
+  if (data.contact?.length > 20) errors.push("Contact must not exceed 20 characters");
+  if (data.description?.length > 1000) errors.push("Description must not exceed 1000 characters");
   return errors;
 };
 
@@ -233,7 +236,7 @@ const onSubmitJunkshop = async () => {
       address: editingJunkshop.address.trim(),
       contact: editingJunkshop.contact.trim(),
       owner_ulid: ownerUlid, // Changed from user_id to owner_ulid to match server expectation
-      description: ""
+      description: editingJunkshop.description?.trim() || "", // Handle description
     };
 
     // Add debug logging

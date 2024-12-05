@@ -1,43 +1,58 @@
 <template>
   <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
     <!-- Sidebar -->
-    <div class="w-64 bg-white shadow-lg dark:bg-gray-800">
-      <div class="p-6">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Admin Panel
-        </h1>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Manage your users from here.
-        </p>
+    <div
+      class="flex flex-col justify-between w-64 py-8 bg-white shadow-lg dark:bg-gray-800"
+    >
+      <div>
+        <div class="p-6">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Admin Panel
+          </h1>
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Manage your users from here.
+          </p>
+        </div>
+        <UDivider />
+        <h3
+          class="px-6 py-2 text-lg font-semibold text-gray-700 dark:text-gray-300"
+        >
+          Navigation
+        </h3>
+        <UVerticalNavigation
+          :links="links"
+          :ui="{
+            wrapper: 'border-s border-gray-200 dark:border-gray-800 space-y-2',
+            base: 'flex items-center gap-3 h-12 group border-s -ms-px leading-6 before:hidden',
+            padding: 'p-0 ps-4',
+            rounded: '',
+            size: 'text-md',
+            ring: '',
+            active:
+              'hover:bg-teal-600/20 text-primary-600 dark:text-primary-500 border-current font-semibold',
+            inactive:
+              'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300/20 hover:border-primary-500 dark:hover:border-primary-600/50 text-gray-700 hover:text-primary-800 dark:text-gray-400 dark:hover:text-primary-400',
+            icon: 'group-hover:text-primary-500 dark:group-hover:text-primary-400',
+          }"
+        />
       </div>
-      <UDivider />
-      <h3 class="px-6 py-2 text-lg font-semibold text-gray-700 dark:text-gray-300">
-        Navigation
-      </h3>
-      <UVerticalNavigation
-        :links="links"
-        :ui="{
-          wrapper: 'border-s border-gray-200 dark:border-gray-800 space-y-2',
-          base: 'flex items-center gap-3 h-12 group border-s -ms-px leading-6 before:hidden',
-          padding: 'p-0 ps-4',
-          rounded: '',
-          size: 'text-md',
-          ring: '',
-          active:
-            'hover:bg-teal-600/20 text-primary-600 dark:text-primary-500 border-current font-semibold',
-          inactive:
-            'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300/20 hover:border-primary-500 dark:hover:border-primary-600/50 text-gray-700 hover:text-primary-800 dark:text-gray-400 dark:hover:text-primary-400',
-          icon: 'group-hover:text-primary-500 dark:group-hover:text-primary-400',
-        }"
+      <UButton
+        class="flex items-center gap-2 px-6 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
+        icon="i-heroicons-arrow-left-on-rectangle"
+        to="/"
+        label="Go Back"
+        :trailing="false"
+        color="teal"
+        variant="ghost"
+        size="lg"
+        :class="{'rounded-none hover:bg-gray-200 dark:hover:bg-gray-700' : true}"
       />
     </div>
 
     <!-- Main Content -->
     <div class="flex-1 p-8 overflow-y-auto">
       <!-- Header with Avatar and Dropdown -->
-      <header
-        class="flex items-center justify-end gap-4 p-4 "
-      >
+      <header class="flex items-center justify-end gap-4 p-4">
         <p>Welcome, {{ auth.user.name }}</p>
         <UDropdown
           :items="userItems"
@@ -56,10 +71,11 @@
         <!-- Card 1 -->
         <UCard
           class="relative p-6 text-white rounded-lg shadow-lg bg-gradient-to-r from-indigo-500 to-indigo-400 dark:from-indigo-600 dark:to-indigo-400"
+          :class="{'h-[11rem]' : true}"
         >
           <UIcon
             name="mdi-account-group"
-            class="absolute h-24 text-indigo-900 top-4 right-4 opacity-20 md:text-6xl"
+            class="absolute h-24 text-indigo-900 top-[2rem] right-4 opacity-20 md:text-6xl"
             style="font-size: 5.5rem"
           />
           <h3 class="text-2xl font-bold">Total Users</h3>
@@ -68,10 +84,11 @@
         <!-- Card 2 -->
         <UCard
           class="relative p-6 text-white rounded-lg shadow-lg bg-gradient-to-r from-teal-500 to-teal-400 dark:from-teal-600 dark:to-teal-400"
+          :class="{'h-[11rem]' : true}"
         >
           <UIcon
             name="mdi-account-check"
-            class="absolute h-24 text-teal-900 top-4 right-4 opacity-20 md:text-6xl"
+            class="absolute h-24 text-teal-900 top-[2rem] right-4 opacity-20 md:text-6xl"
             style="font-size: 5.5rem"
           />
           <h3 class="text-2xl font-bold">Active Users</h3>
@@ -80,10 +97,11 @@
         <!-- Card 3 -->
         <UCard
           class="relative p-6 text-white rounded-lg shadow-lg bg-gradient-to-r from-amber-500 to-amber-400 dark:from-amber-600 dark:to-amber-400"
+          :class="{'h-[11rem]' : true}"
         >
           <UIcon
             name="mdi-home"
-            class="absolute h-24 top-4 right-4 text-amber-900 opacity-20 md:text-6xl"
+            class="absolute h-24 text-amber-900 top-[2rem] right-4 opacity-20 md:text-6xl"
             style="font-size: 5.5rem"
           />
           <h3 class="text-2xl font-bold">Total Junkshop Listed</h3>
@@ -116,22 +134,19 @@ const isDarkMode = ref(true);
 const userItems = computed(() => [
   [
     {
-      label: isDarkMode.value ? "Light Mode" : "Dark Mode",
-      icon: "i-heroicons-moon-20-solid",
+      label: !isDarkMode.value ? "Light Mode" : "Dark Mode",
+      icon: isDarkMode.value ? "i-heroicons-moon-20-solid" : "i-heroicons-sun-20-solid",
       type: "checkbox",
       checked: isDarkMode.value,
       click: () => {
         isDarkMode.value = !isDarkMode.value;
         document.documentElement.classList.toggle("dark");
+
+        router.push("/");
       },
     },
   ],
   [
-    {
-      label: "Go Back",
-      to: "/",
-      icon: "i-heroicons-arrow-left-on-rectangle",
-    },
     {
       label: "Sign out",
       click: auth.logout,
@@ -141,18 +156,19 @@ const userItems = computed(() => [
 ]);
 
 const links = [
-  { label: "Dashboard", to: "#", icon: "mdi-view-dashboard" },
-  { label: "Users", to: "#", icon: "mdi-account-group" },
-  { label: "Junkshops", to: "#", icon: "mdi-home" },
+  { label: "Dashboard", to: "/dashboard", icon: "mdi-view-dashboard" },
+  { label: "Users", to: "/dashboard/users", icon: "mdi-account-group" },
+  { label: "Junkshops", to: "/dashboard/junkshop", icon: "mdi-home" },
+  { label: "API Documentation", to: "/dashboard/api", icon: "mdi-api" },
 ];
 
 const updateStatistics = () => {
   const userTable = document.querySelectorAll(".user-table-row");
   const junkshopTable = document.querySelectorAll(".junkshop-table-row");
-  totalUsers.value = userTable.length;
-  totalJunkshops.value = junkshopTable.length;
+  totalUsers.value = userTable.length || 6;
+  totalJunkshops.value = junkshopTable.length || 10;
   // Assuming active users are a subset of total users
-  activeUsers.value = userTable.length; // Update this logic as needed
+  activeUsers.value = userTable.length || 2; // Update this logic as needed
 };
 
 onMounted(() => {

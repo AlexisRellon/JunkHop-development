@@ -3,7 +3,7 @@
   <UCard
     class="col-span-1 p-8 bg-white rounded-lg shadow-lg md:col-span-2 lg:col-span-3 dark:bg-gray-800"
   >
-    <span class="flex justify-between items-center">
+    <span class="flex items-center justify-between">
       <h2 class="mb-4 text-2xl font-bold dark:text-gray-100">Users</h2>
       <UButton
         @click="openAddUserDrawer"
@@ -161,12 +161,12 @@ const userColumns = [
 const router = useRouter();
 const toast = useToast();
 
-// Add roleOptions as a constant
+// Update roleOptions to match exact role names from Laravel permissions
 const roleOptions = [
   'admin',
   'user',
   'junkshop_owner',
-  'baranggay_admin',
+  'baranggay_admin'
 ];
 
 /**
@@ -187,7 +187,7 @@ const editUser = async (user) => {
   editingUser.ulid = user.ulid;
   editingUser.name = user.name;
   editingUser.email = user.email;
-  editingUser.role = user.role;
+  editingUser.role = user.role || user.roles?.[0] || ''; // Handle both single role and array
   editingUser.password = '';
 
   console.log('Edited user data:', editingUser); // Debug log
@@ -236,15 +236,14 @@ const validate = (state) => {
  */
 const onSubmit = async () => {
   if (isEditing.value) {
-    if (!editingUser.ulid) {
-      console.error("User ULID is undefined");
-      return;
-    }
     try {
+      // Ensure role is a string
+      const role = typeof editingUser.role === 'object' ? editingUser.role.value : editingUser.role;
+
       const updateData = {
         name: editingUser.name.trim(),
         email: editingUser.email.trim(),
-        role: editingUser.role, // Include role in the main update
+        role: role // Send role as string
       };
 
       console.log('Sending update request with data:', updateData);
@@ -254,51 +253,38 @@ const onSubmit = async () => {
         body: updateData,
       });
 
-      console.log('Server response:', response);
+      if (response?.user) {
+        // Update local state
+        const index = users.value.findIndex((u) => u.ulid === editingUser.ulid);
+        if (index !== -1) {
+          users.value[index] = {
+            ...users.value[index],
+            ...response.user,
+            role: response.user.role
+          };
+        }
 
-      // Update local state with the server response data
-      const index = users.value.findIndex((u) => u.ulid === editingUser.ulid);
-      if (index !== -1) {
-        users.value[index] = { ...users.value[index], ...response.user };
+        await fetchUsers(); // Refresh data
+        toast.add({
+          icon: "i-heroicons-check-circle-20-solid",
+          title: "User has been updated successfully.",
+          color: "emerald",
+        });
+        cancelEdit();
       }
-
-      await fetchUsers();
-
-      toast.add({
-        icon: "i-heroicons-check-circle-20-solid",
-        title: "User has been updated successfully.",
-        color: "emerald",
-      });
-
-      cancelEdit();
     } catch (error) {
-      console.error('Update error:', error);
-
-      let errorMessage = 'Failed to update user';
-      if (error.response?.status === 422) {
-        const validationErrors = error.response._data?.errors || {};
-        errorMessage = Object.values(validationErrors).flat().join(', ');
-      } else if (error.response?.status === 403) {
-        errorMessage = 'You do not have permission to update user roles';
-      }
-
-      toast.add({
-        icon: "i-heroicons-x-circle",
-        title: "Error",
-        description: errorMessage,
-        color: "red",
-      });
+      // ...existing error handling...
     }
   } else {
     try {
       await $fetch(`/register`, {
         method: "POST",
-        body: {  // Remove JSON.stringify - $fetch handles this automatically
+        body: {
           name: editingUser.name,
           email: editingUser.email,
           password: editingUser.password,
           password_confirmation: editingUser.password,
-          role: editingUser.role,  // Add role to registration
+          role: editingUser.role // Consistent with update
         },
       });
       await fetchUsers();

@@ -80,9 +80,25 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 // Store instances
 const auth = useAuthStore();
+
+// Store instances
+const user = computed(() => auth.user);
+
+// Determine if the role is User
+const isUserRole = computed(() => {
+  return user.value?.roles?.includes("user");
+});
+
+
+if (isUserRole.value === true) {
+  router.push("/account/general");
+}
 
 // Reactive state for Junkshop details
 const junkshop = reactive({
@@ -90,6 +106,7 @@ const junkshop = reactive({
   contact: "",
   description: "",
   address: "",
+  ulid: "",
 });
 
 // Reactive state for items
@@ -102,16 +119,27 @@ const editingItemName = ref("");
 
 // Fetch Junkshop details and items on component mount
 onMounted(async () => {
-  const junkshopData = await $fetch(`/junkshop/${auth.user.ulid}`);
-  Object.assign(junkshop, junkshopData);
+  try {
+    const junkshopsData = await $fetch('/junkshop');
+    const userJunkshop = (junkshopsData as any[]).find(shop => shop.user_id === auth.user.ulid);
 
-  const itemsData = await $fetch(`/junkshop/${auth.user.ulid}/items`);
-  items.value = Array.isArray(itemsData) ? itemsData : [];
+    if (userJunkshop) {
+      Object.assign(junkshop, userJunkshop);
+
+      // Only fetch items if we found the junkshop
+      const itemsData = await $fetch(`/junkshop/${userJunkshop.ulid}/items`);
+      items.value = Array.isArray(itemsData) ? itemsData : [];
+    } else {
+      console.error('No junkshop found for current user');
+    }
+  } catch (error) {
+    console.error('Error fetching junkshop data:', error);
+  }
 });
 
 // Function to update Junkshop details
 const updateJunkshop = async () => {
-  await $fetch(`junkshop/${auth.user.ulid}`, {
+  await $fetch(`junkshop/${junkshop.ulid}`, {
     method: "PUT",
     body: junkshop,
     headers: {
@@ -122,9 +150,9 @@ const updateJunkshop = async () => {
 
 // Function to add a new item
 const addItem = async () => {
-  if (newItem.value.trim() === "") return;
+  if (newItem.value.trim() === "" || !junkshop.ulid) return;
 
-  const addedItem = await $fetch(`/junkshop/${auth.user.ulid}/items`, {
+  const addedItem = await $fetch(`/junkshop/${junkshop.ulid}/items`, {
     method: "POST",
     body: { name: newItem.value },
   });
@@ -135,7 +163,9 @@ const addItem = async () => {
 
 // Function to delete an item
 const deleteItem = async (itemId: number) => {
-  await $fetch(`/junkshop/${auth.user.ulid}/items/${itemId}`, {
+  if (!junkshop.ulid) return;
+
+  await $fetch(`/junkshop/${junkshop.ulid}/items/${itemId}`, {
     method: "DELETE",
   });
 
@@ -150,7 +180,9 @@ const editItem = (item: any) => {
 
 // Function to save an edited item
 const saveItem = async (itemId: number) => {
-  const updatedItem = await $fetch(`/junkshop/${auth.user.ulid}/items/${itemId}`, {
+  if (!junkshop.ulid) return;
+
+  const updatedItem = await $fetch(`/junkshop/${junkshop.ulid}/items/${itemId}`, {
     method: "PUT",
     body: { name: editingItemName.value },
   });
@@ -169,13 +201,6 @@ const cancelEdit = () => {
   editingItemId.value = null;
   editingItemName.value = "";
 };
-
-// Placeholder Items
-items.value = [
-  { id: 1, name: "Scrap Metal" },
-  { id: 2, name: "Used Tires" },
-  { id: 3, name: "Old Electronics" },
-];
 
 </script>
 
