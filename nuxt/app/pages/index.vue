@@ -27,7 +27,8 @@ useSeoMeta({
 });
 
 /* Text Animation */
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
 
 /**
  * Reactive reference for waste collected value.
@@ -62,7 +63,13 @@ const communityParticipationElement = ref(null);
 /**
  * Object to track if animations are done for each metric.
  */
-let animationDone = {
+interface AnimationState {
+  wasteCollected: boolean;
+  recyclingRate: boolean;
+  communityParticipation: boolean;
+}
+
+let animationDone: AnimationState = {
   wasteCollected: false,
   recyclingRate: false,
   communityParticipation: false,
@@ -99,19 +106,19 @@ function handleIntersection(entries) {
         entry.target === wasteCollectedElement.value &&
         !animationDone.wasteCollected
       ) {
-        animateValue(wasteCollected, 0, 1234, 2000);
+        animateValue(wasteCollected, 0, 500, 2000); // More conservative estimate
         animationDone.wasteCollected = true;
       } else if (
         entry.target === recyclingRateElement.value &&
         !animationDone.recyclingRate
       ) {
-        animateValue(recyclingRate, 0, 75, 2000);
+        animateValue(recyclingRate, 0, 45, 2000); // Initial phase estimate
         animationDone.recyclingRate = true;
       } else if (
         entry.target === communityParticipationElement.value &&
         !animationDone.communityParticipation
       ) {
-        animateValue(communityParticipation, 0, 5678, 2000);
+        animateValue(communityParticipation, 0, 1000, 2000); // Current user base
         animationDone.communityParticipation = true;
       }
     }
@@ -123,7 +130,7 @@ function handleIntersection(entries) {
  */
 onMounted(() => {
   const observer = new IntersectionObserver(handleIntersection, {
-    threshold: 0.1,
+    threshold: 1,
   });
 
   if (wasteCollectedElement.value) {
@@ -147,8 +154,8 @@ onMounted(() => {
       style="
         background: linear-gradient(
             to bottom,
-            rgba(0, 0, 0, 0.25),
-            rgba(0, 0, 0, 0.5)
+            rgba(0, 0, 0, 0.3),
+            rgba(0, 0, 0, 0.6)
           ),
           url('hero-image.jpg');
         background-size: cover;
@@ -157,12 +164,11 @@ onMounted(() => {
     ></div>
     <div class="container mx-auto text-center">
       <h1 class="mb-4 text-5xl font-bold text-white dark:text-white">
-        Empowering Communities for a
-        <span class="text-teal-300">Cleaner Tomorrow</span>
+        Connect with Local Junk Shops
+        <span class="text-teal-300">Easily</span>
       </h1>
       <p class="mb-8 text-xl text-white">
-        Join us in creating sustainable cities through smart waste management
-        and community engagement.
+        Find nearby junk shops, manage your recycling activities, and track your environmental impact
       </p>
       <div class="flex justify-center gap-5">
         <UButton
@@ -181,50 +187,42 @@ onMounted(() => {
       </div>
     </div>
   </section>
-  <ClientOnly> </ClientOnly>
-
   <ClientOnly>
     <section id="details-section" class="py-20 bg-gray-100 overview dark:bg-gray-800">
       <div class="container px-4 mx-auto">
         <h2 class="mb-8 text-4xl font-bold text-center text-teal-500">
-          About CleanSnap
+          About JunkHop
         </h2>
         <p class="mb-12 text-xl text-center">
-          CleanSnap helps communities report waste, find recycling resources,
-          and contribute to sustainability. Our goal is to create sustainable
-          cities through smart waste management and community engagement.
+          A platform that bridges the gap between residents and junk shops, making recycling more accessible and organized.
         </p>
         <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div class="text-center feature">
             <UIcon
-              name="mdi-report"
+              name="i-heroicons-map-pin"
               class="mx-auto mb-4 text-teal-500"
               size="48"
             />
-            <h3 class="mb-2 text-2xl font-semibold">Real-Time Reporting</h3>
-            <p>Residents report waste issues directly to local authorities.</p>
+            <h3 class="mb-2 text-2xl font-semibold">Find Junk Shops</h3>
+            <p>Discover verified junk shops in your vicinity</p>
           </div>
           <div class="text-center feature">
             <UIcon
-              name="mdi-chart-bar"
+              name="i-heroicons-user-circle"
               class="mx-auto mb-4 text-teal-500"
               size="48"
             />
-            <h3 class="mb-2 text-2xl font-semibold">Data Analytics</h3>
-            <p>
-              Cities optimize resources through insights on waste collection.
-            </p>
+            <h3 class="mb-2 text-2xl font-semibold">User Profiles</h3>
+            <p>Manage your account</p>
           </div>
           <div class="text-center feature">
             <UIcon
-              name="mdi-account-group"
+              name="i-heroicons-building-storefront"
               class="mx-auto mb-4 text-teal-500"
               size="48"
             />
-            <h3 class="mb-2 text-2xl font-semibold">Community Engagement</h3>
-            <p>
-              Tools for community involvement and environmental impact tracking.
-            </p>
+            <h3 class="mb-2 text-2xl font-semibold">Junk Shop Management</h3>
+            <p>For shop owners to manage their business profile</p>
           </div>
         </div>
       </div>
@@ -237,18 +235,6 @@ onMounted(() => {
       <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         <div class="text-center feature">
           <UIcon
-            name="mdi-account-circle"
-            class="mx-auto mb-4 text-teal-500"
-            size="48"
-          />
-          <h3 class="mb-2 text-2xl font-semibold">User Dashboard</h3>
-          <p>
-            Quick Access: Displays rewards, badges, and environmental stats.
-          </p>
-          <p>Leaderboard: User’s ranking based on recycled items.</p>
-        </div>
-        <div class="text-center feature">
-          <UIcon
             name="mdi-map-marker"
             class="mx-auto mb-4 text-teal-500"
             size="48"
@@ -259,7 +245,7 @@ onMounted(() => {
             details.
           </p>
           <p>
-            Shop Profiles: Shop details, including accepted items, pricing, and
+            Shop Profiles: Shop details, including accepted items, and
             reviews.
           </p>
         </div>
@@ -295,32 +281,32 @@ onMounted(() => {
       <div class="grid grid-cols-1 gap-8 text-center md:grid-cols-3">
         <div class="step">
           <UIcon
-            name="mdi-account-plus"
-            class="mx-auto mb-4 text-teal-500 animate-bounce"
+            name="i-heroicons-user-circle"
+            class="mx-auto mb-4 text-teal-500 animate-pulse"
             size="48"
           />
-          <h3 class="mb-2 text-2xl font-semibold">Step 1</h3>
-          <p>Sign up and log in to access personalized features.</p>
+          <h3 class="mb-2 text-2xl font-semibold">Create Account</h3>
+          <p>Register as a user or junk shop owner to access the platform.</p>
         </div>
         <div class="step">
           <UIcon
-            name="mdi-recycle"
-            class="mx-auto mb-4 text-teal-500 animate-spin"
+            name="i-heroicons-map-pin"
+            class="mx-auto mb-4 text-teal-500 animate-bounce"
             size="48"
           />
-          <h3 class="mb-2 text-2xl font-semibold">Step 2</h3>
+          <h3 class="mb-2 text-2xl font-semibold">Find & Connect</h3>
           <p>
-            Report waste issues, track activities, and find recycling options.
+            Locate nearby junk shops or list your shop for others to find.
           </p>
         </div>
         <div class="step">
           <UIcon
-            name="mdi-trophy"
+            name="i-heroicons-building-storefront"
             class="mx-auto mb-4 text-teal-500 animate-pulse"
             size="48"
           />
-          <h3 class="mb-2 text-2xl font-semibold">Step 3</h3>
-          <p>Earn rewards, badges, and monitor your environmental impact.</p>
+          <h3 class="mb-2 text-2xl font-semibold">Manage Profile</h3>
+          <p>Update your profile and manage your shop information.</p>
         </div>
       </div>
     </div>
@@ -363,55 +349,37 @@ onMounted(() => {
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
           <div class="testimonial">
             <p class="italic">
-              "CleanSnap has transformed our city's waste management. The
+              "JunkHop has transformed our city's waste management. The
               community is more engaged than ever!"
             </p>
             <p class="mt-4 font-bold">- City Official</p>
           </div>
           <div class="testimonial">
             <p class="italic">
-              "Thanks to CleanSnap, I've been able to track my recycling efforts
+              "Thanks to JunkHop, I've been able to track my recycling efforts
               and make a real impact."
             </p>
             <p class="mt-4 font-bold">- Happy User</p>
           </div>
         </div>
       </div>
-      <div class="mt-12 leaderboard-preview">
-        <h3 class="mb-8 text-3xl font-semibold text-center">
-          Top Contributors
-        </h3>
-        <div class="grid grid-cols-1 gap-8 text-center md:grid-cols-3">
-          <div class="contributor">
-            <p class="text-2xl font-bold">User123</p>
-            <p class="text-teal-500">500 Points</p>
-          </div>
-          <div class="contributor">
-            <p class="text-2xl font-bold">EcoWarrior</p>
-            <p class="text-teal-500">450 Points</p>
-          </div>
-          <div class="contributor">
-            <p class="text-2xl font-bold">GreenThumb</p>
-            <p class="text-teal-500">400 Points</p>
-          </div>
-        </div>
-      </div>
+
     </div>
   </section>
 
   <section
     id="join-movement"
-    class="py-20 text-white bg-teal-500 join-movement"
+    class="py-20 text-white bg-teal-600 dark:bg-teal-700 join-movement"
   >
     <div class="container px-4 mx-auto text-center">
       <h2 class="mb-8 text-4xl font-bold">Join the Movement</h2>
       <p class="mb-8 text-xl">
-        Become part of the CleanSnap community and make a positive impact on the
+        Become part of the JunkHop community and make a positive impact on the
         environment.
       </p>
       <UButton
         label="Get Started"
-        @click="router.push('/auth/register')"
+        to="/auth/register"
         color="white"
         variant="outline"
         size="xl"
@@ -433,3 +401,11 @@ onMounted(() => {
     </div>
   </section>
 </template>
+
+<style>
+.hero-image {
+  background-size: cover !important;
+  background-position: center !important;
+  filter: saturate(1.2);
+}
+</style>

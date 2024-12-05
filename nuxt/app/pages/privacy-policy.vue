@@ -11,7 +11,7 @@
           Introduction
         </h2>
         <p class="leading-relaxed text-gray-700 dark:text-gray-300">
-          Welcome to CleanSnap. This Privacy Policy explains how we collect, use, and protect your personal information when you use our platform for waste management, analytics, and real-time reporting.
+          Welcome to JunkHop. This Privacy Policy explains how we collect, use, and protect your personal information when you use our platform for waste management, analytics, and real-time reporting.
         </p>
       </section>
 
@@ -49,7 +49,7 @@
           Data Sharing and Protection
         </h2>
         <p class="leading-relaxed text-gray-700 dark:text-gray-300">
-          CleanSnap does not sell or trade your personal data to third parties. Data is only shared with authorized entities, such as barangay officials and junk shop owners, to facilitate system operations. All data transmissions are encrypted using SSL/TLS protocols, and user accounts are protected through secure authentication methods.
+          JunkHop does not sell or trade your personal data to third parties. Data is only shared with authorized entities, such as barangay officials and junk shop owners, to facilitate system operations. All data transmissions are encrypted using SSL/TLS protocols, and user accounts are protected through secure authentication methods.
         </p>
       </section>
 
@@ -72,7 +72,7 @@
           Changes to This Privacy Policy
         </h2>
         <p class="leading-relaxed text-gray-700 dark:text-gray-300">
-          CleanSnap may update this Privacy Policy as necessary to reflect changes in the system or regulatory requirements. Users will be notified of any updates via the platform, with the effective date clearly indicated.
+          JunkHop may update this Privacy Policy as necessary to reflect changes in the system or regulatory requirements. Users will be notified of any updates via the platform, with the effective date clearly indicated.
         </p>
       </section>
     </div>
