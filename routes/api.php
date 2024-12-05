@@ -48,6 +48,7 @@ Route::prefix('api/v1')->group(function () {
         Route::get('junkshop/{ulid}', [JunkshopController::class, 'show'])->name('junkshop.show');
         Route::put('junkshop/{ulid}', [JunkshopController::class, 'update'])->name('junkshop.update');
         Route::post('junkshop', [JunkshopController::class, 'store'])->name('junkshop.store');
+        Route::delete('junkshop/{ulid}', [JunkshopController::class, 'destroy'])->name('junkshop.destroy');
 
         // Item routes
         Route::get('junkshop/{ulid}/items', [ItemController::class, 'index'])->name('items.index');
@@ -69,7 +70,7 @@ Route::prefix('api/v1')->group(function () {
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    // User routes with clean path definitions
+    // These routes use Sanctum which internally uses web guard
     Route::get('/users', [UserController::class, 'index']);
     Route::put('/users/{ulid}', [UserController::class, 'update']);
     Route::delete('/users/{ulid}', [UserController::class, 'destroy']);
