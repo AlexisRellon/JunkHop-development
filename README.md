@@ -1,4 +1,5 @@
 # JunkHop Development
+**JunkHop: A Digital Solution for Sustainable Waste Management and Community Recycling**
 
 <!-- TOC -->
 ### Table of Contents
