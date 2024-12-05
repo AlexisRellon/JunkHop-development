@@ -31,13 +31,6 @@ class UserController extends Controller
         $user = User::where('ulid', $ulid)->firstOrFail();
 
         try {
-            // Check if user has admin role before allowing role updates
-            if (isset($request->role) && !Auth::user()->hasRole('admin')) {
-                return response()->json([
-                    'message' => 'Only administrators can update user roles'
-                ], 403);
-            }
-
             $validated = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'email' => [
@@ -45,7 +38,7 @@ class UserController extends Controller
                     'email',
                     Rule::unique('users')->ignore($user->id)
                 ],
-                'role' => ['sometimes', Rule::in(['admin', 'user', 'junkshop_owner', 'baranggay_admin'])]
+                'role' => ['sometimes', 'string', Rule::in(['admin', 'user', 'junkshop_owner', 'baranggay_admin'])]
             ]);
 
             $user->update([
@@ -53,18 +46,22 @@ class UserController extends Controller
                 'email' => $validated['email'],
             ]);
 
-            if (isset($validated['role']) && Auth::user()->hasRole('admin')) {
-                $role = Role::findByName($validated['role']);
-                $user->syncRoles([$role]);
+            if (isset($validated['role'])) {
+                // Find or create role with web guard
+                $role = Role::firstOrCreate(
+                    ['name' => $validated['role'], 'guard_name' => 'web']
+                );
+
+                // Sync the role
+                $user->syncRoles([$role->name]);
             }
 
-            $user->refresh();
-            
+            // Return updated user with role
             return response()->json([
                 'message' => 'User updated successfully',
                 'user' => array_merge(
-                    $user->toArray(),
-                    ['role' => $user->getRoleNames()->first() ?? 'user']
+                    $user->fresh()->toArray(),
+                    ['role' => $user->getRoleNames()->first()]
                 )
             ]);
 
@@ -72,7 +69,7 @@ class UserController extends Controller
             Log::error('Error updating user: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Error updating user',
-                'errors' => method_exists($e, 'errors') ? $e->errors() : [$e->getMessage()]
+                'errors' => [$e->getMessage()]
             ], 422);
         }
     }

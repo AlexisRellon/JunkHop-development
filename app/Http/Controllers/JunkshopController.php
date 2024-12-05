@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Junkshop;
 use App\Models\User;
+use App\Models\JunkshopItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -92,6 +93,46 @@ class JunkshopController extends Controller
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
         $junkshop->delete();
 
-        return response()->json(['message' => 'Junkshop deleted successfully']);
+        return response()->json(['message' => 'Junkshop deleted successfully'], 200);
+    }
+
+    /**
+     * Display the items of the specified Junkshop.
+     */
+    public function items($ulid)
+    {
+        $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
+        return response()->json($junkshop->items);
+    }
+
+    public function addItem(Request $request, $ulid)
+    {
+        $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
+
+        $item = $junkshop->items()->create([
+            'name' => $request->name,
+        ]);
+
+        return response()->json($item);
+    }
+
+    public function updateItem(Request $request, $ulid, $itemId)
+    {
+        $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
+        $item = $junkshop->items()->findOrFail($itemId);
+
+        $item->update([
+            'name' => $request->name,
+        ]);
+
+        return response()->json($item);
+    }
+
+    public function deleteItem($ulid, $itemId)
+    {
+        $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
+        $junkshop->items()->findOrFail($itemId)->delete();
+
+        return response()->json(['message' => 'Item deleted']);
     }
 }
