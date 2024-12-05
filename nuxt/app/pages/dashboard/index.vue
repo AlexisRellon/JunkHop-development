@@ -1,19 +1,38 @@
 <template>
-  <div class="overflow-x-hidden">
-    <div
-      class="bg-no-repeat parallax"
-      :style="{ backgroundPositionY: `${scrollY * 0.5 - 350}px` }"
-    ></div>
-    <div
-      class="relative w-screen bg-white h-[50vh] -z-0"
-    >
-
-    </div>
+  <div v-if="isAdminUser">
+    <AppAdminPanel />
+  </div>
+  <div v-else>
+    <AppJunkshopPanel />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+const authStore = useAuthStore();
+const router = useRouter();
+
+// Ensure authStore is reactive
+const user = computed(() => authStore.user);
+
+// Determine if the user role is admin
+const isAdminUser = computed(() => {
+  return user.value?.roles?.includes("admin");
+});
+
+// Determine if the user role is user
+const isUser = computed(() => {
+  return user.value?.roles?.includes("user");
+});
+
+// If the role is user, redirect to /account/general
+onMounted(() => {
+  if (isUser.value === true) {
+    router.push("/account/general");
+  }
+});
 
 const scrollY = ref(0);
 
