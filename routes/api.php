@@ -25,6 +25,13 @@ Route::prefix('api/v1')->group(function () {
     Route::post('verification-notification', [AuthController::class, 'verificationNotification'])->middleware('throttle:verification-notification')->name('verification.send');
     Route::get('verify-email/{ulid}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
+    // Mailer Preview
+    Route::get('/mail-preview', function () {
+        $user = App\Models\User::first();
+        $notification = new App\Notifications\CustomVerifyEmail;
+        return $notification->toMail($user);
+    });
+
     // Dashboard endpoint
     Route::get('/dashboard-statistics', [DashboardController::class, 'getStatistics']);
 
