@@ -78,11 +78,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const toast = useToast();
 
 // Store instances
 const auth = useAuthStore();
@@ -95,10 +96,12 @@ const isUserRole = computed(() => {
   return user.value?.roles?.includes("user");
 });
 
-
 if (isUserRole.value === true) {
   router.push("/account/general");
 }
+
+// Loading states
+const isLoading = ref(false);
 
 // Reactive state for Junkshop details
 const junkshop = reactive({
@@ -107,6 +110,7 @@ const junkshop = reactive({
   description: "",
   address: "",
   ulid: "",
+  owner_ulid: "",
 });
 
 // Reactive state for items
@@ -117,59 +121,235 @@ const newItem = ref("");
 const editingItemId = ref<number | null>(null);
 const editingItemName = ref("");
 
+// Define proper interface for the junkshop response
+interface JunkshopResponse {
+  ulid: string;
+  name: string;
+  contact: string;
+  description: string;
+  address: string;
+  user_id: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // Fetch Junkshop details and items on component mount
 onMounted(async () => {
   try {
-    const junkshopsData = await $fetch('/junkshop');
-    const userJunkshop = (junkshopsData as any[]).find(shop => shop.user_id === auth.user.ulid);
+    isLoading.value = true;
+    console.log("Fetching junkshop data...");
+
+    const junkshopsData = await $fetch<any[]>('/junkshop', {
+      headers: {
+        Authorization: `Bearer ${auth.token}`
+      }
+    });
+
+    console.log("Junkshops data received:", junkshopsData);
+
+    // Match using user_id instead of owner_ulid (field name mismatch)
+    const userJunkshop = Array.isArray(junkshopsData)
+      ? junkshopsData.find(shop => shop.user_id === auth.user.ulid)
+      : null;
+
+    console.log("Current user ULID:", auth.user.ulid);
+    console.log("Found user junkshop:", userJunkshop);
 
     if (userJunkshop) {
       Object.assign(junkshop, userJunkshop);
+      junkshop.owner_ulid = auth.user.ulid; // Set this for later use
 
-      // Only fetch items if we found the junkshop
-      const itemsData = await $fetch(`/junkshop/${userJunkshop.ulid}/items`);
-      items.value = Array.isArray(itemsData) ? itemsData : [];
+      console.log("Fetching items for junkshop:", userJunkshop.ulid);
+
+      try {
+        // Make sure we're using the correct API path
+        const itemsData = await $fetch<any[]>(`/junkshop/${userJunkshop.ulid}/items`, {
+          headers: {
+            Authorization: `Bearer ${auth.token}`
+          }
+        });
+
+        console.log("Raw items data received:", itemsData);
+
+        // Enhanced handling of item data - ensuring each item has a name property
+        items.value = Array.isArray(itemsData) ? itemsData.map(item => {
+          // Check for the name property directly
+          if (typeof item.name === 'string' && item.name.trim() !== '') {
+            return {
+              id: item.id,
+              name: item.name,
+              item_id: item.item_id,
+              junkshop_id: item.junkshop_id
+            };
+          }
+
+          // Fallback if no name is found
+          console.warn('Item missing name property:', item);
+          return {
+            id: item.id,
+            name: `Item ${item.item_id}`, // Fallback name
+            item_id: item.item_id,
+            junkshop_id: item.junkshop_id
+          };
+        }) : [];
+
+        console.log("Processed items:", items.value);
+      } catch (itemError) {
+        console.error('Error fetching junkshop items:', itemError);
+        // More detailed error logging
+        if ((itemError as any).response) {
+          console.error('Response status:', (itemError as any).response.status);
+          console.error('Response data:', await (itemError as any).response.json().catch(() => ({})));
+        }
+      }
     } else {
-      console.error('No junkshop found for current user');
+      console.log("No junkshop found for this user, initializing new one");
+      // Initialize new junkshop with owner_ulid
+      junkshop.owner_ulid = auth.user.ulid;
     }
   } catch (error) {
     console.error('Error fetching junkshop data:', error);
+    // More detailed error logging
+    if ((error as any).response) {
+      console.error('Response status:', (error as any).response.status);
+      console.error('Response data:', await (error as any).response.json().catch(() => ({})));
+    }
+
+    toast.add({
+      title: 'Error',
+      description: 'Failed to load junkshop data. Please try again.',
+      color: 'red'
+    });
+  } finally {
+    isLoading.value = false;
   }
 });
 
-// Function to update Junkshop details
+// Function to update or create Junkshop details
 const updateJunkshop = async () => {
-  await $fetch(`junkshop/${junkshop.ulid}`, {
-    method: "PUT",
-    body: junkshop,
-    headers: {
-      Authorization: `Bearer ${auth.token}`,
-    },
-  });
+  try {
+    isLoading.value = true;
+
+    // Ensure required fields
+    if (!junkshop.name || !junkshop.contact || !junkshop.address) {
+      toast.add({
+        title: 'Error',
+        description: 'Please fill all required fields',
+        color: 'red'
+      });
+      return;
+    }
+
+    // Create new junkshop or update existing one
+    if (!junkshop.ulid) {
+      // Create new junkshop
+      const response = await $fetch<JunkshopResponse>('/junkshop', {
+        method: "POST",
+        body: {
+          name: junkshop.name,
+          contact: junkshop.contact,
+          description: junkshop.description,
+          address: junkshop.address,
+          owner_ulid: auth.user.ulid,
+        },
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      // Update local state with new ulid
+      if (response && response.ulid) {
+        junkshop.ulid = response.ulid;
+      }
+
+      toast.add({
+        title: 'Success',
+        description: 'Junkshop created successfully',
+        color: 'green'
+      });
+    } else {
+      // Update existing junkshop
+      await $fetch(`/junkshop/${junkshop.ulid}`, {
+        method: "PUT",
+        body: {
+          name: junkshop.name,
+          contact: junkshop.contact,
+          description: junkshop.description,
+          address: junkshop.address,
+          owner_ulid: auth.user.ulid,
+        },
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      toast.add({
+        title: 'Success',
+        description: 'Junkshop updated successfully',
+        color: 'green'
+      });
+    }
+  } catch (error) {
+    console.error('Error updating junkshop:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to update junkshop. Please try again.',
+      color: 'red'
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 // Function to add a new item
 const addItem = async () => {
   if (newItem.value.trim() === "" || !junkshop.ulid) return;
 
-  const addedItem = await $fetch(`/junkshop/${junkshop.ulid}/items`, {
-    method: "POST",
-    body: { name: newItem.value },
-  });
+  try {
+    const addedItem = await $fetch(`/junkshop/${junkshop.ulid}/items`, {
+      method: "POST",
+      body: { name: newItem.value },
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+        'Content-Type': 'application/json'
+      },
+    });
 
-  items.value.push(addedItem);
-  newItem.value = "";
+    items.value.push(addedItem);
+    newItem.value = "";
+  } catch (error) {
+    console.error('Error adding item:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to add item. Please try again.',
+      color: 'red'
+    });
+  }
 };
 
 // Function to delete an item
 const deleteItem = async (itemId: number) => {
   if (!junkshop.ulid) return;
 
-  await $fetch(`/junkshop/${junkshop.ulid}/items/${itemId}`, {
-    method: "DELETE",
-  });
+  try {
+    await $fetch(`/junkshop/${junkshop.ulid}/items/${itemId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${auth.token}`
+      }
+    });
 
-  items.value = items.value.filter((item) => item.id !== itemId);
+    items.value = items.value.filter((item) => item.id !== itemId);
+  } catch (error) {
+    console.error('Error deleting item:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to delete item. Please try again.',
+      color: 'red'
+    });
+  }
 };
 
 // Function to edit an item
@@ -182,18 +362,31 @@ const editItem = (item: any) => {
 const saveItem = async (itemId: number) => {
   if (!junkshop.ulid) return;
 
-  const updatedItem = await $fetch(`/junkshop/${junkshop.ulid}/items/${itemId}`, {
-    method: "PUT",
-    body: { name: editingItemName.value },
-  });
+  try {
+    const updatedItem = await $fetch(`/junkshop/${junkshop.ulid}/items/${itemId}`, {
+      method: "PUT",
+      body: { name: editingItemName.value },
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+        'Content-Type': 'application/json'
+      },
+    });
 
-  const index = items.value.findIndex((item) => item.id === itemId);
-  if (index !== -1) {
-    items.value[index] = updatedItem;
+    const index = items.value.findIndex((item) => item.id === itemId);
+    if (index !== -1) {
+      items.value[index] = updatedItem;
+    }
+
+    editingItemId.value = null;
+    editingItemName.value = "";
+  } catch (error) {
+    console.error('Error updating item:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to update item. Please try again.',
+      color: 'red'
+    });
   }
-
-  editingItemId.value = null;
-  editingItemName.value = "";
 };
 
 // Function to cancel editing an item

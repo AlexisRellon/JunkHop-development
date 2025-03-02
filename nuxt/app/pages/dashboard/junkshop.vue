@@ -1,53 +1,7 @@
 <template>
   <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
-    <!-- Sidebar -->
-    <div
-      class="flex flex-col justify-between w-64 py-8 bg-white shadow-lg dark:bg-gray-800"
-    >
-      <div>
-        <div class="p-6">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Admin Panel
-          </h1>
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Manage your users from here.
-          </p>
-        </div>
-        <UDivider />
-        <h3
-          class="px-6 py-2 text-lg font-semibold text-gray-700 dark:text-gray-300"
-        >
-          Navigation
-        </h3>
-        <UVerticalNavigation
-          :links="links"
-          :ui="{
-            wrapper: 'border-s border-gray-200 dark:border-gray-800 space-y-2',
-            base: 'flex items-center gap-3 h-12 group border-s -ms-px leading-6 before:hidden',
-            padding: 'p-0 ps-4',
-            rounded: '',
-            size: 'text-md',
-            ring: '',
-            active:
-              'hover:bg-teal-600/20 text-primary-600 dark:text-primary-500 border-current font-semibold',
-            inactive:
-              'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300/20 hover:border-primary-500 dark:hover:border-primary-600/50 text-gray-700 hover:text-primary-800 dark:text-gray-400 dark:hover:text-primary-400',
-            icon: 'group-hover:text-primary-500 dark:group-hover:text-primary-400',
-          }"
-        />
-      </div>
-      <UButton
-        class="flex items-center gap-2 px-6 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
-        icon="i-heroicons-arrow-left-on-rectangle"
-        to="/"
-        label="Go Back"
-        :trailing="false"
-        color="teal"
-        variant="ghost"
-        size="lg"
-        :class="{'rounded-none hover:bg-gray-200 dark:hover:bg-gray-700' : true}"
-      />
-    </div>
+    <!-- Sidebar Component -->
+    <AdminSidebar v-model="isSidebarCollapsed" />
 
     <!-- Main Content -->
     <div class="flex-1 p-8 overflow-y-auto">
@@ -78,9 +32,13 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import AdminSidebar from "../../components/app/admin_panel/admin_sidebar.vue";
 
 const auth = useAuthStore();
 const { $storage } = useNuxtApp();
+
+// Sidebar state - will be managed by the AdminSidebar component
+const isSidebarCollapsed = ref(false);
 
 const totalUsers = ref(0);
 const activeUsers = ref(0);
