@@ -4,9 +4,9 @@ docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan route:list
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan db:seed
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan migrate
 docker-compose build
-alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
 
 cd /mnt/d/AlexisRellon_Folder/CleanSnap-development
+alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
 
 # 1. Set proper permissions in Docker container
 docker exec -it cleansnap-development-laravelnuxt.api-1 chmod -R 777 storage/
