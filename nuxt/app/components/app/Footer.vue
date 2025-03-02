@@ -68,7 +68,7 @@ const routeName = computed(() => route.path.startsWith("/dashboard"));
                 >support@junkhop.com</a
               >
             </li>
-            <li>Address: 123 CleanSnap St, Clean City, CS 12345</li>
+            <li>Address: 123 JunkHop St, Clean City, CS 12345</li>
             <li>
               <NuxtLink to="/support" class="hover:underline"
                 >Contact Form</NuxtLink
