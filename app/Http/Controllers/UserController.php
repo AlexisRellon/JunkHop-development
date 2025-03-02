@@ -10,6 +10,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -32,44 +35,152 @@ class UserController extends Controller
 
         try {
             $validated = $request->validate([
-                'name' => ['required', 'string', 'max:255'],
+                'name' => ['sometimes', 'required', 'string', 'max:255'],
                 'email' => [
+                    'sometimes',
                     'required',
                     'email',
                     Rule::unique('users')->ignore($user->id)
                 ],
-                'role' => ['sometimes', 'string', Rule::in(['admin', 'user', 'junkshop_owner', 'baranggay_admin'])]
+                'role' => ['sometimes', 'required', 'string', Rule::in(['admin', 'user', 'junkshop_owner', 'baranggay_admin'])],
+                'password' => ['sometimes', 'nullable', 'string', 'min:8']
             ]);
 
-            $user->update([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
+            Log::info("📝 User update request", [
+                'ulid' => $ulid,
+                'id' => $user->id,
+                'data' => $validated,
             ]);
 
-            if (isset($validated['role'])) {
-                // Find or create role with web guard
-                $role = Role::firstOrCreate(
-                    ['name' => $validated['role'], 'guard_name' => 'web']
-                );
+            // Extract role for separate handling
+            $roleName = $validated['role'] ?? null;
+            unset($validated['role']);
 
-                // Sync the role
-                $user->syncRoles([$role->name]);
+            // Handle password if provided
+            if (isset($validated['password']) && !empty($validated['password'])) {
+                $validated['password'] = Hash::make($validated['password']);
+            } else {
+                unset($validated['password']);
             }
 
-            // Return updated user with role
+            // Update basic user info if any fields are set
+            if (!empty($validated)) {
+                Log::info("📝 Updating user basic info", [
+                    'user_id' => $user->id,
+                    'fields' => array_keys($validated)
+                ]);
+
+                $user->update($validated);
+
+                Log::info("✅ User basic info updated");
+            }
+
+            // Handle role assignment if provided
+            if ($roleName) {
+                Log::info("📝 Updating user role to '{$roleName}'", [
+                    'user_id' => $user->id
+                ]);
+
+                try {
+                    // Use direct SQL to ensure the role exists
+                    $role = DB::table('roles')
+                        ->where('name', $roleName)
+                        ->where('guard_name', 'web')
+                        ->first();
+
+                    if (!$role) {
+                        Log::info("📝 Creating new role '{$roleName}'");
+
+                        // Insert the role directly
+                        $roleId = DB::table('roles')->insertGetId([
+                            'name' => $roleName,
+                            'guard_name' => 'web',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        Log::info("✅ Created role", ['role_id' => $roleId]);
+                    } else {
+                        $roleId = $role->id;
+                        Log::info("✅ Found existing role", ['role_id' => $roleId]);
+                    }
+
+                    // Step 1: Force delete all current roles for this user
+                    $deleted = DB::statement("DELETE FROM model_has_roles WHERE model_id = ? AND model_type = ?", [
+                        $user->id,
+                        User::class
+                    ]);
+
+                    Log::info("🧹 Deleted existing roles", ['result' => $deleted]);
+
+                    // Step 2: Insert the new role assignment directly
+                    $inserted = DB::statement("INSERT INTO model_has_roles (role_id, model_type, model_id) VALUES (?, ?, ?)", [
+                        $roleId,
+                        User::class,
+                        $user->id
+                    ]);
+
+                    Log::info("✅ Inserted new role assignment", ['result' => $inserted]);
+
+                    // Step 3: Verify the assignment
+                    $verification = DB::select("
+                        SELECT r.name FROM model_has_roles mhr
+                        JOIN roles r ON mhr.role_id = r.id
+                        WHERE mhr.model_id = ?
+                        AND mhr.model_type = ?
+                    ", [$user->id, User::class]);
+
+                    Log::info("🔍 Role verification", [
+                        'found' => !empty($verification),
+                        'role' => !empty($verification) ? $verification[0]->name : null
+                    ]);
+
+                    // Force permission cache clear
+                    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+                } catch (\Exception $e) {
+                    Log::error("❌ Error in role assignment: " . $e->getMessage(), [
+                        'exception' => $e,
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    throw $e;
+                }
+            }
+
+            // Get fresh user data with role for response
+            $updatedUser = $user->fresh();
+
+            // Get role directly from database to ensure accuracy
+            $roleFromDb = DB::table('model_has_roles')
+                ->where('model_id', $updatedUser->id)
+                ->where('model_type', User::class)
+                ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->select('roles.name')
+                ->first();
+
+            $currentRole = $roleFromDb ? $roleFromDb->name : 'user';
+
+            Log::info("✅ Update completed successfully", [
+                'user_id' => $updatedUser->id,
+                'current_role' => $currentRole
+            ]);
+
             return response()->json([
                 'message' => 'User updated successfully',
                 'user' => array_merge(
-                    $user->fresh()->toArray(),
-                    ['role' => $user->getRoleNames()->first()]
+                    $updatedUser->toArray(),
+                    ['role' => $currentRole]
                 )
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error updating user: ' . $e->getMessage());
+            Log::error("❌ Error updating user: " . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'message' => 'Error updating user',
-                'errors' => [$e->getMessage()]
+                'error' => $e->getMessage()
             ], 422);
         }
     }
@@ -100,33 +211,70 @@ class UserController extends Controller
     {
         Log::info('Store user request received', ['request' => $request->all()]);
         try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users,email',
-                'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin',
-                'password' => 'required|string|min:8',
-            ]);
+            // Start a database transaction
+            return DB::transaction(function () use ($request) {
+                // Clear permission cache
+                app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-            $user = User::create([
-                'ulid' => Str::ulid()->toBase32(),
-                'name' => $validatedData['name'],
-                'email' => $validatedData['email'],
-                'role' => $validatedData['role'],
-                'password' => bcrypt($validatedData['password']),
-            ]);
+                $validatedData = $request->validate([
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|string|email|max:255|unique:users,email',
+                    'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin',
+                    'password' => 'required|string|min:8',
+                ]);
 
-            return response()->json(['message' => 'User created successfully', 'user' => $user]);
-        } catch (ValidationException $e) {
-            Log::warning('Validation error while creating user', ['errors' => $e->errors()]);
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $e->errors(),
-            ], 422);
+                // Create the user
+                $user = User::create([
+                    'ulid' => Str::ulid()->toBase32(),
+                    'name' => $validatedData['name'],
+                    'email' => $validatedData['email'],
+                    'password' => Hash::make($validatedData['password']),
+                ]);
+
+                // Get or create the role
+                $role = Role::firstOrCreate([
+                    'name' => $validatedData['role'],
+                    'guard_name' => 'web'
+                ]);
+
+                Log::info("Role found/created for new user", [
+                    'role_id' => $role->id,
+                    'role_name' => $role->name
+                ]);
+
+                // Manually insert the role assignment
+                DB::table('model_has_roles')->insert([
+                    'role_id' => $role->id,
+                    'model_type' => User::class,
+                    'model_id' => $user->id
+                ]);
+
+                Log::info("Role assigned to new user", [
+                    'user_id' => $user->id,
+                    'role_id' => $role->id,
+                    'role_name' => $role->name
+                ]);
+
+                // Clear permission cache again
+                app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+                return response()->json([
+                    'message' => 'User created successfully',
+                    'user' => array_merge(
+                        $user->toArray(),
+                        ['role' => $validatedData['role']]
+                    )
+                ]);
+            });
         } catch (\Exception $e) {
-            Log::error('Error creating user: ' . $e->getMessage(), ['exception' => $e]);
+            Log::error('Error creating user: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
-                'message' => 'Internal server error',
-            ], 500);
+                'message' => 'Error creating user',
+                'error' => $e->getMessage()
+            ], 422);
         }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Junkshop;
 use App\Models\User;
 use App\Models\JunkshopItem;
+use App\Models\Item;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,16 +65,20 @@ class JunkshopController extends Controller
 
         $owner = User::where('ulid', $validatedData['owner_ulid'])->firstOrFail();
 
-        $junkshop = Junkshop::create([
-            'ulid' => Str::ulid()->toBase32(),
-            'name' => $validatedData['name'],
-            'contact' => $validatedData['contact'],
-            'description' => $validatedData['description'],
-            'address' => $validatedData['address'],
-            'user_id' => $owner->ulid, // Use ulid instead of id
-        ]);
+        // Generate ULID for the junkshop
+        $ulid = Str::ulid()->toBase32();
 
-        return response()->json(['message' => 'Junkshop created successfully', 'junkshop' => $junkshop]);
+        // Create junkshop with proper field mapping
+        $junkshop = new Junkshop();
+        $junkshop->ulid = $ulid;
+        $junkshop->name = $validatedData['name'];
+        $junkshop->contact = $validatedData['contact'];
+        $junkshop->description = $validatedData['description'] ?? '';
+        $junkshop->address = $validatedData['address'];
+        $junkshop->user_id = $owner->ulid;
+        $junkshop->save();
+
+        return response()->json($junkshop);
     }
 
     /**
@@ -102,36 +107,94 @@ class JunkshopController extends Controller
     public function items($ulid)
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
-        return response()->json($junkshop->items);
+
+        // Try a different approach using query builder with proper joins
+        $items = \DB::table('junkshop_items')
+            ->join('items', 'junkshop_items.item_id', '=', 'items.id')
+            ->select(
+                'junkshop_items.id',
+                'items.name',
+                'junkshop_items.junkshop_id',
+                'junkshop_items.item_id',
+                'junkshop_items.created_at',
+                'junkshop_items.updated_at'
+            )
+            ->where('junkshop_items.junkshop_id', $junkshop->ulid)
+            ->get();
+
+        // Debug info
+        \Log::info('Junkshop items query', [
+            'junkshop_id' => $junkshop->ulid,
+            'items_count' => $items->count(),
+            'first_item' => $items->first(),
+            'sql' => \DB::getQueryLog()
+        ]);
+
+        return response()->json($items);
     }
 
+    /**
+     * Add a new item to the junkshop
+     */
     public function addItem(Request $request, $ulid)
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
 
-        $item = $junkshop->items()->create([
-            'name' => $request->name,
+        // First create or find the item
+        $item = Item::firstOrCreate(['name' => $request->name]);
+
+        // Then create the pivot record
+        $junkshopItem = JunkshopItem::create([
+            'junkshop_id' => $junkshop->ulid,
+            'item_id' => $item->id,
         ]);
 
-        return response()->json($item);
+        // Return the full item with name for the frontend
+        return response()->json([
+            'id' => $junkshopItem->id,
+            'name' => $item->name,
+            'junkshop_id' => $junkshop->ulid,
+            'item_id' => $item->id,
+        ]);
     }
 
+    /**
+     * Update an existing item
+     */
     public function updateItem(Request $request, $ulid, $itemId)
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
-        $item = $junkshop->items()->findOrFail($itemId);
 
-        $item->update([
-            'name' => $request->name,
+        // Find the pivot record
+        $junkshopItem = JunkshopItem::where('id', $itemId)
+            ->where('junkshop_id', $junkshop->ulid)
+            ->firstOrFail();
+
+        // Find and update the item name
+        $item = Item::findOrFail($junkshopItem->item_id);
+        $item->update(['name' => $request->name]);
+
+        // Return the updated item with name
+        return response()->json([
+            'id' => $junkshopItem->id,
+            'name' => $item->name,
+            'junkshop_id' => $junkshop->ulid,
+            'item_id' => $item->id,
         ]);
-
-        return response()->json($item);
     }
 
+    /**
+     * Delete an item from the junkshop
+     */
     public function deleteItem($ulid, $itemId)
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
-        $junkshop->items()->findOrFail($itemId)->delete();
+
+        // Find and delete the item
+        $junkshopItem = JunkshopItem::where('id', $itemId)
+            ->where('junkshop_id', $junkshop->ulid)
+            ->firstOrFail();
+        $junkshopItem->delete();
 
         return response()->json(['message' => 'Item deleted']);
     }
