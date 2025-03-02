@@ -8,6 +8,8 @@ docker-compose build
 cd /mnt/d/AlexisRellon_Folder/CleanSnap-development
 alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
 
+
+
 # 1. Set proper permissions in Docker container
 docker exec -it cleansnap-development-laravelnuxt.api-1 chmod -R 777 storage/
 docker exec -it cleansnap-development-laravelnuxt.api-1 chmod -R 777 bootstrap/cache/
