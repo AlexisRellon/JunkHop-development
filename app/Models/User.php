@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Notifications\CustomVerifyEmail;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -25,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'avatar',
         'password',
+        'ulid',
     ];
 
     /**
@@ -95,4 +97,32 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new CustomVerifyEmail);
     }
+
+    /**
+     * Get the role attribute - enhanced for better reliability
+     *
+     * @return string
+     */
+    public function getRoleAttribute()
+    {
+        // First try direct DB query for maximum reliability
+        $directRole = DB::table('model_has_roles')
+            ->where('model_id', $this->id)
+            ->where('model_type', get_class($this))
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->select('roles.name')
+            ->first();
+
+        if ($directRole) {
+            return $directRole->name;
+        }
+
+        // Fall back to Spatie method
+        return $this->roles->first()->name ?? 'user';
+    }
+
+    /**
+     * Append role to the model
+     */
+    protected $appends = ['role'];
 }
