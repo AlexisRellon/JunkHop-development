@@ -20,6 +20,8 @@ yarn-error.log
 /.idea
 /.vscode/*
 !/.vscode/settings.json
+*.docx
+*.txt
 
 # Nuxt dev/build outputs
 .output
@@ -45,3 +47,4 @@ logs
 .env
 .env.*
 !.env.example
+admin-templates.jpg

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,24 +17,44 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            RoleSeeder::class,
+            // ...other seeders
+        ]);
+
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // create roles and assign existing permissions
-        $role1 = Role::create(['name' => 'admin']);
-        $role2 = Role::create(['name' => 'user']);
+        $roles = [
+            'admin',
+            'user',
+            'junkshop_owner',
+            'baranggay_admin'
+        ];
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
+        }
+
+        // Force database to commit roles before continuing
+        DB::statement('SELECT 1');
 
         // create admin user
         $user = \App\Models\User::factory()->create([
             'name' => 'Super',
             'email' => 'admin@admin.com',
             'password' => Hash::make('password'),
+            'role' => 'admin',
         ]);
 
         $user->ulid = Str::ulid()->toBase32();
         $user->email_verified_at = now();
         $user->save(['timestamps' => false]);
 
-        $user->assignRole($role1);
+        // Check if role exists before assigning
+        if(Role::where('name', 'admin')->where('guard_name', 'web')->exists()) {
+            $user->assignRole('admin');
+        }
     }
 }

@@ -22,7 +22,10 @@ use Laravel\Socialite\Facades\Socialite;
 class AuthController extends Controller
 {
     /**
-     * Register new user
+     * Register a new user.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function register(Request $request): JsonResponse
     {
@@ -51,7 +54,11 @@ class AuthController extends Controller
     }
 
     /**
-     * Redirect to provider for authentication
+     * Redirect to provider for authentication.
+     *
+     * @param Request $request
+     * @param string $provider
+     * @return RedirectResponse
      */
     public function redirect(Request $request, string $provider): RedirectResponse
     {
@@ -59,7 +66,11 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle callback from provider
+     * Handle callback from provider.
+     *
+     * @param Request $request
+     * @param string $provider
+     * @return View
      * @throws \Exception
      */
     public function callback(Request $request, string $provider): View
@@ -128,7 +139,10 @@ class AuthController extends Controller
     }
 
     /**
-     * Generate sanctum token on successful login
+     * Generate sanctum token on successful login.
+     *
+     * @param Request $request
+     * @return JsonResponse
      * @throws ValidationException
      */
     public function login(Request $request): JsonResponse
@@ -159,7 +173,10 @@ class AuthController extends Controller
     }
 
     /**
-     * Revoke token; only remove token that is used to perform logout (i.e. will not revoke all tokens)
+     * Revoke token; only remove token that is used to perform logout (i.e. will not revoke all tokens).
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
     {
@@ -171,7 +188,10 @@ class AuthController extends Controller
     }
 
     /**
-     * Get authenticated user details
+     * Get authenticated user details.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function user(Request $request): JsonResponse
     {
@@ -191,6 +211,9 @@ class AuthController extends Controller
 
     /**
      * Handle an incoming password reset link request.
+     *
+     * @param Request $request
+     * @return JsonResponse
      * @throws ValidationException
      */
     public function sendResetPasswordLink(Request $request): JsonResponse
@@ -199,9 +222,6 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
         $status = Password::sendResetLink(
             $request->only('email')
         );
@@ -220,19 +240,19 @@ class AuthController extends Controller
 
     /**
      * Handle an incoming new password request.
+     *
+     * @param Request $request
+     * @return JsonResponse
      * @throws ValidationException
      */
     public function resetPassword(Request $request): JsonResponse
     {
         $request->validate([
             'token' => ['required'],
-            'email' => ['required', 'email', 'exists:'.User::class],
+            'email' => ['required', 'email', 'exists:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             static function ($user) use ($request) {
@@ -259,6 +279,11 @@ class AuthController extends Controller
 
     /**
      * Mark the authenticated user's email address as verified.
+     *
+     * @param Request $request
+     * @param string $ulid
+     * @param string $hash
+     * @return JsonResponse
      */
     public function verifyEmail(Request $request, string $ulid, string $hash): JsonResponse
     {
@@ -280,6 +305,9 @@ class AuthController extends Controller
 
     /**
      * Send a new email verification notification.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function verificationNotification(Request $request): JsonResponse
     {
@@ -287,7 +315,7 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = $request->user()?: User::where('email', $request->email)->whereNull('email_verified_at')->first();
+        $user = $request->user() ?: User::where('email', $request->email)->whereNull('email_verified_at')->first();
 
         abort_if(!$user, 400);
 
@@ -300,7 +328,10 @@ class AuthController extends Controller
     }
 
     /**
-     * Get authenticated user devices
+     * Get authenticated user devices.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function devices(Request $request): JsonResponse
     {
@@ -330,10 +361,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Revoke token by id
+     * Revoke token by id.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function deviceDisconnect(Request $request): JsonResponse
     {
+
         $request->validate([
             'hash' => 'required',
         ]);

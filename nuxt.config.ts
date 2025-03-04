@@ -27,7 +27,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: "Home",
-      titleTemplate: "%s | CleanSnap",
+      titleTemplate: "%s | JunkHop",
       meta: [
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -87,6 +87,12 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: false,
+  },
+
+  // Server Configuration
+  server: {
+    host: "0.0.0.0",
+    port: process.env.PORT || 3000,
   },
 
   /**
