@@ -243,15 +243,30 @@ const onSubmit = async () => {
       const updateData = {
         name: editingUser.name.trim(),
         email: editingUser.email.trim(),
-        role: role // Send role as string
+        role: role, // Send role as string
       };
+
+      // Only include password if provided
+      if (editingUser.password && editingUser.password.trim() !== '') {
+        updateData.password = editingUser.password.trim();
+      }
 
       console.log('Sending update request with data:', updateData);
 
+      // Debug: Log the URL being used
+      console.log(`Update URL: /users/${editingUser.ulid}`);
+
+      // Use $fetch instead of axios for consistency
       const response = await $fetch(`/users/${editingUser.ulid}`, {
         method: "PUT",
         body: updateData,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
       });
+
+      console.log('Update response:', response); // Log the response
 
       if (response?.user) {
         // Update local state
@@ -260,6 +275,7 @@ const onSubmit = async () => {
           users.value[index] = {
             ...users.value[index],
             ...response.user,
+            // Ensure role is properly updated
             role: response.user.role
           };
         }
@@ -273,20 +289,29 @@ const onSubmit = async () => {
         cancelEdit();
       }
     } catch (error) {
-      // ...existing error handling...
+      console.error('Error updating user:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      toast.add({
+        icon: "i-heroicons-x-circle-20-solid",
+        title: "Error updating user",
+        description: error.response?.data?.error || error.message || "Unknown error",
+        color: "red",
+      });
     }
   } else {
+    // Handle add user case
     try {
-      await $fetch(`/register`, {
+      // For new users, use the users endpoint instead of register
+      await $fetch(`/users`, {
         method: "POST",
         body: {
           name: editingUser.name,
           email: editingUser.email,
           password: editingUser.password,
-          password_confirmation: editingUser.password,
-          role: editingUser.role // Consistent with update
+          role: editingUser.role
         },
       });
+
       await fetchUsers();
       toast.add({
         icon: "i-heroicons-check-circle-20-solid",
@@ -295,18 +320,14 @@ const onSubmit = async () => {
       });
       cancelEdit();
     } catch (error) {
-      if (error.response && error.response.status === 422) {
-        const errors = error.response.data?.errors || {};
-        console.error(`Validation error while adding user:`, errors);
-        toast.add({
-          icon: "i-heroicons-x-circle-20-solid",
-          title: "Validation Error",
-          description: Object.values(errors).flat().join(", "),
-          color: "red",
-        });
-      } else {
-        handleError(error, "adding user");
-      }
+      console.error('Error adding user:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      toast.add({
+        icon: "i-heroicons-x-circle-20-solid",
+        title: "Error adding user",
+        description: error.response?.data?.error || error.message || "Unknown error",
+        color: "red",
+      });
     }
   }
 };
@@ -351,6 +372,9 @@ const fetchUsers = async () => {
     loading.value = true;
     const data = await $fetch("/users", {
       method: "GET",
+      headers: {
+        'Accept': 'application/json',
+      }
     });
     users.value = data;
     console.log("Users:", data);

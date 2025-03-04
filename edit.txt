@@ -4,19 +4,23 @@ docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan route:list
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan db:seed
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan migrate
 docker-compose build
-alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
 
 cd /mnt/d/AlexisRellon_Folder/CleanSnap-development
+alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
+
+
 
 # 1. Set proper permissions in Docker container
 docker exec -it cleansnap-development-laravelnuxt.api-1 chmod -R 777 storage/
 docker exec -it cleansnap-development-laravelnuxt.api-1 chmod -R 777 bootstrap/cache/
 
 # 2. Clear all caches
+docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan tinker --execute="app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();"
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan config:clear
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan cache:clear
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan route:clear
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan view:clear
+
 
 # 3. Run migrations and seeders again
 docker exec -it cleansnap-development-laravelnuxt.api-1 php artisan migrate:fresh --seed

@@ -25,6 +25,13 @@ Route::prefix('api/v1')->group(function () {
     Route::post('verification-notification', [AuthController::class, 'verificationNotification'])->middleware('throttle:verification-notification')->name('verification.send');
     Route::get('verify-email/{ulid}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 
+    // Mailer Preview
+    Route::get('/mail-preview', function () {
+        $user = App\Models\User::first();
+        $notification = new App\Notifications\CustomVerifyEmail;
+        return $notification->toMail($user);
+    });
+
     // Dashboard endpoint
     Route::get('/dashboard-statistics', [DashboardController::class, 'getStatistics']);
 
@@ -58,23 +65,17 @@ Route::prefix('api/v1')->group(function () {
 
         Route::apiResource('junkshops', JunkshopController::class);
 
-        // User routes
-        Route::get('users', [UserController::class, 'index']);
-        Route::post('users', [UserController::class, 'store']); // Add POST route for creating a new user
-        Route::delete('users/{id}', [UserController::class, 'destroy']);
-        Route::put('users/{id}', [UserController::class, 'update']);
-        Route::put('/users/{user}', [UserController::class, 'update']);
-        Route::put('/users/{user}/update-role', [UserController::class, 'updateRole'])->middleware('can:edit roles');
+        // User routes - consolidated and cleaned up
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{ulid}', [UserController::class, 'update']);
+        Route::delete('/users/{ulid}', [UserController::class, 'destroy']);
+        Route::put('/users/{user}/update-role', [UserController::class, 'updateRole'])->middleware('can:edit roles');
+
+        // Debug routes
+        Route::prefix('debug')->group(function() {
+            Route::get('/roles', [\App\Http\Controllers\Api\DebugController::class, 'getRoleInfo']);
+            Route::post('/fix-roles', [\App\Http\Controllers\Api\DebugController::class, 'fixRoles']);
+        });
     });
-});
-
-Route::middleware(['auth:sanctum'])->group(function () {
-    // These routes use Sanctum which internally uses web guard
-    Route::get('/users', [UserController::class, 'index']);
-    Route::put('/users/{ulid}', [UserController::class, 'update']);
-    Route::delete('/users/{ulid}', [UserController::class, 'destroy']);
-    Route::post('/users', [UserController::class, 'store']);
-
-    // Remove all duplicate routes
 });

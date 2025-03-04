@@ -11,6 +11,27 @@ class Junkshop extends Model
 {
     use HasFactory, HasUlids;
 
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'ulid';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the auto-incrementing ID.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
+
     protected $fillable = [
         'ulid', 'name', 'contact', 'description', 'address', 'user_id',
     ];
@@ -20,15 +41,15 @@ class Junkshop extends Model
      */
     public function items()
     {
-        return $this->belongsToMany(Item::class, 'junkshop_items');
+        return $this->hasMany(JunkshopItem::class, 'junkshop_id', 'ulid');
     }
 
     /**
-     * Get the user that owns the junkshop.
+     * Get the owner of the junkshop.
      */
-    public function user(): BelongsTo
+    public function owner()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'ulid');
     }
 
     /**

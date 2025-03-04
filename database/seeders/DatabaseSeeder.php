@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,6 +17,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            RoleSeeder::class,
+            // ...other seeders
+        ]);
+
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
@@ -28,8 +34,11 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($roles as $role) {
-            Role::create(['name' => $role, 'guard_name' => 'api']);
+            Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
+
+        // Force database to commit roles before continuing
+        DB::statement('SELECT 1');
 
         // create admin user
         $user = \App\Models\User::factory()->create([
@@ -43,6 +52,9 @@ class DatabaseSeeder extends Seeder
         $user->email_verified_at = now();
         $user->save(['timestamps' => false]);
 
-        $user->assignRole('admin');
+        // Check if role exists before assigning
+        if(Role::where('name', 'admin')->where('guard_name', 'web')->exists()) {
+            $user->assignRole('admin');
+        }
     }
 }
