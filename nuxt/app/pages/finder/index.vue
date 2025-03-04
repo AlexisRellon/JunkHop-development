@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useAutoAnimate } from "@formkit/auto-animate/vue";
 
 /**
@@ -15,8 +15,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/vue";
 interface Junkshop {
   id: number;
   name: string;
-  location: string;
-  plusCode?: string;
+  address: string;
+  description?: string;
   contact: string;
 }
 
@@ -24,200 +24,23 @@ interface Junkshop {
  * A list of junkshops with their details.
  *
  * @type {Ref<Junkshop[]>}
- * @property {number} id - The unique identifier for the junkshop.
- * @property {string} name - The name of the junkshop.
- * @property {string} location - The physical address of the junkshop.
- * @property {string} plusCode - The Google Plus Code for the junkshop's location.
- * @property {string} contact - The contact number for the junkshop.
  */
-const junkshops = ref<Junkshop[]>([
-  {
-    id: 1,
-    name: "Sly Junk Shop",
-    location: "lot 1 phase 1, Block 2 Paliparan Rd",
-    plusCode: "7XRQ+4J",
-    contact: "0921 824 7276",
-  },
-  {
-    id: 2,
-    name: "Mustasi Junkshop",
-    location: "Sitio Pook Paliparan 3",
-    plusCode: "7XQH+43Q",
-    contact: "0918 766 3609",
-  },
-  {
-    id: 3,
-    name: "Vestidas Junk Shop",
-    location: "9W4P+RXV saulog compoun, saulog compund",
-    plusCode: "9W4P+RXV",
-    contact: "0936 920 7969",
-  },
-  {
-    id: 4,
-    name: "Junk Shop",
-    location: "8XMP+Q94, Paliparan Rd",
-    plusCode: "8XMP+Q94",
-    contact: "0921 327 8159",
-  },
-  {
-    id: 5,
-    name: "De Castro Junkshop",
-    location: "7XRQ+3HH",
-    plusCode: "7XRQ+3HH",
-    contact: "",
-  },
-  {
-    id: 6,
-    name: "Gorio junk shop",
-    location: "Black b1 lot 9 luzviminda 1 DASMADASMARIÑIAS DASMADASMARIÑIAS",
-    plusCode: "7XQH+43Q",
-    contact: "0908 767 3071",
-  },
-  {
-    id: 7,
-    name: "Niluma ng kahapon",
-    location: "Blk e 12 lot 4",
-    plusCode: "7XQH+43Q",
-    contact: "0910 711 2561",
-  },
-  {
-    id: 8,
-    name: "Junk Shop",
-    location: "8XP2+VJ8, Congressional Road",
-    plusCode: "8XP2+VJ8",
-    contact: "0929 488 8858",
-  },
-  {
-    id: 9,
-    name: "Sean's Junk Shop",
-    location: "Zone ll, Don Placido Campos Avenue",
-    plusCode: "7XQH+43Q",
-    contact: "0949 791 0688",
-  },
-  {
-    id: 10,
-    name: "Angela Mae Junkshop",
-    location: "8X8F+M53",
-    plusCode: "8X8F+M53",
-    contact: "0920 658 0239",
-  },
-  {
-    id: 11,
-    name: "JVL Junkshop",
-    location: "# 452 Malinta Sampaloc 2",
-    plusCode: "7XQH+43Q",
-    contact: "0908 494 6223",
-  },
-  {
-    id: 12,
-    name: "Lucky 19 Junk Shop",
-    location: "205 L-1A PH, B, 2 Congressional Rd",
-    plusCode: "7XQH+43Q",
-    contact: "(046) 539 3734",
-  },
-  {
-    id: 13,
-    name: "Vestidas Junk Shop",
-    location: "8W6X+MH3, General Emilio Aguinaldo Highway",
-    plusCode: "8W6X+MH3",
-    contact: "(046) 416 3273",
-  },
-  {
-    id: 14,
-    name: "Double B Junk Shop",
-    location: "B14 L12, Saint Anthony Village",
-    plusCode: "7XQH+43Q",
-    contact: "(046) 540 1123",
-  },
-  {
-    id: 15,
-    name: "QRS Junkshop",
-    location: "32 Jose Abad Santos",
-    plusCode: "7XQH+43Q",
-    contact: "0919 666 4044",
-  },
-  {
-    id: 16,
-    name: "Malayan Junkshop",
-    location: "Pala-pala Rd",
-    plusCode: "7XQH+43Q",
-    contact: "0956 885 4672",
-  },
-  {
-    id: 17,
-    name: "501 Junk Shop",
-    location: "8WXV+JX4, Congressional Ave",
-    plusCode: "8WXV+JX4",
-    contact: "0927 688 4509",
-  },
-  {
-    id: 18,
-    name: "Richard Dimaunahan Junk Shop",
-    location: "Lot 10, Block 1, Barangay San Dionisio",
-    plusCode: "7XQH+43Q",
-    contact: "0915 749 8538",
-  },
-  {
-    id: 19,
-    name: "LAK JUNK SHOP",
-    location: "7XX2+XG2, Governor's Dr",
-    plusCode: "7XX2+XG2",
-    contact: "No contact info",
-  },
-  {
-    id: 20,
-    name: "Taba Junk Shop",
-    location: "BLK. 206 Lot 16 PH 5 Brgy. Paliparan III",
-    plusCode: "7XQH+43Q",
-    contact: "0920 218 3367",
-  },
-  {
-    id: 21,
-    name: "Polan Junk Shop",
-    location: "Lot 10, Block 87, Phase 2, Barangay Paliparan III",
-    plusCode: "7XQH+43Q",
-    contact: "0920 211 7623",
-  },
-  {
-    id: 22,
-    name: "CJM Junk Shop",
-    location: "8WXV+PWX, Congressional Ave",
-    plusCode: "8WXV+PWX",
-    contact: "No contact info",
-  },
-  {
-    id: 23,
-    name: "L.A. Junk Shop",
-    location: "391 National Road",
-    plusCode: "7XQH+43Q",
-    contact: "0919 376 3765",
-  },
-  {
-    id: 24,
-    name: "Ashley Shawn Leila Junk Shop",
-    location: "8XQP+C5P, Paliparan Rd",
-    plusCode: "8XQP+C5P",
-    contact: "0907 157 3932",
-  },
-  {
-    id: 25,
-    name: "Danlene Junkshop",
-    location: "119 Sitio Pook, Danlene Junkshop, Paliparan lll, Paliparan Rd",
-    plusCode: "7XQH+43Q",
-    contact: "0939 904 2803",
-  },
-]);
+const junkshops = ref<Junkshop[]>([]);
 
 /**
- * Opens a new tab with the Google Maps location of the specified junkshop.
- *
- * @param {Junkshop} shop - The junkshop object containing the name and location.
+ * A reactive reference to indicate loading state.
+ * @type {Ref<boolean>}
  */
-const showOnMap = (shop: Junkshop) => {
-  const googleMapsUrl = `https://www.google.com/maps?q=${shop.name}, ${shop.location}`;
-  window.open(googleMapsUrl, "_blank");
-};
+const isLoading = ref(true);
 
+/**
+ * Fetch junkshops from the database on component mount.
+ */
+onMounted(async () => {
+  const response = await $fetch<Junkshop[]>('/junkshop');
+  junkshops.value = response;
+  isLoading.value = false;
+});
 
 /**
  * A reactive reference to the search query input by the user.
@@ -243,6 +66,39 @@ const filteredJunkshops = computed(() =>
  */
 const [parent] = useAutoAnimate();
 
+/**
+ * A reactive reference to the selected junkshop for the modal.
+ * @type {Ref<Junkshop | null>}
+ */
+const selectedJunkshop = ref<Junkshop | null>(null);
+
+const open = ref(false);
+
+/**
+ * Method to open the modal with the selected junkshop details.
+ * @param {Junkshop} shop - The junkshop to show in the modal.
+ */
+const openModal = (shop: Junkshop) => {
+  selectedJunkshop.value = shop;
+  open.value = true;
+};
+
+/**
+ * Method to close the modal.
+ */
+const closeModal = () => {
+  selectedJunkshop.value = null;
+  open.value = false;
+};
+
+/**
+ * Method to redirect to Google Maps with the junkshop location.
+ * @param {string} location - The location of the junkshop.
+ */
+const redirectToGoogleMaps = (location: string) => {
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+  window.open(url, "_blank");
+};
 </script>
 
 <template>
@@ -262,11 +118,11 @@ const [parent] = useAutoAnimate();
     "
   >
     <h1 class="text-5xl font-extrabold leading-tight">Junkshop Finder</h1>
-    <p class="text-xl mt-2">Dasmariñas Cavite</p>
+    <p class="mt-2 text-xl">Dasmariñas Cavite</p>
   </div>
-  <div class="py-5 mx-auto flex flex-col items-center gap-4">
+  <div class="flex flex-col items-center gap-4 py-5 mx-auto">
     <!-- Search Bar -->
-    <div class="w-full flex gap-4">
+    <div class="flex w-full gap-4">
       <div class="w-full">
         <UInput
           v-model="searchQuery"
@@ -278,29 +134,58 @@ const [parent] = useAutoAnimate();
       </div>
     </div>
     <div class="w-[90vw]">
-      <UCard class="p-5 w-full" as="div">
-        <ul class="grid grid-cols-1 md:grid-cols-2 gap-5" ref="parent">
+      <UCard class="w-full p-5" as="div">
+        <ul ref="parent" class="grid grid-cols-1 gap-5 md:grid-cols-2 ">
+          <!-- Show skeleton loader while loading -->
+            <li v-for="n in 10" :key="n" class="flex flex-col w-full gap-5 p-4 border rounded-lg shadow-sm" v-if="isLoading">
+              <USkeleton class="w-3/4 h-6 mb-2" />
+              <UDivider />
+              <span class="flex flex-col gap-2 mx-5">
+                <span class="flex gap-4">
+                  <USkeleton class="w-4 h-4 mb-2" />
+                  <USkeleton class="w-full h-4 mb-2" />
+                </span>
+                <span class="flex gap-4">
+                  <USkeleton class="w-4 h-4 mb-2" />
+                  <USkeleton class="w-5/6 h-4 mb-2" />
+                </span>
+                <span class="flex gap-4">
+                  <USkeleton class="w-4 h-4 mb-2" />
+                  <USkeleton class="w-2/3 h-4 mb-2" />
+                </span>
+              </span>
+              <UDivider />
+              <USkeleton class="w-1/3 h-8 mt-2" />
+            </li>
           <!-- Show if there is no result -->
-          <div v-if="filteredJunkshops.length === 0">
+          <div v-else-if="filteredJunkshops.length === 0">
             <p class="text-center">No results found.</p>
           </div>
+          <!-- Show junkshops list -->
           <li
+            v-else
             v-for="shop in filteredJunkshops"
             :key="shop.id"
-            class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+            class="p-4 transition-shadow rounded-lg shadow-sm cursor-pointer hover:shadow-md"
           >
             <!-- Card for Junk Shop List -->
             <UCard :shop="shop" class="cursor-auto">
               <template #header>
-                <h3 class="font-bold text-lg">{{ shop.name }}</h3>
+                <h3 class="text-lg font-bold">{{ shop.name }}</h3>
               </template>
               <div class="flex flex-col gap-3">
+                <div class="flex gap-2">
+                  <UIcon
+                    name="i-heroicons-information-circle-20-solid"
+                    class="text-teal-500" />
+                  <p class="text-sm">{{ shop.description }}</p>
+                </div>
                 <div class="flex gap-2">
                   <UIcon
                     name="i-heroicons-map-pin-20-solid"
                     class="text-teal-500"
                   />
-                  <p class="text-sm">{{ shop.location }}</p>
+                  <p class="text-sm">{{ shop.address }}</p>
                 </div>
                 <div class="flex gap-2">
                   <UIcon
@@ -309,15 +194,9 @@ const [parent] = useAutoAnimate();
                   />
                   <p class="text-sm">{{ shop.contact }}</p>
                 </div>
-                <div class="flex gap-2">
-                  <UIcon name="i-heroicons-plus" class="text-teal-500" />
-                  <p class="text-sm">{{ shop.plusCode }}</p>
-                </div>
               </div>
               <template #footer>
-                <UButton @click.stop="() => showOnMap(shop)" class="mt-2"
-                  >Show on Map</UButton
-                >
+                <UButton @click="redirectToGoogleMaps(selectedJunkshop?.address)" class="mt-2">Show on Map</UButton>
               </template>
             </UCard>
           </li>

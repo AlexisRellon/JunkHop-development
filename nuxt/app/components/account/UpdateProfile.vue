@@ -45,7 +45,7 @@ const { refresh: onSubmit, status: accountUpdateStatus } = useFetch<any>("accoun
 
       state.name = auth.user.name;
       state.email = auth.user.email;
-      state.avatar = auth.user.avatar;
+      state.avatar = auth.user.avatar.toString(); // Ensure the avatar is a string
     }
   }
 });

@@ -15,6 +15,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\Sanctum;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -114,5 +116,23 @@ class AppServiceProvider extends ServiceProvider
         Sanctum::usePersonalAccessTokenModel(
             PersonalAccessToken::class
         );
+
+        // Enable query logging in development
+        if (app()->environment() !== 'production') {
+            DB::enableQueryLog();
+
+            // Uncomment for detailed query logging
+            /*
+            DB::listen(function ($query) {
+                Log::info(
+                    $query->sql,
+                    [
+                        'bindings' => $query->bindings,
+                        'time' => $query->time
+                    ]
+                );
+            });
+            */
+        }
     }
 }

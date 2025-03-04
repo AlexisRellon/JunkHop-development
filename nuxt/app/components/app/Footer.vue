@@ -1,14 +1,38 @@
-<script lang="ts" setup></script>
+<script setup>
+import { computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { useRoute } from "vue-router";
+
+const auth = useAuthStore();
+const route = useRoute();
+
+// Determine if the user role is admin
+const isAdminUser = computed(() => {
+  return auth.user && auth.user.roles && auth.user.roles.includes("admin");
+});
+
+// Determine if the user role is junkshop_owner
+const isJunkshopOwnerUser = computed(() => {
+  return auth.user && auth.user.roles && auth.user.roles.includes("junkshop_owner");
+});
+
+// Determine if the current route is the dashboard
+const routeName = computed(() => route.path.startsWith("/dashboard"));
+
+</script>
 <template>
   <footer
     class="py-10 flex flex-col gap-5 bg-teal-900 text-white"
+    :class="{'hidden': routeName,
+    'py-10 flex flex-col gap-5 bg-teal-900 text-white' : !isAdminUser && !isJunkshopOwnerUser
+    }"
   >
     <UContainer class="flex justify-between py-4 text-sm">
       <span>
         <AppLogoAlt />
       </span>
       <span>
-        &copy; {{ new Date().getFullYear() }} CleanSnap. All rights reserved.
+        &copy; {{ new Date().getFullYear() }} JunkHop. All rights reserved.
       </span>
     </UContainer>
     <UContainer class="flex justify-between py-4 text-sm">
@@ -40,11 +64,11 @@
           <ul class="list-none flex flex-col gap-3">
             <li>
               Email:
-              <a href="mailto:support@cleansnap.com" class="hover:underline"
-                >support@cleansnap.com</a
+              <a href="mailto:support@junkhop.com" class="hover:underline"
+                >support@junkhop.com</a
               >
             </li>
-            <li>Address: 123 CleanSnap St, Clean City, CS 12345</li>
+            <li>Address: 123 JunkHop St, Clean City, CS 12345</li>
             <li>
               <NuxtLink to="/support" class="hover:underline"
                 >Contact Form</NuxtLink
@@ -57,13 +81,11 @@
           <ul class="list-none flex flex-col gap-3">
             <li>
               <NuxtLink to="/privacy-policy" class="hover:underline"
-                >Privacy Policy</NuxtLink
-              >
+                >Privacy Policy</NuxtLink>
             </li>
             <li>
               <NuxtLink to="/terms-of-service" class="hover:underline"
-                >Terms of Service</NuxtLink
-              >
+                >Terms of Service</NuxtLink>
             </li>
           </ul>
         </div>

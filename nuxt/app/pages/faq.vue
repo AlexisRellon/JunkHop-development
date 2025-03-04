@@ -11,7 +11,7 @@
             @click="toggle(1)"
             class="hover:bg-primary-100 dark:hover:bg-primary-700 w-full flex justify-between items-center bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold px-4 py-3 rounded-lg focus:outline-none"
           >
-            <span>What is CleanSnap?</span>
+            <span>What is JunkHop?</span>
             <svg
               :class="openIndex === 1 ? 'rotate-180' : ''"
               class="w-5 h-5 transform transition-transform"
@@ -28,7 +28,7 @@
             class="mt-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-4 rounded-lg"
           >
             <p>
-              CleanSnap is a web platform designed to enhance waste management and recycling practices through data analytics and real-time reporting.
+              JunkHop is a web platform designed to enhance waste management and recycling practices through data analytics and real-time reporting.
             </p>
           </div>
         </div>
@@ -66,7 +66,7 @@
             @click="toggle(3)"
             class="hover:bg-primary-100 dark:hover:bg-primary-700 w-full flex justify-between items-center bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold px-4 py-3 rounded-lg focus:outline-none"
           >
-            <span>Is CleanSnap free to use?</span>
+            <span>Is JunkHop free to use?</span>
             <svg
               :class="openIndex === 3 ? 'rotate-180' : ''"
               class="w-5 h-5 transform transition-transform"
@@ -83,7 +83,7 @@
             class="mt-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-4 rounded-lg"
           >
             <p>
-              CleanSnap offers a free tier with basic features. For advanced analytics and premium tools, you can subscribe to our paid plans.
+              JunkHop offers a free tier with basic features. For advanced analytics and premium tools, you can subscribe to our paid plans.
             </p>
           </div>
         </div>
@@ -93,7 +93,7 @@
             @click="toggle(4)"
             class="hover:bg-primary-100 dark:hover:bg-primary-700 w-full flex justify-between items-center bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold px-4 py-3 rounded-lg focus:outline-none"
           >
-            <span>How do I report an issue with CleanSnap?</span>
+            <span>How do I report an issue with JunkHop?</span>
             <svg
               :class="openIndex === 4 ? 'rotate-180' : ''"
               class="w-5 h-5 transform transition-transform"
@@ -110,7 +110,7 @@
             class="mt-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-4 rounded-lg"
           >
             <p>
-              You can report any issues through the "Contact Us" page or directly email our support team at support@cleansnap.com.
+              You can report any issues through the "Contact Us" page or directly email our support team at support@junkhop.com.
             </p>
           </div>
         </div>
@@ -120,7 +120,7 @@
             @click="toggle(5)"
             class="hover:bg-primary-100 dark:hover:bg-primary-700 w-full flex justify-between items-center bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold px-4 py-3 rounded-lg focus:outline-none"
           >
-            <span>What browsers does CleanSnap support?</span>
+            <span>What browsers does JunkHop support?</span>
             <svg
               :class="openIndex === 5 ? 'rotate-180' : ''"
               class="w-5 h-5 transform transition-transform"
@@ -137,7 +137,7 @@
             class="mt-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-4 rounded-lg"
           >
             <p>
-              CleanSnap is optimized for the latest versions of Chrome, Firefox, Safari, and Edge. Ensure your browser is up to date for the best experience.
+              JunkHop is optimized for the latest versions of Chrome, Firefox, Safari, and Edge. Ensure your browser is up to date for the best experience.
             </p>
           </div>
         </div>
@@ -164,7 +164,7 @@
             class="mt-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-4 rounded-lg"
           >
             <p>
-              Yes, CleanSnap allows you to customize your dashboard to display the metrics and reports most relevant to you.
+              Yes, JunkHop allows you to customize your dashboard to display the metrics and reports most relevant to you.
             </p>
           </div>
         </div>

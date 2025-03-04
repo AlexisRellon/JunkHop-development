@@ -29,7 +29,7 @@ const userItems = computed(() => [
   [
     {
       label: isDarkMode.value ? "Light Mode" : "Dark Mode",
-      icon: "i-heroicons-moon-20-solid",
+      icon: !isDarkMode.value ? "i-heroicons-moon-20-solid" : "i-heroicons-sun-20-solid",
       type: "checkbox" as const,
       checked: isDarkMode.value,
       click: () => {
@@ -74,13 +74,6 @@ const navItems = [
     target: "_self",
   },
   {
-    label: "Notifications",
-    to: "/notifications",
-    icon: "i-heroicons-bell-20-solid",
-    target: "_self",
-    condition: auth.logged, // Only show when user is logged in | comment this condition to show always
-  },
-  {
     label: "Support",
     to: "/support",
     icon: "i-heroicons-question-mark-circle-20-solid",
@@ -102,10 +95,34 @@ defineShortcuts({
     },
   },
 });
+
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
+
+const route = useRoute();
+
+// Determine if the user role is admin
+const isAdminUser = computed(() => {
+  return auth.user?.roles?.includes("admin");
+});
+
+// Determine if the user role is junkshop_owner
+const isJunkshopOwnerUser = computed(() => {
+  return auth.user?.roles?.includes("junkshop_owner");
+});
+
+const routeName = computed(() => route.path.startsWith("/dashboard"));
+const routePrivacyAndTerms = computed(() => route.path.startsWith("/privacy-policy") || route.path.startsWith("/terms-of-service"));
+
 </script>
 <template>
   <header
-    class="sticky top-0 z-50 flex items-center justify-center -mb-px bg-white shadow-sm dark:bg-gray-900 dark:text-white"
+  class="sticky top-0 z-50 w-full flex items-center justify-center -mb-px bg-white shadow-sm dark:bg-gray-900 dark:text-white"
+    :class="{
+      'hidden': isAdminUser && routeName,
+      'rel': isJunkshopOwnerUser && routeName,
+      'relative' : routePrivacyAndTerms
+    }"
   >
     <UContainer
       class="flex items-center justify-between w-full h-16 gap-3 py-2 mx-auto sm"
@@ -131,20 +148,6 @@ defineShortcuts({
       </nav>
 
       <div class="flex items-center justify-end gap-3 lg:flex-1">
-        <!-- <AppTheme /> -->
-
-        <UDropdown
-          v-if="auth.logged"
-          :items="userItems"
-          :ui="{ item: { disabled: 'cursor-text select-text' } }"
-          :popper="{ placement: 'bottom-end' }"
-        >
-          <!-- Notification Bell -->
-          <UIcon
-            name="i-heroicons-bell-20-solid"
-            class="w-[25px] h-[25px] bg-gray-600"
-          />
-        </UDropdown>
 
         <UDropdown
           v-if="auth.logged"

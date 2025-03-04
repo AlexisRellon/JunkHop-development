@@ -15,7 +15,7 @@
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.1",
     "@nuxt/devtools": "^1.3.14",
-    "@nuxt/image": "^1.7.0",
+    "@nuxt/image": "^1.9.0",
     "@nuxt/ui": "^2.18.4",
     "@pinia/nuxt": "^0.5.4",
     "chokidar": "^3.6.0",
@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
+    "@vueuse/nuxt": "^12.7.0",
+    "chart.js": "^4.4.6",
     "laravel-nuxt": "file:",
     "pinia": "^2.2.6"
   }

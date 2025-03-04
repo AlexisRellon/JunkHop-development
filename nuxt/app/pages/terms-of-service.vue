@@ -11,7 +11,7 @@
           Introduction
         </h2>
         <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-          Welcome to CleanSnap. By accessing or using our platform, you agree to comply with these Terms of Service ("Terms"). Please read these Terms carefully as they govern your use of our services and features.
+          Welcome to JunkHop. By accessing or using our platform, you agree to comply with these Terms of Service ("Terms"). Please read these Terms carefully as they govern your use of our services and features.
         </p>
       </section>
 
@@ -27,7 +27,7 @@
             You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.
           </li>
           <li>
-            CleanSnap reserves the right to suspend or terminate accounts that violate these Terms or engage in unauthorized activities.
+            JunkHop reserves the right to suspend or terminate accounts that violate these Terms or engage in unauthorized activities.
           </li>
         </ul>
       </section>
@@ -38,7 +38,7 @@
         </h2>
         <ul class="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
           <li>
-            Users agree to use CleanSnap solely for its intended purpose of waste management and recycling analytics.
+            Users agree to use JunkHop solely for its intended purpose of waste management and recycling analytics.
           </li>
           <li>
             Prohibited actions include, but are not limited to, tampering with system functionality, unauthorized access, and distributing malicious software.
@@ -54,7 +54,7 @@
           Data Collection and Privacy
         </h2>
         <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-          CleanSnap collects and processes data as described in our Privacy Policy. By using the platform, you consent to the collection and use of your information as outlined in the Privacy Policy.
+          JunkHop collects and processes data as described in our Privacy Policy. By using the platform, you consent to the collection and use of your information as outlined in the Privacy Policy.
         </p>
       </section>
 
@@ -63,7 +63,7 @@
           Service Availability
         </h2>
         <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-          While CleanSnap aims to provide uninterrupted access, we do not guarantee that the platform will be available at all times. Scheduled maintenance or technical issues may temporarily disrupt service.
+          While JunkHop aims to provide uninterrupted access, we do not guarantee that the platform will be available at all times. Scheduled maintenance or technical issues may temporarily disrupt service.
         </p>
       </section>
 
@@ -72,7 +72,7 @@
           Limitation of Liability
         </h2>
         <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-          CleanSnap is not liable for any indirect, incidental, or consequential damages resulting from the use or inability to use the platform, including data loss or unauthorized access.
+          JunkHop is not liable for any indirect, incidental, or consequential damages resulting from the use or inability to use the platform, including data loss or unauthorized access.
         </p>
       </section>
 
@@ -81,7 +81,7 @@
           Modifications to Terms
         </h2>
         <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-          CleanSnap reserves the right to modify these Terms at any time. Users will be notified of changes, and continued use of the platform constitutes acceptance of the updated Terms.
+          JunkHop reserves the right to modify these Terms at any time. Users will be notified of changes, and continued use of the platform constitutes acceptance of the updated Terms.
         </p>
       </section>
     </div>
