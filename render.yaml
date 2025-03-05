@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: junkhop-backend
+    env: php
+    buildCommand: composer install --no-interaction --prefer-dist --optimize-autoloader && php artisan config:clear && php artisan migrate --force
+    startCommand: php artisan serve --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        fromDatabase:
+          name: junkhop-db
+          property: connectionString
+      - key: APP_URL
+        value: https://junkhop-backend.onrender.com
+      - key: FRONTEND_URL
+        value: https://junkhop.vercel.app
+      - key: SESSION_DOMAIN
+        value: onrender.com
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: junkhop.vercel.app
+
+databases:
+  - name: junkhop-db
+    plan: free
