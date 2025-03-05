@@ -3,20 +3,7 @@ services:
     name: junkhop-backend
     env: php
     runtime: php-8.2
-    buildCommand: |
-      # Install PHP dependencies
-      composer install --no-interaction --prefer-dist --optimize-autoloader
-      
-      # Install Node.js dependencies
-      npm install
-      npm run build
-      
-      # Clear Laravel caches and prepare for production
-      php artisan config:clear
-      php artisan route:clear
-      php artisan view:clear
-      php artisan storage:link
-      php artisan migrate --force
+    buildCommand: chmod +x build.sh && ./build.sh
     startCommand: php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=$PORT
     envVars:
       - key: APP_ENV
@@ -45,6 +32,8 @@ services:
         value: sync
       - key: NODE_VERSION
         value: 20
+      - key: NPM_CONFIG_PREFER_INSTALL
+        value: install
 databases:
   - name: junkhop-db
     plan: free
