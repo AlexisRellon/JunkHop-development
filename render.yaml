@@ -2,8 +2,15 @@ services:
   - type: web
     name: junkhop-backend
     env: php
-    buildCommand: composer install --no-interaction --prefer-dist --optimize-autoloader && php artisan config:clear && php artisan migrate --force
-    startCommand: php artisan serve --host 0.0.0.0 --port $PORT
+    runtime: php-8.2
+    buildCommand: |
+      composer install --no-interaction --prefer-dist --optimize-autoloader
+      php artisan config:clear
+      php artisan route:clear
+      php artisan view:clear
+      php artisan storage:link
+      php artisan migrate --force
+    startCommand: php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=$PORT
     envVars:
       - key: APP_ENV
         value: production
@@ -23,7 +30,12 @@ services:
         value: onrender.com
       - key: SANCTUM_STATEFUL_DOMAINS
         value: junkhop.vercel.app
-
+      - key: APP_KEY
+        generateValue: true
+      - key: CACHE_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
 databases:
   - name: junkhop-db
     plan: free
