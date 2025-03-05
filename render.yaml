@@ -4,7 +4,14 @@ services:
     env: php
     runtime: php-8.2
     buildCommand: |
+      # Install PHP dependencies
       composer install --no-interaction --prefer-dist --optimize-autoloader
+      
+      # Install Node.js dependencies
+      npm install
+      npm run build
+      
+      # Clear Laravel caches and prepare for production
       php artisan config:clear
       php artisan route:clear
       php artisan view:clear
@@ -36,6 +43,8 @@ services:
         value: file
       - key: QUEUE_CONNECTION
         value: sync
+      - key: NODE_VERSION
+        value: 20
 databases:
   - name: junkhop-db
     plan: free
