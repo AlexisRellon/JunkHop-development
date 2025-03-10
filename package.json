@@ -20,7 +20,7 @@
     "@pinia/nuxt": "^0.5.4",
     "chokidar": "^3.6.0",
     "dayjs-nuxt": "^2.1.9",
-    "nuxt": "^3.13.0",
+    "nuxt": "^3.16.0",
     "nuxt-security": "2.0.0-rc.9",
     "vue": "^3.4.38",
     "vue-router": "^4.4.3"
