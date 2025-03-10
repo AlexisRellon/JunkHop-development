@@ -148,6 +148,8 @@ onMounted(() => {
 <template>
   <section
     class="relative flex items-center justify-center h-screen py-20 overflow-visible bg-center bg-cover hero-section"
+    data-aos="fade-down"
+    data-aos-duration="1000"
   >
     <div
       class="absolute inset-0 hero-image -z-10"
@@ -163,14 +165,14 @@ onMounted(() => {
       "
     ></div>
     <div class="container mx-auto text-center">
-      <h1 class="mb-4 text-5xl font-bold text-white dark:text-white">
+      <h1 class="mb-4 text-5xl font-bold text-white dark:text-white" data-aos="fade-up" data-aos-delay="200">
         Connect with Local Junk Shops
         <span class="text-teal-300">Easily</span>
       </h1>
-      <p class="mb-8 text-xl text-white">
+      <p class="mb-8 text-xl text-white" data-aos="fade-up" data-aos-delay="400">
         Find nearby junk shops, manage your recycling activities, and track your environmental impact
       </p>
-      <div class="flex justify-center gap-5">
+      <div class="flex justify-center gap-5" data-aos="fade-up" data-aos-delay="600">
         <UButton
           label="Get Started"
           @click="router.push('/auth/register')"
@@ -190,14 +192,14 @@ onMounted(() => {
   <ClientOnly>
     <section id="details-section" class="py-20 bg-gray-100 overview dark:bg-gray-800">
       <div class="container px-4 mx-auto">
-        <h2 class="mb-8 text-4xl font-bold text-center text-teal-500">
+        <h2 class="mb-8 text-4xl font-bold text-center text-teal-500" data-aos="fade-up">
           About JunkHop
         </h2>
-        <p class="mb-12 text-xl text-center">
+        <p class="mb-12 text-xl text-center" data-aos="fade-up" data-aos-delay="200">
           A platform that bridges the gap between residents and junk shops, making recycling more accessible and organized.
         </p>
         <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-          <div class="text-center feature">
+          <div class="text-center feature" data-aos="fade-up" data-aos-delay="100">
             <UIcon
               name="i-heroicons-map-pin"
               class="mx-auto mb-4 text-teal-500"
@@ -206,7 +208,7 @@ onMounted(() => {
             <h3 class="mb-2 text-2xl font-semibold">Find Junk Shops</h3>
             <p>Discover verified junk shops in your vicinity</p>
           </div>
-          <div class="text-center feature">
+          <div class="text-center feature" data-aos="fade-up" data-aos-delay="300">
             <UIcon
               name="i-heroicons-user-circle"
               class="mx-auto mb-4 text-teal-500"
@@ -215,7 +217,7 @@ onMounted(() => {
             <h3 class="mb-2 text-2xl font-semibold">User Profiles</h3>
             <p>Manage your account</p>
           </div>
-          <div class="text-center feature">
+          <div class="text-center feature" data-aos="fade-up" data-aos-delay="500">
             <UIcon
               name="i-heroicons-building-storefront"
               class="mx-auto mb-4 text-teal-500"
@@ -231,9 +233,9 @@ onMounted(() => {
 
   <section id="key-features" class="py-20 bg-white key-features dark:bg-gray-900">
     <div class="container px-4 mx-auto">
-      <h2 class="mb-8 text-4xl font-bold text-center">Key Features</h2>
+      <h2 class="mb-8 text-4xl font-bold text-center" data-aos="fade-down">Key Features</h2>
       <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-        <div class="text-center feature">
+        <div class="text-center feature" data-aos="zoom-in" data-aos-delay="100">
           <UIcon
             name="mdi-map-marker"
             class="mx-auto mb-4 text-teal-500"
@@ -249,7 +251,7 @@ onMounted(() => {
             reviews.
           </p>
         </div>
-        <div class="text-center feature">
+        <div class="text-center feature" data-aos="zoom-in" data-aos-delay="300">
           <UIcon
             name="mdi-book-open"
             class="mx-auto mb-4 text-teal-500"
@@ -266,7 +268,7 @@ onMounted(() => {
             environment.
           </p>
         </div>
-        <div class="text-center feature">
+        <div class="text-center feature" data-aos="zoom-in" data-aos-delay="500">
           <UIcon name="mdi-bell" class="mx-auto mb-4 text-teal-500" size="48" />
           <h3 class="mb-2 text-2xl font-semibold">Push Notifications</h3>
           <p>Tips and Updates: Reminders and eco-friendly guidelines.</p>
@@ -277,9 +279,9 @@ onMounted(() => {
 
   <section id="how-it-works" class="py-20 bg-gray-100 how-it-works dark:bg-gray-800">
     <div class="container px-4 mx-auto">
-      <h2 class="mb-8 text-4xl font-bold text-center">How It Works</h2>
+      <h2 class="mb-8 text-4xl font-bold text-center" data-aos="fade-down">How It Works</h2>
       <div class="grid grid-cols-1 gap-8 text-center md:grid-cols-3">
-        <div class="step">
+        <div class="step" data-aos="flip-left" data-aos-delay="100">
           <UIcon
             name="i-heroicons-user-circle"
             class="mx-auto mb-4 text-teal-500 animate-pulse"
@@ -288,7 +290,7 @@ onMounted(() => {
           <h3 class="mb-2 text-2xl font-semibold">Create Account</h3>
           <p>Register as a user or junk shop owner to access the platform.</p>
         </div>
-        <div class="step">
+        <div class="step" data-aos="flip-left" data-aos-delay="300">
           <UIcon
             name="i-heroicons-map-pin"
             class="mx-auto mb-4 text-teal-500 animate-bounce"
@@ -299,7 +301,7 @@ onMounted(() => {
             Locate nearby junk shops or list your shop for others to find.
           </p>
         </div>
-        <div class="step">
+        <div class="step" data-aos="flip-left" data-aos-delay="500">
           <UIcon
             name="i-heroicons-building-storefront"
             class="mx-auto mb-4 text-teal-500 animate-pulse"
@@ -314,9 +316,9 @@ onMounted(() => {
 
   <section id="community-impact" class="py-20 bg-white community-impact dark:bg-gray-900">
     <div class="container px-4 mx-auto">
-      <h2 class="mb-8 text-4xl font-bold text-center">Community Impact</h2>
+      <h2 class="mb-8 text-4xl font-bold text-center" data-aos="fade-down">Community Impact</h2>
       <div class="grid grid-cols-1 gap-8 text-center md:grid-cols-3">
-        <div class="stat">
+        <div class="stat" data-aos="fade-right" data-aos-delay="100">
           <h3 class="mb-2 text-2xl font-semibold">Waste Collected</h3>
           <p
             class="text-4xl font-bold text-teal-500"
@@ -325,7 +327,7 @@ onMounted(() => {
             {{ wasteCollected }} Tons
           </p>
         </div>
-        <div class="stat">
+        <div class="stat" data-aos="fade-up" data-aos-delay="300">
           <h3 class="mb-2 text-2xl font-semibold">Recycling Rate</h3>
           <p
             class="text-4xl font-bold text-teal-500"
@@ -334,7 +336,7 @@ onMounted(() => {
             {{ recyclingRate }}%
           </p>
         </div>
-        <div class="stat">
+        <div class="stat" data-aos="fade-left" data-aos-delay="500">
           <h3 class="mb-2 text-2xl font-semibold">Community Participation</h3>
           <p
             class="text-4xl font-bold text-teal-500"
@@ -345,16 +347,16 @@ onMounted(() => {
         </div>
       </div>
       <div class="mt-12 testimonials">
-        <h3 class="mb-8 text-3xl font-semibold text-center">Success Stories</h3>
+        <h3 class="mb-8 text-3xl font-semibold text-center" data-aos="fade-up">Success Stories</h3>
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <div class="testimonial">
+          <div class="testimonial" data-aos="fade-right" data-aos-delay="100">
             <p class="italic">
               "JunkHop has transformed our city's waste management. The
               community is more engaged than ever!"
             </p>
             <p class="mt-4 font-bold">- City Official</p>
           </div>
-          <div class="testimonial">
+          <div class="testimonial" data-aos="fade-left" data-aos-delay="300">
             <p class="italic">
               "Thanks to JunkHop, I've been able to track my recycling efforts
               and make a real impact."
@@ -372,8 +374,8 @@ onMounted(() => {
     class="py-20 text-white bg-teal-600 dark:bg-teal-700 join-movement"
   >
     <div class="container px-4 mx-auto text-center">
-      <h2 class="mb-8 text-4xl font-bold">Join the Movement</h2>
-      <p class="mb-8 text-xl">
+      <h2 class="mb-8 text-4xl font-bold" data-aos="fade-up">Join the Movement</h2>
+      <p class="mb-8 text-xl" data-aos="fade-up" data-aos-delay="200">
         Become part of the JunkHop community and make a positive impact on the
         environment.
       </p>
@@ -383,8 +385,10 @@ onMounted(() => {
         color="white"
         variant="outline"
         size="xl"
+        data-aos="fade-up" 
+        data-aos-delay="400"
       />
-      <div class="mt-8 social-media">
+      <div class="mt-8 social-media" data-aos="fade-up" data-aos-delay="600">
         <h3 class="mb-4 text-2xl font-semibold">Follow Us</h3>
         <div class="flex justify-center gap-4">
           <a href="#" class="text-white"

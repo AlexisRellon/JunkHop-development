@@ -4,34 +4,37 @@
     :class="[modelValue ? 'w-20' : 'w-64']"
   >
     <div>
+      
       <div class="flex items-center justify-between px-4">
-        <h1 v-if="!modelValue" class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <!-- Only show title when sidebar is expanded -->
+        <h1 v-if="!modelValue" class="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
           Admin <span class="text-primary-600">Panel</span>
         </h1>
-        <UIcon
-          v-else
-          name="mdi-view-dashboard"
-          class="text-4xl mx-auto text-primary-600 dark:text-primary-500"
-        />
-
-        <!-- Toggle Button -->
+        
+        <!-- Toggle Button - always visible -->
         <UButton
           @click="toggle"
           color="gray"
           variant="ghost"
           :icon="modelValue ? 'i-heroicons-bars-3' : 'i-heroicons-x-mark'"
           class="rounded-full"
+          :class="modelValue ? 'mx-auto' : ''"
           aria-label="Toggle sidebar"
         />
       </div>
 
       <div v-if="!modelValue" class="mt-2 px-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
+        <p 
+        class="text-sm text-gray-600 truncate 
+        dark:text-gray-400"
+        >
           {{ description || "Manage your application from here." }}
         </p>
       </div>
 
-      <UDivider class="my-4" />
+      <UDivider 
+      class="my-4"
+      />
 
       <h3
         v-if="!modelValue"
@@ -62,7 +65,7 @@
 
     <slot name="footer">
       <UButton
-        class="mx-auto"
+        class="mx-auto truncate"
         :icon="modelValue ? 'i-heroicons-arrow-left-on-rectangle' : ''"
         to="/"
         :label="modelValue ? '' : 'Go Back'"

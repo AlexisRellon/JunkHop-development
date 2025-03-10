@@ -152,8 +152,16 @@ const routePrivacyAndTerms = computed(() => route.path.startsWith("/privacy-poli
         <UDropdown
           v-if="auth.logged"
           :items="userItems"
-          :ui="{ item: { disabled: 'cursor-text select-text' } }"
-          :popper="{ placement: 'bottom-end' }"
+          :ui="{ 
+            item: { disabled: 'cursor-text select-text' },
+            container: 'max-w-[250px]',
+            width: 'w-auto'
+          }"
+          :popper="{ 
+            placement: 'bottom-end',
+            strategy: 'fixed',
+            modifiers: [{ name: 'preventOverflow', options: { padding: 8 } }]
+          }"
         >
           <UAvatar
             size="sm"

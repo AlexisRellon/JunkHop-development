@@ -61,4 +61,7 @@ const isAdminPanel = computed(() => route.path.startsWith('/playgroundAdmin'));
 </template>
 
 <style>
+body {
+  overflow-x: hidden;
+}
 </style>
