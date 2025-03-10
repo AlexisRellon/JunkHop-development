@@ -28,6 +28,7 @@
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
     "@vueuse/nuxt": "^12.7.0",
+    "aos": "^2.3.4",
     "chart.js": "^4.4.6",
     "laravel-nuxt": "file:",
     "pinia": "^2.2.6"
