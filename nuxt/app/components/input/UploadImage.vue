@@ -49,10 +49,16 @@ const onSelect = async (e: any) => {
           color: 'red',
           title: response._data?.message ?? response.statusText ?? 'Something went wrong',
         });
-      } else if (response._data?.ok) {
-        value.value = response._data?.url.toString(); // Ensure the URL is a string
+      } else if (response._data?.ok && response._data?.url) {
+        // Only try to update the value if url exists
+        value.value = response._data.url.toString();
+      } else {
+        useToast().add({
+          icon: 'i-heroicons-exclamation-circle-solid',
+          color: 'red',
+          title: 'Invalid response format from server',
+        });
       }
-
       loading.value = false;
     },
   });

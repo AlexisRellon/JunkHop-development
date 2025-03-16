@@ -13,7 +13,7 @@
         >Add User</UButton
       >
     </span>
-    <UTable :rows="users" :columns="userColumns" size="lg" :loading="loading">
+    <UTable :rows="paginatedUsers" :columns="userColumns" size="lg" :loading="loading">
       <template #actions-data="{ row }">
         <div class="flex justify-end gap-3">
           <UButton
@@ -33,6 +33,26 @@
         </div>
       </template>
     </UTable>
+    
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-6">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ users.length }}</span> users
+      </p>
+      <UPagination
+        v-if="pageCount > 1"
+        v-model="page"
+        :page-count="pageCount"
+        :total="users.length"
+        :ui="{
+          wrapper: 'flex items-center gap-1',
+          rounded: 'rounded-md',
+          default: {
+            size: 'sm'
+          }
+        }"
+      />
+    </div>
   </UCard>
   <!-- User Edit Slideover -->
   <USlideover v-model="drawerOpen" side="bottom" :ui="{ height: 'h-fit' }">
@@ -136,7 +156,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, onMounted } from "vue";
+import { ref, reactive, nextTick, onMounted, computed, watch } from "vue";
 import { useRouter } from 'vue-router';
 
 const users = ref([]);
@@ -158,8 +178,62 @@ const userColumns = [
   { key: "actions", label: "Actions" },
 ];
 
+/**
+ * Fetch the list of users.
+ */
+
+let userCount = 5;
+const fetchUsers = async () => {
+  try {
+    loading.value = true;
+    const data = await $fetch("/users", {
+      method: "GET",
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    users.value = data;
+    userCount = data.length;
+    console.log("Users:", data);
+    console.log("Users cnt:", data.length);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    console.error(
+      "Error details:",
+      error.response ? error.response.data : error.message
+    );
+  } finally {
+    loading.value = false;
+  }
+};
+
 const router = useRouter();
 const toast = useToast();
+
+// Pagination
+const page = ref(1);
+const itemsPerPage = ref(5);
+
+// Computed for pagination - Fix pagination logic
+const pageCount = computed(() => {
+  if (loading.value) {
+    return 1; // Default to 1 page while loading
+  }
+  return Math.max(1, Math.ceil(users.value.length / itemsPerPage.value));
+});
+
+// Log users count after data is loaded
+watch(() => loading.value, (isLoading) => {
+  if (!isLoading) {
+    console.log("Users count:", users.value.length);
+  }
+});
+
+const startIndex = computed(() => (page.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, users.value.length));
+const paginatedUsers = computed(() => {
+  return users.value.slice(startIndex.value, endIndex.value);
+});
 
 // Update roleOptions to match exact role names from Laravel permissions
 const roleOptions = [
@@ -361,31 +435,6 @@ const deleteUser = async (userUlid) => {
     });
   } catch (error) {
     handleError(error, "deleting user");
-  }
-};
-
-/**
- * Fetch the list of users.
- */
-const fetchUsers = async () => {
-  try {
-    loading.value = true;
-    const data = await $fetch("/users", {
-      method: "GET",
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-    users.value = data;
-    console.log("Users:", data);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    console.error(
-      "Error details:",
-      error.response ? error.response.data : error.message
-    );
-  } finally {
-    loading.value = false;
   }
 };
 

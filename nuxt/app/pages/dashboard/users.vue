@@ -4,28 +4,31 @@
     <AdminSidebar v-model="isSidebarCollapsed" />
 
     <!-- Main Content -->
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex flex-col flex-1 overflow-hidden">
       <!-- Header with Avatar and Dropdown -->
-      <header class="flex items-center justify-end gap-4 p-4 bg-white dark:bg-gray-800 shadow-sm">
-        <p>Welcome, {{ auth.user.name }}</p>
-        <UDropdown
-          :items="userItems"
-          :ui="{ item: { disabled: 'cursor-text select-text' } }"
-          :popper="{ placement: 'bottom-end' }"
-        >
-          <UAvatar
-            size="sm"
-            :src="$storage(auth.user.avatar)"
-            :alt="auth.user.name"
-            :ui="{ rounded: 'rounded-md' }"
-          />
-        </UDropdown>
+      <header class="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 shadow-sm">
+        <h1 class="text-xl font-semibold text-gray-800 dark:text-white">User Management</h1>
+        <div class="flex items-center gap-4">
+          <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Welcome, {{ auth.user.name }}</span>
+          <UDropdown
+            :items="userItems"
+            :ui="{ item: { disabled: 'cursor-text select-text' } }"
+            :popper="{ placement: 'bottom-end' }"
+          >
+            <UAvatar
+              size="sm"
+              :src="$storage(auth.user.avatar)"
+              :alt="auth.user.name"
+              :ui="{ rounded: 'rounded-full', ring: 'ring-2 ring-primary-500' }"
+            />
+          </UDropdown>
+        </div>
       </header>
 
-      <div class="p-6">
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <!-- User Table Component -->
-          <AppAdminPanelUserTable />
+      <div class="flex-1 p-6 overflow-y-auto custom-scrollbar">
+        <!-- Main content area that will take remaining height -->
+        <div class="h-full">
+          <AppAdminPanelUserTable class="w-full h-full" />
         </div>
       </div>
     </div>
@@ -33,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import AdminSidebar from "../../components/app/admin_panel/admin_sidebar.vue";
 
@@ -42,11 +45,6 @@ const { $storage } = useNuxtApp();
 
 // Sidebar state
 const isSidebarCollapsed = ref(false);
-
-const totalUsers = ref(0);
-const activeUsers = ref(0);
-const totalJunkshops = ref(0);
-
 const isDarkMode = ref(true);
 
 const userItems = computed(() => [
@@ -59,8 +57,6 @@ const userItems = computed(() => [
       click: () => {
         isDarkMode.value = !isDarkMode.value;
         document.documentElement.classList.toggle("dark");
-
-        router.push("/");
       },
     },
   ],
@@ -72,23 +68,37 @@ const userItems = computed(() => [
     },
   ],
 ]);
-
-// We don't need to define links here since they're provided by AdminSidebar component by default
-
-const updateStatistics = () => {
-  const userTable = document.querySelectorAll(".user-table-row");
-  const junkshopTable = document.querySelectorAll(".junkshop-table-row");
-  totalUsers.value = userTable.length || 0;
-  totalJunkshops.value = junkshopTable.length || 0;
-  // Assuming active users are a subset of total users
-  activeUsers.value = userTable.length || 0;
-};
-
-onMounted(() => {
-  updateStatistics();
-});
-
-watch([totalUsers, totalJunkshops], () => {
-  updateStatistics();
-});
 </script>
+
+<style scoped>
+/* Ensure the UCard takes full height of its container */
+:deep(.u-card) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the table container takes up remaining space */
+:deep(.u-card > div) {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-teal-500/50 dark:bg-teal-600/50;
+}
+</style>

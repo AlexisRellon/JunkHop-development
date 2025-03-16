@@ -1,132 +1,126 @@
 <template>
-  <div
-    class="flex flex-col justify-between h-screen py-6 bg-white shadow-lg dark:bg-gray-800 z-10 transition-all duration-300 ease-in-out"
-    :class="[modelValue ? 'w-20' : 'w-64']"
+  <aside
+    class="z-10 flex flex-col h-screen transition-width duration-300 ease-in-out bg-white border-r dark:bg-gray-800 dark:border-gray-700"
+    :class="[isCollapsed ? 'w-[5rem]' : 'w-64']"
   >
-    <div>
-      
-      <div class="flex items-center justify-between px-4">
-        <!-- Only show title when sidebar is expanded -->
-        <h1 v-if="!modelValue" class="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-          Admin <span class="text-primary-600">Panel</span>
-        </h1>
-        
-        <!-- Toggle Button - always visible -->
-        <UButton
-          @click="toggle"
-          color="gray"
-          variant="ghost"
-          :icon="modelValue ? 'i-heroicons-bars-3' : 'i-heroicons-x-mark'"
-          class="rounded-full"
-          :class="modelValue ? 'mx-auto' : ''"
-          aria-label="Toggle sidebar"
-        />
-      </div>
-
-      <div v-if="!modelValue" class="mt-2 px-4">
-        <p 
-        class="text-sm text-gray-600 truncate 
-        dark:text-gray-400"
-        >
-          {{ description || "Manage your application from here." }}
-        </p>
-      </div>
-
-      <UDivider 
-      class="my-4"
-      />
-
-      <h3
-        v-if="!modelValue"
-        class="px-6 py-2 text-lg font-semibold text-gray-700 dark:text-gray-300"
+    <!-- Logo and collapse button section -->
+    <div class="p-4 flex items-center justify-between">
+      <NuxtLink
+        to="/"
+        class="flex items-center flex-shrink-0 gap-2 text-xl font-semibold text-gray-800 dark:text-white transition-all duration-300"
+        :class="isCollapsed ? 'justify-center mx-auto' : ''"
       >
-        Navigation
-      </h3>
-
-      <div class="mt-4">
-        <ul class="space-y-2">
-          <li v-for="link in links" :key="link.to" class="px-2">
-            <NuxtLink
-              :to="link.to"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors"
-              :class="[
-                $route.path === link.to
-                  ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
-              ]"
-            >
-              <UIcon :name="link.icon" class="flex-shrink-0" :class="modelValue ? 'text-2xl mx-auto' : ''" />
-              <span v-if="!modelValue" class="truncate">{{ link.label }}</span>
-            </NuxtLink>
-          </li>
-        </ul>
-      </div>
+        <img src="/Logo.svg" alt="Logo" class="w-8 h-8" />
+        <span v-show="!isCollapsed" class="transition-opacity duration-300" :class="isCollapsed ? 'opacity-0' : 'opacity-100'">CleanSnap</span>
+      </NuxtLink>
+      <button
+        @click="toggleSidebar"
+        class="p-1 flex item-center text-gray-400 transition-colors rounded-lg hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 focus:outline-none"
+      >
+        <UIcon :name="isCollapsed ? 'i-heroicons-chevron-right' : 'i-heroicons-chevron-left'" class="w-5 h-5" />
+      </button>
     </div>
 
-    <slot name="footer">
-      <UButton
-        class="mx-auto truncate"
-        :icon="modelValue ? 'i-heroicons-arrow-left-on-rectangle' : ''"
-        to="/"
-        :label="modelValue ? '' : 'Go Back'"
-        :trailing="false"
-        color="teal"
-        variant="ghost"
-        size="lg"
-        :class="[!modelValue ? 'w-full px-6 rounded-none hover:bg-gray-200 dark:hover:bg-gray-700' : 'rounded-full']"
-      />
-    </slot>
-  </div>
+    <!-- Navigation links -->
+    <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+      <NuxtLink
+        v-for="item in links"
+        :key="item.to"
+        :to="item.to"
+        class="flex truncate items-center py-3 text-gray-600 transition-colors rounded-lg dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+        :class="[
+          $route.path === item.to
+            ? 'active-link bg-teal-50 text-teal-700 dark:bg-teal-900 dark:bg-opacity-20 dark:text-teal-300'
+            : '',
+          isCollapsed ? 'px-3 justify-center' : 'px-4'
+        ]"
+        :title="item.label"
+      >
+        <UIcon :name="item.icon" class="w-5 h-5" :class="{ 'mr-3': !isCollapsed }" />
+        <span v-show="!isCollapsed" class="flex-1 transition-opacity duration-300" :class="isCollapsed ? 'opacity-0 w-0' : 'opacity-100'">{{ item.label }}</span>
+      </NuxtLink>
+    </nav>
+
+    <!-- User section -->
+    <div class="px-2 py-4 mt-auto border-t dark:border-gray-700">
+      <div 
+        class="flex items-center gap-2 transition-all duration-300"
+        :class="isCollapsed ? 'justify-center' : 'px-4 py-3'"
+      >
+        <UAvatar
+          :src="$storage(auth.user.avatar)"
+          :alt="auth.user.name"
+          :size="isCollapsed ? 'sm' : 'md'"
+          class="rounded-full"
+        />
+        <div v-show="!isCollapsed" class="flex-1 min-w-0 transition-opacity duration-300" :class="isCollapsed ? 'opacity-0 w-0' : 'opacity-100'">
+          <p class="text-sm font-medium text-gray-800 truncate dark:text-white">
+            {{ auth.user.name }}
+          </p>
+          <p class="text-xs text-gray-500 truncate dark:text-gray-400">
+            Admin
+          </p>
+        </div>
+      </div>
+    </div>
+  </aside>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, defineProps, defineEmits } from "vue";
+import { ref, computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
+
+const auth = useAuthStore();
+const { $storage } = useNuxtApp();
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
   },
-  links: {
-    type: Array,
-    default: () => [
-      { label: "Dashboard", to: "/dashboard", icon: "mdi-view-dashboard" },
-      { label: "Users", to: "/dashboard/users", icon: "mdi-account-group" },
-      { label: "Junkshops", to: "/dashboard/junkshop", icon: "mdi-home" },
-      { label: "API Documentation", to: "/dashboard/api", icon: "mdi-api" },
-    ],
-  },
-  description: {
-    type: String,
-    default: "",
-  },
-  persistKey: {
-    type: String,
-    default: "adminSidebarCollapsed",
-  },
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
-const toggle = () => {
-  emit("update:modelValue", !props.modelValue);
+const isCollapsed = computed({
+  get() {
+    return props.modelValue;
+  },
+  set(value) {
+    emit("update:modelValue", value);
+  },
+});
 
-  // Store preference in localStorage if persistKey is provided
-  if (process.client && props.persistKey) {
-    localStorage.setItem(props.persistKey, !props.modelValue);
-  }
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value;
 };
 
-// Initialize from localStorage if available
-onMounted(() => {
-  if (process.client && props.persistKey) {
-    const savedState = localStorage.getItem(props.persistKey);
-    if (savedState !== null) {
-      emit("update:modelValue", savedState === "true");
-    } else {
-      // Default to expanded on desktop, collapsed on mobile
-      emit("update:modelValue", window.innerWidth < 768);
-    }
-  }
-});
+// Updated navigation links with new admin sections
+const links = [
+  { label: "Dashboard", to: "/dashboard", icon: "mdi-view-dashboard" },
+  { label: "Users", to: "/dashboard/users", icon: "mdi-account-group" },
+  { label: "Junkshops", to: "/dashboard/junkshop", icon: "mdi-home" },
+  // { label: "Transactions", to: "/dashboard/transactions", icon: "mdi-receipt" },
+  // { label: "Schedule", to: "/dashboard/schedule", icon: "mdi-calendar" },
+  // { label: "Reports", to: "/dashboard/reports", icon: "mdi-chart-bar" },
+  // { label: "Notifications", to: "/dashboard/notifications", icon: "mdi-bell" },
+  // { label: "Settings", to: "/dashboard/settings", icon: "mdi-cog" },
+  { label: "API Documentation", to: "/dashboard/api", icon: "mdi-api" },
+];
 </script>
+
+<style scoped>
+/* For Safari and other browsers that might not support transition-width */
+.transition-width {
+  transition-property: width;
+}
+
+/* Using direct class assignment instead of @apply to avoid circular dependency */
+.active-link .router-link-active {
+  color: #0d9488; /* text-teal-600 */
+}
+
+.dark .active-link .router-link-active {
+  color: #5eead4; /* dark:text-teal-300 */
+}
+</style>

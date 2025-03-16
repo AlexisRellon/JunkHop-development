@@ -13,7 +13,7 @@
       >Add Junkshop</UButton>
     </span>
     <UTable
-      :rows="junkshops"
+      :rows="paginatedJunkshops"
       :columns="junkshopColumns"
       size="lg"
       :loading="loadingJunkshops"
@@ -38,6 +38,26 @@
         <span>{{ getUserName(row.user_id) }}</span>
       </template>
     </UTable>
+    
+    <!-- Pagination -->
+    <div class="flex justify-between items-center mt-6">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ endIndex }}</span> of <span class="font-medium">{{ junkshops.length }}</span> junkshops
+      </p>
+      <UPagination
+        v-if="pageCount > 1"
+        v-model="page"
+        :page-count="pageCount"
+        :total="junkshops.length"
+        :ui="{
+          wrapper: 'flex items-center gap-1',
+          rounded: 'rounded-md',
+          default: {
+            size: 'sm'
+          }
+        }"
+      />
+    </div>
   </UCard>
   <USlideover v-model="drawerOpenJunkshop" side="bottom" :ui="{ height: 'h-fit' }">
     <UContainer class="flex flex-col flex-1 gap-3 py-4 sm:py-6">
@@ -137,7 +157,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, onMounted } from "vue";
+import { ref, reactive, nextTick, onMounted, computed, watch } from "vue";
 import { useRouter } from 'vue-router';
 
 const junkshops = ref([]);
@@ -161,6 +181,27 @@ const junkshopColumns = [
   { key: "user_id", label: "Owner" }, // Use user_id for owner column
   { key: "actions", label: "Actions" },
 ];
+
+// Pagination
+const page = ref(1);
+const itemsPerPage = ref(5);
+
+// Computed for pagination
+const pageCount = computed(() => Math.ceil(junkshops.value.length / itemsPerPage.value));
+const startIndex = computed(() => (page.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, junkshops.value.length));
+const paginatedJunkshops = computed(() => {
+  return junkshops.value.slice(startIndex.value, endIndex.value);
+});
+
+// Watch for changes in junkshops array length to handle page adjustments
+watch(() => junkshops.value.length, (newLength, oldLength) => {
+  // If junkshops are removed and current page would be empty, go to previous page
+  const maxPage = Math.max(1, Math.ceil(newLength / itemsPerPage.value));
+  if (page.value > maxPage) {
+    page.value = maxPage;
+  }
+}, { immediate: true });
 
 const router = useRouter();
 const toast = useToast();
@@ -324,6 +365,12 @@ const fetchJunkshops = async () => {
     });
     junkshops.value = data;
     console.log("Junkshops:", data);
+    
+    // Ensure page is within valid range after data loads
+    const maxPage = Math.max(1, Math.ceil(junkshops.value.length / itemsPerPage.value));
+    if (page.value > maxPage) {
+      page.value = maxPage;
+    }
   } catch (error) {
     console.error("Error fetching junkshops:", error);
     console.error("Error details:", error.response ? error.response.data : error.message);
