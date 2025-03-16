@@ -29,4 +29,32 @@
         margin-left: 0;
         margin-right: 0;
     }
+
+    /* Custom Scrollbar Styles */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        @apply bg-gray-300 dark:bg-gray-700 rounded-full transition-colors;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-teal-500/50 dark:bg-teal-600/50;
+    }
+    
+    /* For Firefox */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: theme('colors.gray.300') transparent;
+    }
+    
+    .dark * {
+        scrollbar-color: theme('colors.gray.700') transparent;
+    }
 }
