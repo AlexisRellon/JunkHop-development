@@ -6,6 +6,7 @@ use App\Models\TemporaryUpload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class UploadController extends Controller
 {
@@ -34,7 +35,7 @@ class UploadController extends Controller
 
         return response()->json([
             'ok' => true,
-            'path' => $path,
+            'url' => Storage::disk('public')->url($path)
         ]);
     }
 }

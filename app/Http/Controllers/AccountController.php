@@ -29,25 +29,34 @@ class AccountController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:100'],
             'email' => ['required', 'email', 'unique:users,email,'.$user->id],
-            'avatar' => ['nullable', 'string', Rule::excludeIf($request->avatar === $user->avatar), 'regex:/^avatars\/[a-z0-9]{26}\.([a-z]++)$/i', new TemporaryFileExists],
+            'avatar' => ['nullable', 'string', new TemporaryFileExists],
         ]);
 
-        if ($user->avatar && Str::startsWith($user->avatar, 'avatars/') && $user->avatar !== $request->avatar) {
-            Storage::disk('public')->delete($user->avatar);
+        // Handle avatar update
+        if ($request->has('avatar') && $request->avatar !== $user->avatar) {
+            // Delete old avatar if it exists
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            // Update user avatar with the new path
+            $user->avatar = $request->avatar;
+            
+            // Delete temporary upload record since it's now permanent
+            TemporaryUpload::where('path', $request->avatar)->delete();
         }
 
         $email = $user->email;
-
-        $user->update($request->only(['name', 'email', 'avatar']));
+        
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
 
         if ($email !== $request->email) {
             $user->email_verified_at = null;
             $user->save(['timestamps' => false]);
             $user->sendEmailVerificationNotification();
         }
-
-        // Delete temporary upload record
-        TemporaryUpload::where('path', $request->avatar)->delete();
 
         return response()->json([
             'ok' => true,
