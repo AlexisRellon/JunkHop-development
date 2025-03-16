@@ -143,11 +143,14 @@ class JunkshopController extends Controller
         // First create or find the item
         $item = Item::firstOrCreate(['name' => $request->name]);
 
-        // Then create the pivot record
-        $junkshopItem = JunkshopItem::create([
-            'junkshop_id' => $junkshop->ulid,
-            'item_id' => $item->id,
-        ]);
+        // Attach the item to the junkshop
+        $pivot = $junkshop->items()->attach($item->id);
+
+        // Get the newly created pivot record
+        $junkshopItem = JunkshopItem::where('junkshop_id', $junkshop->ulid)
+            ->where('item_id', $item->id)
+            ->latest()
+            ->first();
 
         // Return the full item with name for the frontend
         return response()->json([

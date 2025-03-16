@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Junkshop;
+use App\Models\JunkshopItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -41,9 +42,20 @@ class ItemController extends Controller
         ]);
 
         $item = Item::create(['name' => $request->name]);
-        $junkshop->items()->attach($item->id);
+        
+        // Create a direct entry in the pivot table instead of using attach()
+        $junkshopItem = new JunkshopItem([
+            'junkshop_id' => $junkshop->ulid,
+            'item_id' => $item->id
+        ]);
+        $junkshopItem->save();
 
-        return response()->json($item);
+        return response()->json([
+            'id' => $junkshopItem->id,
+            'name' => $item->name,
+            'junkshop_id' => $junkshop->ulid,
+            'item_id' => $item->id
+        ]);
     }
 
     /**
@@ -52,15 +64,27 @@ class ItemController extends Controller
     public function update(Request $request, string $ulid, int $itemId): JsonResponse
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
-        $item = $junkshop->items()->where('id', $itemId)->firstOrFail();
-
+        
+        // Find the pivot record directly to avoid ambiguous ID issue
+        $junkshopItem = JunkshopItem::where('id', $itemId)
+            ->where('junkshop_id', $junkshop->ulid)
+            ->firstOrFail();
+            
+        // Get the associated item
+        $item = Item::findOrFail($junkshopItem->item_id);
+        
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
         $item->update(['name' => $request->name]);
 
-        return response()->json($item);
+        return response()->json([
+            'id' => $junkshopItem->id,
+            'name' => $item->name,
+            'junkshop_id' => $junkshop->ulid,
+            'item_id' => $item->id
+        ]);
     }
 
     /**
@@ -69,7 +93,11 @@ class ItemController extends Controller
     public function destroy(string $ulid, int $itemId): JsonResponse
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
-        $junkshop->items()->detach($itemId);
+        
+        // Find and delete the pivot record directly instead of using detach
+        JunkshopItem::where('id', $itemId)
+            ->where('junkshop_id', $junkshop->ulid)
+            ->delete();
 
         return response()->json(['message' => 'Item deleted successfully']);
     }
