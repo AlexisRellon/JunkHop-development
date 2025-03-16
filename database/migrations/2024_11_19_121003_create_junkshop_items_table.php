@@ -12,8 +12,9 @@ class CreateJunkshopItemsTable extends Migration
     {
         Schema::create('junkshop_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('junkshop_id')->constrained()->onDelete('cascade');
+            $table->string('junkshop_id');
             $table->foreignId('item_id')->constrained()->onDelete('cascade');
+            $table->foreign('junkshop_id')->references('ulid')->on('junkshops')->onDelete('cascade');
             $table->timestamps();
         });
     }
