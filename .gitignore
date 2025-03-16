@@ -48,3 +48,7 @@ logs
 .env.*
 !.env.example
 admin-templates.jpg
+
+# Others
+*.csv
+*.xlsx

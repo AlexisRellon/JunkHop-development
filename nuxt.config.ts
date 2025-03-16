@@ -99,11 +99,11 @@ export default defineNuxtConfig({
    * @see https://v3.nuxtjs.org/guide/features/runtime-config#exposing-runtime-config
    */
   runtimeConfig: {
-    apiLocal: process.env.API_LOCAL_URL || "https://junkhop-backend.onrender.com",
+    apiLocal: import.meta.env.API_LOCAL_URL,
     public: {
-      apiBase: process.env.APP_URL || "https://junkhop-backend.onrender.com",
+      apiBase: import.meta.env.APP_URL,
       apiPrefix: "/api/v1",
-      storageBase: (process.env.APP_URL || "https://junkhop-backend.onrender.com") + "/storage/",
+      storageBase: import.meta.env.APP_URL + "/storage/",
       providers: {
         google: {
           name: "Google",
