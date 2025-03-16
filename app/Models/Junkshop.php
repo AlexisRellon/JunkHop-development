@@ -41,7 +41,9 @@ class Junkshop extends Model
      */
     public function items()
     {
-        return $this->hasMany(JunkshopItem::class, 'junkshop_id', 'ulid');
+        return $this->belongsToMany(Item::class, 'junkshop_items', 'junkshop_id', 'item_id')
+            ->withPivot('id')
+            ->withTimestamps();
     }
 
     /**
