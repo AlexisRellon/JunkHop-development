@@ -19,7 +19,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleSeeder::class,
-            // ...other seeders
+            PopulateUsersSeeder::class,
+            ItemSeeder::class,           // Add items first
+            PopulateJunkshopSeeder::class, // Then create junkshops with items
         ]);
 
         // Reset cached roles and permissions
