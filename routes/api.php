@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardStatisticsController;
 use App\Models\DashboardStatistic;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MerchantController;
 
 Route::get('/', function () {
     return ['ok' => true, 'message' => 'Welcome to the API'];
@@ -71,6 +72,31 @@ Route::prefix('api/v1')->group(function () {
         Route::put('/users/{ulid}', [UserController::class, 'update']);
         Route::delete('/users/{ulid}', [UserController::class, 'destroy']);
         Route::put('/users/{user}/update-role', [UserController::class, 'updateRole'])->middleware('can:edit roles');
+
+        // Merchant routes
+        Route::get('/merchants', [MerchantController::class, 'index']);
+        Route::post('/merchants', [MerchantController::class, 'store']);
+        Route::get('/merchants/{ulid}', [MerchantController::class, 'show']);
+        Route::put('/merchants/{ulid}', [MerchantController::class, 'update']);
+        Route::delete('/merchants/{ulid}', [MerchantController::class, 'destroy']);
+        Route::get('/merchant/profile', [MerchantController::class, 'profile']);
+        
+        // Merchant interest routes
+        Route::post('/merchants/{ulid}/junkshop-interests', [MerchantController::class, 'addJunkshopInterest']);
+        Route::delete('/merchants/{merchantUlid}/junkshop-interests/{junkshopUlid}', [MerchantController::class, 'removeJunkshopInterest']);
+        Route::post('/merchants/{ulid}/item-interests', [MerchantController::class, 'addItemInterest']);
+        Route::delete('/merchants/{merchantUlid}/item-interests/{itemId}', [MerchantController::class, 'removeItemInterest']);
+
+        // New merchant connection routes
+        Route::prefix('merchant')->group(function() {
+            Route::get('/profile', [MerchantController::class, 'show']);
+            Route::post('/profile', [MerchantController::class, 'store']);
+            Route::put('/profile', [MerchantController::class, 'update']);
+            Route::post('/connect/{junkshopId}', [MerchantController::class, 'connectWithJunkshop']);
+            Route::post('/item-interest/{itemId}', [MerchantController::class, 'toggleItemInterest']);
+            Route::get('/connected-junkshops', [MerchantController::class, 'getConnectedJunkshops']);
+            Route::get('/interested-items', [MerchantController::class, 'getInterestedItems']);
+        });
 
         // Debug routes
         Route::prefix('debug')->group(function() {

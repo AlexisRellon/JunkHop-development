@@ -14,7 +14,7 @@ class RoleSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Create roles with web guard (important for Sanctum compatibility)
-        $roles = ['admin', 'user', 'junkshop_owner', 'baranggay_admin'];
+        $roles = ['admin', 'user', 'junkshop_owner', 'baranggay_admin', 'merchant'];
 
         foreach ($roles as $roleName) {
             Role::firstOrCreate([
