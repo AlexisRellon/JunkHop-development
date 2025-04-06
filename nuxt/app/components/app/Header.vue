@@ -62,6 +62,13 @@ const navItems = [
     condition: auth.logged, // Only show when user is logged in | comment this condition to show always
   },
   {
+    label: "Merchant Dashboard",
+    to: "/dashboard/merchant",
+    icon: "i-heroicons-building-storefront-20-solid",
+    target: "_self",
+    condition: auth.logged && auth.user?.roles?.includes("merchant"),
+  },
+  {
     label: "Junk Shop Finder",
     to: "/finder",
     icon: "i-heroicons-map-20-solid",
@@ -119,7 +126,7 @@ const routePrivacyAndTerms = computed(() => route.path.startsWith("/privacy-poli
   <header
   class="sticky top-0 z-50 w-full flex items-center justify-center -mb-px bg-white shadow-sm dark:bg-gray-900 dark:text-white"
     :class="{
-      'hidden': isAdminUser && routeName,
+      'hidden': (isAdminUser) && routeName,
       'rel': isJunkshopOwnerUser && routeName,
       'relative' : routePrivacyAndTerms
     }"
