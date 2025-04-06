@@ -55,6 +55,15 @@ class Junkshop extends Model
     }
 
     /**
+     * Get the merchants interested in this junkshop
+     */
+    public function merchants()
+    {
+        return $this->belongsToMany(Merchant::class, 'merchant_junkshop', 'junkshop_id', 'merchant_id')
+            ->withTimestamps();
+    }
+
+    /**
      * Find a junkshop by its ULID
      *
      * @param string $ulid

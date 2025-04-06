@@ -42,7 +42,7 @@ class UserController extends Controller
                     'email',
                     Rule::unique('users')->ignore($user->id)
                 ],
-                'role' => ['sometimes', 'required', 'string', Rule::in(['admin', 'user', 'junkshop_owner', 'baranggay_admin'])],
+                'role' => ['sometimes', 'required', 'string', Rule::in(['admin', 'user', 'junkshop_owner', 'baranggay_admin', 'merchant'])],
                 'password' => ['sometimes', 'nullable', 'string', 'min:8']
             ]);
 
@@ -195,7 +195,7 @@ class UserController extends Controller
         }
 
         $validated = $request->validate([
-            'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin'
+            'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin,merchant'
         ]);
 
         // Remove existing roles and assign new role
@@ -219,7 +219,7 @@ class UserController extends Controller
                 $validatedData = $request->validate([
                     'name' => 'required|string|max:255',
                     'email' => 'required|string|email|max:255|unique:users,email',
-                    'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin',
+                    'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin,merchant',
                     'password' => 'required|string|min:8',
                 ]);
 

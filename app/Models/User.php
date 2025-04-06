@@ -89,6 +89,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the merchant profile associated with the user.
+     */
+    public function merchant()
+    {
+        return $this->hasOne(Merchant::class, 'user_id', 'ulid');
+    }
+
+    /**
      * Send the email verification notification.
      *
      * @return void
