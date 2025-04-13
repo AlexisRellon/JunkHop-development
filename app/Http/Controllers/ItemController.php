@@ -39,6 +39,9 @@ class ItemController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'quantity' => 'nullable|numeric|min:0',
+            'grade' => 'nullable|string|max:50',
+            'price' => 'nullable|numeric|min:0',
         ]);
 
         $item = Item::create(['name' => $request->name]);
@@ -46,7 +49,10 @@ class ItemController extends Controller
         // Create a direct entry in the pivot table instead of using attach()
         $junkshopItem = new JunkshopItem([
             'junkshop_id' => $junkshop->ulid,
-            'item_id' => $item->id
+            'item_id' => $item->id,
+            'quantity' => $request->quantity ?? 0,
+            'grade' => $request->grade,
+            'price' => $request->price ?? 0
         ]);
         $junkshopItem->save();
 
@@ -54,7 +60,10 @@ class ItemController extends Controller
             'id' => $junkshopItem->id,
             'name' => $item->name,
             'junkshop_id' => $junkshop->ulid,
-            'item_id' => $item->id
+            'item_id' => $item->id,
+            'quantity' => $junkshopItem->quantity,
+            'grade' => $junkshopItem->grade,
+            'price' => $junkshopItem->price
         ]);
     }
 
@@ -75,15 +84,28 @@ class ItemController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
+            'quantity' => 'nullable|numeric|min:0',
+            'grade' => 'nullable|string|max:50',
+            'price' => 'nullable|numeric|min:0',
         ]);
 
         $item->update(['name' => $request->name]);
+        
+        // Update the junkshop item with inventory information
+        $junkshopItem->update([
+            'quantity' => $request->quantity ?? $junkshopItem->quantity,
+            'grade' => $request->grade ?? $junkshopItem->grade,
+            'price' => $request->price ?? $junkshopItem->price,
+        ]);
 
         return response()->json([
             'id' => $junkshopItem->id,
             'name' => $item->name,
             'junkshop_id' => $junkshop->ulid,
-            'item_id' => $item->id
+            'item_id' => $item->id,
+            'quantity' => $junkshopItem->quantity,
+            'grade' => $junkshopItem->grade,
+            'price' => $junkshopItem->price
         ]);
     }
 
