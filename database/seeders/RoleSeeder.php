@@ -28,6 +28,11 @@ class RoleSeeder extends Seeder
             'edit roles',
             'manage users',
             'manage junkshops',
+            'manage marketplace',
+            'view marketplace',
+            'create marketplace listings',
+            'edit own marketplace listings',
+            'delete own marketplace listings',
         ];
 
         foreach ($permissions as $permissionName) {
@@ -41,6 +46,17 @@ class RoleSeeder extends Seeder
         $adminRole = Role::where('name', 'admin')->where('guard_name', 'web')->first();
         if ($adminRole) {
             $adminRole->givePermissionTo(Permission::where('guard_name', 'web')->get());
+        }
+        
+        // Assign permissions to merchant role
+        $merchantRole = Role::where('name', 'merchant')->where('guard_name', 'web')->first();
+        if ($merchantRole) {
+            $merchantRole->givePermissionTo([
+                'view marketplace',
+                'create marketplace listings',
+                'edit own marketplace listings',
+                'delete own marketplace listings',
+            ]);
         }
     }
 }
