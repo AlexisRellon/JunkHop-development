@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-auto bg-gray-100 dark:bg-gray-900">
+  <div class="flex h-screen bg-gray-100 dark:bg-gray-900">
     <!-- Main Content -->
     <div class="flex flex-col flex-1">
       <AppMerchantPanel />
@@ -10,22 +10,28 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+import { computed, onMounted } from 'vue';
 
 const auth = useAuthStore();
 const router = useRouter();
 
-// Redirect if not merchant role
-const isMerchant = computed(() => {
-  return auth.user?.roles?.includes("merchant");
+// Compute role access permissions
+const isMerchant = computed(() => auth.user?.roles?.includes("merchant"));
+const isAdmin = computed(() => auth.user?.roles?.includes("admin"));
+const isJunkshopOwner = computed(() => auth.user?.roles?.includes("junkshop_owner"));
+
+// Check if user has any of the allowed roles
+const hasAccess = computed(() => {
+  return isMerchant.value || isAdmin.value || isJunkshopOwner.value;
 });
 
 // Check user role and redirect if necessary
 onMounted(() => {
-  if (!auth.logged || !isMerchant.value) {
+  if (!auth.logged || !hasAccess.value) {
     router.push('/');
     useToast().add({
       title: 'Access Denied',
-      description: 'You need merchant permissions to access this area.',
+      description: 'You need merchant, junkshop owner, or admin permissions to access this area.',
       color: 'red'
     });
   }

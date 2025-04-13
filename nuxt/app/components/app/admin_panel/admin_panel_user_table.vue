@@ -240,7 +240,8 @@ const roleOptions = [
   'admin',
   'user',
   'junkshop_owner',
-  'baranggay_admin'
+  'baranggay_admin',
+  'merchant',
 ];
 
 /**

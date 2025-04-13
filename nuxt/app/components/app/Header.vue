@@ -60,13 +60,15 @@ const navItems = [
     icon: "i-heroicons-view-grid-20-solid",
     target: "_self",
     condition: auth.logged, // Only show when user is logged in | comment this condition to show always
+    sanitizeStatusCode: true,
   },
   {
     label: "Merchant Dashboard",
     to: "/dashboard/merchant",
     icon: "i-heroicons-building-storefront-20-solid",
     target: "_self",
-    condition: auth.logged && auth.user?.roles?.includes("merchant"),
+    condition: auth.logged && (auth.user?.roles?.includes("merchant") || auth.user?.roles?.includes("junkshop_owner") || auth.user?.roles?.includes("admin")),
+    sanitizeStatusCode: true,
   },
   {
     label: "Junk Shop Finder",

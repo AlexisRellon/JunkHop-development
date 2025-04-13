@@ -61,9 +61,18 @@ onMounted(async () => {
   try {
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
     const response = await $fetch<Junkshop[]>('/junkshop');
+    // Assign the response to the junkshops array
+    junkshops.value = response;
+    console.log('Junkshops loaded:', junkshops.value);
+    
     // If user is logged in and has merchant role, fetch their profile
     if (auth.logged && hasRole(auth, 'merchant')) {
       fetchMerchantProfile();
+    }
+    
+    // Load junkshop items for filtering
+    if (junkshops.value.length > 0) {
+      await fetchAllJunkshopItems();
     }
   } catch (error) {
     console.error('Failed to fetch junkshops:', error);

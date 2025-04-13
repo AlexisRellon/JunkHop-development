@@ -1,12 +1,12 @@
 <template>
-  <div class="flex bg-gray-50 dark:bg-gray-900">
+  <div class="flex bg-gray-50 dark:bg-gray-900 h-[calc(100vh-4rem)]">
     <!-- Sidebar -->
     <AppMerchantPanelMerchantSidebar v-model="isCollapsed" />
     
     <!-- Main Content -->
     <div 
       class="flex-1 overflow-y-auto custom-scrollbar transition-all duration-300" 
-      :class="{ 'ml-64': !isCollapsed, 'ml-16': isCollapsed }"
+      :class="{ '': !isCollapsed, 'ml-16': isCollapsed }"
     >
       <!-- Header with Avatar and Welcome -->
       <header class="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 shadow-sm">
@@ -15,7 +15,7 @@
           <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Welcome, {{ auth.user?.name }}</span>
           <UAvatar
             size="sm"
-            :src="$storage ? $storage(auth.user?.avatar) : ''"
+            :src="$storage(auth.user?.avatar)"
             :alt="auth.user?.name"
             :ui="{ rounded: 'rounded-full', ring: 'ring-2 ring-emerald-500' }"
           />
@@ -343,13 +343,12 @@
 import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 
-
 const auth = useAuthStore();
 const toast = useToast();
 const router = useRouter();
 const isCollapsed = ref(false);
 
-// Redirect if not merchant role
+// Define role checks
 const isUserRole = computed(() => {
   return auth.user?.roles?.includes("user");
 });
@@ -359,13 +358,26 @@ const isMerchant = computed(() => {
   return auth.user?.roles?.includes("merchant");
 });
 
+const isAdmin = computed(() => {
+  return auth.user?.roles?.includes("admin");
+});
+
+const isJunkshopOwner = computed(() => {
+  return auth.user?.roles?.includes("junkshop_owner");
+});
+
+// Check if user has any of the allowed roles
+const hasAccess = computed(() => {
+  return isMerchant.value || isAdmin.value || isJunkshopOwner.value;
+});
+
 // Check user role and redirect if necessary
 onMounted(() => {
-  if (!auth.logged || !isMerchant.value) {
+  if (!auth.logged || !hasAccess.value) {
     router.push('/');
     toast.add({
       title: 'Access Denied',
-      description: 'You need merchant permissions to access this area.',
+      description: 'You need merchant, junkshop owner, or admin permissions to access this area.',
       color: 'red'
     });
   } else {
@@ -404,7 +416,7 @@ const fetchMerchantProfile = async () => {
     isLoading.value = true;
     
     // Get merchant profile
-    const response = await $fetch('/api/v1/merchant/profile');
+    const response = await $fetch('/merchant/profile');
     merchant.value = response;
     
     // If profile exists, populate the form
@@ -438,11 +450,11 @@ const fetchConnections = async () => {
     isLoadingItems.value = true;
     
     // Fetch junkshops this merchant is connected to
-    const junkshopsResponse = await $fetch('/api/v1/merchant/connected-junkshops');
+    const junkshopsResponse = await $fetch('/merchant/connected-junkshops');
     connectedJunkshops.value = junkshopsResponse || [];
     
     // Fetch items this merchant is interested in
-    const itemsResponse = await $fetch('/api/v1/merchant/interested-items');
+    const itemsResponse = await $fetch('/merchant/interested-items');
     interestedItems.value = itemsResponse || [];
   } catch (error) {
     console.error('Failed to fetch connections:', error);
@@ -463,7 +475,7 @@ const saveProfile = async () => {
     isSaving.value = true;
     
     const method = merchant.value?.ulid ? 'put' : 'post';
-    const url = '/api/v1/merchant/profile';
+    const url = '/merchant/profile';
     
     const response = await $fetch(url, {
       method,
@@ -502,7 +514,7 @@ const saveProfile = async () => {
 // Handle remove junkshop connection
 const removeJunkshopConnection = async (junkshopUlid) => {
   try {
-    const response = await $fetch(`/api/v1/merchant/connect/${junkshopUlid}`, {
+    const response = await $fetch(`/merchant/connect/${junkshopUlid}`, {
       method: 'POST',
     });
     
@@ -529,7 +541,7 @@ const removeJunkshopConnection = async (junkshopUlid) => {
 // Handle remove item interest
 const removeItemInterest = async (itemId) => {
   try {
-    const response = await $fetch(`/api/v1/merchant/item-interest/${itemId}`, {
+    const response = await $fetch(`/merchant/item-interest/${itemId}`, {
       method: 'POST',
     });
     
