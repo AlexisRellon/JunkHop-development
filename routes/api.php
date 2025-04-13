@@ -11,6 +11,7 @@ use App\Models\DashboardStatistic;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MerchantController;
+use App\Http\Controllers\WantedMaterialController;
 
 Route::get('/', function () {
     return ['ok' => true, 'message' => 'Welcome to the API'];
@@ -96,6 +97,16 @@ Route::prefix('api/v1')->group(function () {
             Route::post('/item-interest/{itemId}', [MerchantController::class, 'toggleItemInterest']);
             Route::get('/connected-junkshops', [MerchantController::class, 'getConnectedJunkshops']);
             Route::get('/interested-items', [MerchantController::class, 'getInterestedItems']);
+        });
+        
+        // Wanted Material Marketplace routes
+        Route::prefix('marketplace')->group(function() {
+            Route::get('/wanted-materials', [WantedMaterialController::class, 'index']);
+            Route::get('/wanted-materials/{ulid}', [WantedMaterialController::class, 'show']);
+            Route::post('/wanted-materials', [WantedMaterialController::class, 'store']);
+            Route::put('/wanted-materials/{ulid}', [WantedMaterialController::class, 'update']);
+            Route::delete('/wanted-materials/{ulid}', [WantedMaterialController::class, 'destroy']);
+            Route::get('/my-listings', [WantedMaterialController::class, 'myListings']);
         });
 
         // Debug routes
