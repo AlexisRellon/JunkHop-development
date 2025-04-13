@@ -76,4 +76,12 @@ class Merchant extends Model
         return $this->belongsToMany(Item::class, 'merchant_item', 'merchant_id', 'item_id')
             ->withTimestamps();
     }
+
+    /**
+     * Get the wanted materials posted by this merchant.
+     */
+    public function wantedMaterials()
+    {
+        return $this->hasMany(WantedMaterial::class, 'merchant_id', 'ulid');
+    }
 }

@@ -18,6 +18,9 @@ class JunkshopItem extends Model
         'name',
         'junkshop_id',
         'item_id',
+        'quantity',
+        'grade',
+        'price',
     ];
 
     /**
