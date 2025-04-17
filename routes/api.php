@@ -108,6 +108,16 @@ Route::prefix('api/v1')->group(function () {
             Route::delete('/wanted-materials/{ulid}', [WantedMaterialController::class, 'destroy']);
             Route::get('/my-listings', [WantedMaterialController::class, 'myListings']);
         });
+        
+        // Material Quality Verification routes
+        Route::prefix('quality-verification')->group(function() {
+            Route::get('/verifications', [MaterialVerificationController::class, 'index']);
+            Route::post('/verifications', [MaterialVerificationController::class, 'store']);
+            Route::get('/verifications/{ulid}', [MaterialVerificationController::class, 'show']);
+            Route::put('/verifications/{ulid}/status', [MaterialVerificationController::class, 'updateStatus']);
+            Route::post('/verifications/{ulid}/photos', [MaterialVerificationController::class, 'addPhotos']);
+            Route::delete('/verifications/{ulid}/photos/{photoId}', [MaterialVerificationController::class, 'removePhoto']);
+        });
 
         // Debug routes
         Route::prefix('debug')->group(function() {
