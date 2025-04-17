@@ -29,7 +29,9 @@
     "@formkit/auto-animate": "^0.8.2",
     "@vueuse/nuxt": "^12.7.0",
     "aos": "^2.3.4",
+    "caniuse-lite": "1.0.30001677",
     "chart.js": "^4.4.6",
+    "echarts": "^5.6.0",
     "laravel-nuxt": "file:",
     "pinia": "^2.2.6"
   }
