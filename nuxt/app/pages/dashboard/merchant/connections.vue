@@ -125,7 +125,7 @@ const connections = ref([]);
 const fetchConnections = async () => {
   try {
     loading.value = true;
-    const response = await $fetch('/api/v1/merchant/connected-junkshops');
+    const response = await $fetch('/merchant/connected-junkshops');
     connections.value = response || [];
   } catch (error) {
     console.error('Error fetching junkshop connections:', error);
@@ -142,7 +142,7 @@ const fetchConnections = async () => {
 // Disconnect from a junkshop
 const disconnectJunkshop = async (junkshopUlid) => {
   try {
-    const response = await $fetch(`/api/v1/merchant/connect/${junkshopUlid}`, {
+    const response = await $fetch(`/merchant/connect/${junkshopUlid}`, {
       method: 'POST'
     });
     
