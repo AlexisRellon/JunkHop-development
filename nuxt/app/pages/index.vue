@@ -221,7 +221,7 @@ function animateRecyclingItems() {
 <template>
   <!-- Hero Section with Interactive Elements -->
   <section
-    class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 hero-section"
+    class="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 hero-section"
   >
     <!-- Animated background elements -->
     <div v-if="heroParticlesEnabled" class="absolute inset-0 overflow-hidden pointer-events-none">
@@ -290,9 +290,9 @@ function animateRecyclingItems() {
       <div class="relative hidden md:block" data-aos="fade-left" data-aos-duration="1000">
         <div class="relative">
           <img 
-            src="/hero-image.jpg" 
+            src="/JunkHop-icon.png" 
             alt="Person recycling materials at a junk shop" 
-            class="rounded-2xl shadow-2xl object-cover w-full aspect-[4/3] border border-white/10"
+            class="object-cover w-[35rem] relative left-16"
           />
           
           <!-- Floating UI Elements -->
