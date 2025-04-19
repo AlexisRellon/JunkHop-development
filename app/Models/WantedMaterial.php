@@ -10,27 +10,34 @@ class WantedMaterial extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'ulid',
         'merchant_id',
         'item_id',
         'quantity',
-        'grade',
         'desired_price',
+        'grade',
         'description',
-        'expiry_date',
-        'is_active'
+        'deadline',
+        'is_public',
+        'is_active',
     ];
 
     /**
      * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'quantity' => 'decimal:2',
         'desired_price' => 'decimal:2',
-        'expiry_date' => 'date',
+        'deadline' => 'date',
+        'is_public' => 'boolean',
         'is_active' => 'boolean',
     ];
 
@@ -49,7 +56,7 @@ class WantedMaterial extends Model
     }
 
     /**
-     * Get the merchant that owns this wanted material.
+     * Get the merchant that owns the wanted material listing.
      */
     public function merchant()
     {
@@ -57,10 +64,57 @@ class WantedMaterial extends Model
     }
 
     /**
-     * Get the item that this wanted material references.
+     * Get the related item.
      */
     public function item()
     {
-        return $this->belongsTo(Item::class, 'item_id');
+        return $this->belongsTo(Item::class);
+    }
+
+    /**
+     * Scope query to only include active listings.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope query to only include public listings.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePublic($query)
+    {
+        return $query->where('is_public', true);
+    }
+
+    /**
+     * Scope query to only include listings that haven't reached their deadline.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeAvailable($query)
+    {
+        return $query->where(function($query) {
+            $query->whereNull('deadline')
+                  ->orWhere('deadline', '>=', now()->toDateString());
+        });
+    }
+
+    /**
+     * Find a wanted material by its ULID
+     *
+     * @param string $ulid
+     * @return static|null
+     */
+    public static function findByUlid(string $ulid)
+    {
+        return static::where('ulid', $ulid)->first();
     }
 }

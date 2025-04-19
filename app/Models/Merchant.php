@@ -42,46 +42,11 @@ class Merchant extends Model
     }
 
     /**
-     * Get the junkshops this merchant is interested in
-     */
-    public function interestedJunkshops()
-    {
-        return $this->belongsToMany(Junkshop::class, 'merchant_junkshop_interests', 'merchant_id', 'junkshop_id')
-            ->withTimestamps();
-    }
-
-    /**
-     * Get the materials this merchant is interested in
-     */
-    public function interestedItems()
-    {
-        return $this->belongsToMany(Item::class, 'merchant_item_interests', 'merchant_id', 'item_id')
-            ->withTimestamps();
-    }
-
-    /**
-     * Get the junkshops this merchant is connected with.
-     */
-    public function junkshops()
-    {
-        return $this->belongsToMany(Junkshop::class, 'merchant_junkshop', 'merchant_id', 'junkshop_id')
-            ->withTimestamps();
-    }
-
-    /**
-     * Get the items this merchant is interested in.
-     */
-    public function items()
-    {
-        return $this->belongsToMany(Item::class, 'merchant_item', 'merchant_id', 'item_id')
-            ->withTimestamps();
-    }
-
-    /**
      * Get the wanted materials posted by this merchant.
      */
     public function wantedMaterials()
     {
         return $this->hasMany(WantedMaterial::class, 'merchant_id', 'ulid');
     }
+}
 }
