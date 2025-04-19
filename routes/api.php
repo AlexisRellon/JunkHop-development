@@ -7,11 +7,16 @@ use App\Http\Controllers\JunkshopController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardStatisticsController;
-use App\Models\DashboardStatistic;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MerchantController;
 use App\Http\Controllers\WantedMaterialController;
+use App\Http\Controllers\BidController;
+use App\Http\Controllers\MaterialBidController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\QualityVerificationController;
+use App\Models\DashboardStatistic;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return ['ok' => true, 'message' => 'Welcome to the API'];
@@ -82,21 +87,11 @@ Route::prefix('api/v1')->group(function () {
         Route::delete('/merchants/{ulid}', [MerchantController::class, 'destroy']);
         Route::get('/merchant/profile', [MerchantController::class, 'profile']);
         
-        // Merchant interest routes
-        Route::post('/merchants/{ulid}/junkshop-interests', [MerchantController::class, 'addJunkshopInterest']);
-        Route::delete('/merchants/{merchantUlid}/junkshop-interests/{junkshopUlid}', [MerchantController::class, 'removeJunkshopInterest']);
-        Route::post('/merchants/{ulid}/item-interests', [MerchantController::class, 'addItemInterest']);
-        Route::delete('/merchants/{merchantUlid}/item-interests/{itemId}', [MerchantController::class, 'removeItemInterest']);
-
-        // New merchant connection routes
+        // Simplified merchant routes
         Route::prefix('merchant')->group(function() {
             Route::get('/profile', [MerchantController::class, 'show']);
             Route::post('/profile', [MerchantController::class, 'store']);
             Route::put('/profile', [MerchantController::class, 'update']);
-            Route::post('/connect/{junkshopId}', [MerchantController::class, 'connectWithJunkshop']);
-            Route::post('/item-interest/{itemId}', [MerchantController::class, 'toggleItemInterest']);
-            Route::get('/connected-junkshops', [MerchantController::class, 'getConnectedJunkshops']);
-            Route::get('/interested-items', [MerchantController::class, 'getInterestedItems']);
         });
         
         // Wanted Material Marketplace routes
@@ -107,16 +102,71 @@ Route::prefix('api/v1')->group(function () {
             Route::put('/wanted-materials/{ulid}', [WantedMaterialController::class, 'update']);
             Route::delete('/wanted-materials/{ulid}', [WantedMaterialController::class, 'destroy']);
             Route::get('/my-listings', [WantedMaterialController::class, 'myListings']);
+            Route::post('/wanted-materials/{ulid}/toggle-active', [WantedMaterialController::class, 'toggleActive']);
         });
         
-        // Material Quality Verification routes
-        Route::prefix('quality-verification')->group(function() {
-            Route::get('/verifications', [MaterialVerificationController::class, 'index']);
-            Route::post('/verifications', [MaterialVerificationController::class, 'store']);
-            Route::get('/verifications/{ulid}', [MaterialVerificationController::class, 'show']);
-            Route::put('/verifications/{ulid}/status', [MaterialVerificationController::class, 'updateStatus']);
-            Route::post('/verifications/{ulid}/photos', [MaterialVerificationController::class, 'addPhotos']);
-            Route::delete('/verifications/{ulid}/photos/{photoId}', [MaterialVerificationController::class, 'removePhoto']);
+        // Bidding System routes
+        Route::prefix('bids')->group(function() {
+            // Legacy bid routes if needed
+            Route::get('/my-bids', [BidController::class, 'myBids']);
+            Route::get('/received-bids', [BidController::class, 'receivedBids']);
+            Route::post('/', [BidController::class, 'store']);
+            Route::get('/{ulid}', [BidController::class, 'show']);
+            Route::put('/{ulid}/status', [BidController::class, 'updateStatus']);
+            Route::post('/{ulid}/complete', [BidController::class, 'markCompleted']);
+            Route::post('/{ulid}/cancel', [BidController::class, 'cancel']);
+            Route::get('/{ulid}/counter-offers', [BidController::class, 'getCounterOffers']);
+        });
+        
+        // Material Marketplace Bidding System routes
+        Route::prefix('material-bids')->group(function() {
+            Route::get('/wanted-material/{wantedMaterialId}', [MaterialBidController::class, 'index']);
+            Route::post('/wanted-material/{wantedMaterialId}', [MaterialBidController::class, 'store']);
+            Route::get('/my-bids', [MaterialBidController::class, 'myBids']);
+            Route::get('/received-bids', [MaterialBidController::class, 'receivedBids']);
+            Route::put('/{bidId}/status', [MaterialBidController::class, 'updateStatus']);
+            Route::delete('/{bidId}', [MaterialBidController::class, 'cancel']);
+        });
+
+        // Inventory Visibility System routes
+        Route::prefix('inventory')->group(function() {
+            Route::get('/junkshops/{junkshopUlid}/items', [InventoryController::class, 'index']);
+            Route::get('/junkshops/{junkshopUlid}/items/{itemId}', [InventoryController::class, 'show']);
+            Route::put('/junkshops/{junkshopUlid}/items/{itemId}', [InventoryController::class, 'update']);
+            Route::get('/junkshops/{junkshopUlid}/history', [InventoryController::class, 'history']);
+            Route::get('/notifications/preferences', [InventoryController::class, 'getNotificationPreferences']);
+            Route::put('/notifications/preferences', [InventoryController::class, 'updateNotificationPreferences']);
+            Route::post('/notifications/interested-items', [InventoryController::class, 'addInterestedItem']);
+            Route::delete('/notifications/interested-items', [InventoryController::class, 'removeInterestedItem']);
+        });
+        
+        // Auto-Renewal System routes
+        Route::prefix('subscriptions')->group(function() {
+            Route::get('/', [SubscriptionController::class, 'index']);
+            Route::post('/', [SubscriptionController::class, 'store']);
+            Route::get('/{ulid}', [SubscriptionController::class, 'show']);
+            Route::put('/{ulid}', [SubscriptionController::class, 'update']);
+            Route::post('/{ulid}/cancel', [SubscriptionController::class, 'cancel']);
+            Route::post('/{ulid}/renew-now', [SubscriptionController::class, 'renewNow']);
+            Route::get('/{ulid}/history', [SubscriptionController::class, 'getRenewalHistory']);
+            Route::get('/preferences', [SubscriptionController::class, 'getPreferences']);
+            Route::put('/preferences', [SubscriptionController::class, 'updatePreferences']);
+        });
+        
+        // Quality Verification System routes
+        Route::prefix('verifications')->group(function() {
+            // Merchant routes
+            Route::get('/', [QualityVerificationController::class, 'index']);
+            Route::post('/', [QualityVerificationController::class, 'store']);
+            Route::get('/{ulid}', [QualityVerificationController::class, 'show']);
+            
+            // Junkshop routes
+            Route::get('/junkshop', [QualityVerificationController::class, 'junkshopVerifications']);
+            Route::put('/{ulid}/status', [QualityVerificationController::class, 'updateStatus']);
+            
+            // Quality standards and methods
+            Route::get('/items/{itemId}/standards', [QualityVerificationController::class, 'getQualityStandards']);
+            Route::get('/items/{itemId}/methods', [QualityVerificationController::class, 'getVerificationMethods']);
         });
 
         // Debug routes
