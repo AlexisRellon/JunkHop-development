@@ -201,4 +201,24 @@ class JunkshopController extends Controller
 
         return response()->json(['message' => 'Item deleted']);
     }
+
+    /**
+     * Get the authenticated user's junkshop profile.
+     */
+    public function getProfile(): JsonResponse
+    {
+        $user = Auth::user();
+        $junkshop = Junkshop::where('user_id', $user->ulid)->first();
+
+        if (!$junkshop) {
+            return response()->json([
+                'message' => 'Junkshop profile not found'
+            ], 404);
+        }
+
+        // Load items relationship
+        $junkshop->load('items');
+
+        return response()->json($junkshop);
+    }
 }

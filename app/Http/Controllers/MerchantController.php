@@ -27,7 +27,7 @@ class MerchantController extends Controller
         }
 
         // Load relationships
-        $merchant->load(['junkshops', 'items']);
+        $merchant->load(['items']);
 
         return response()->json($merchant);
     }
@@ -98,5 +98,104 @@ class MerchantController extends Controller
             'message' => 'Merchant profile updated successfully',
             'merchant' => $merchant
         ]);
+    }
+
+    /**
+     * Toggle merchant's interest in an item
+     */
+    public function toggleItemInterest(Request $request, $itemId)
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated'
+            ], 401);
+        }
+
+        $merchant = Merchant::where('user_id', $user->ulid)->first();
+
+        if (!$merchant) {
+            return response()->json([
+                'message' => 'Merchant profile not found'
+            ], 404);
+        }
+
+        $item = Item::find($itemId);
+        if (!$item) {
+            return response()->json([
+                'message' => 'Item not found'
+            ], 404);
+        }
+
+        try {
+            // Check if the merchant is already interested in this item using DB query
+            $existingInterest = \DB::table('merchant_item_interests')
+                ->where('merchant_id', $merchant->ulid)
+                ->where('item_id', $itemId)
+                ->first();
+
+            if ($existingInterest) {
+                // Remove interest
+                $deleted = \DB::table('merchant_item_interests')
+                    ->where('merchant_id', $merchant->ulid)
+                    ->where('item_id', $itemId)
+                    ->delete();
+                
+                if (!$deleted) {
+                    throw new \Exception('Failed to remove item interest');
+                }
+                
+                $status = 'removed';
+            } else {
+                // Add interest
+                \DB::table('merchant_item_interests')->insert([
+                    'merchant_id' => $merchant->ulid,
+                    'item_id' => $itemId,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                
+                $status = 'added';
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to toggle item interest:', [
+                'merchant_id' => $merchant->ulid,
+                'item_id' => $itemId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to update item interest'
+            ], 500);
+        }
+
+        return response()->json([
+            'status' => $status,
+            'message' => $status === 'added' ? 'Item interest added successfully' : 'Item interest removed successfully'
+        ]);
+    }
+
+    /**
+     * Get all items that the merchant is interested in
+     */
+    public function getInterestedItems()
+    {
+        $user = Auth::user();
+        $merchant = Merchant::where('user_id', $user->ulid)->first();
+
+        if (!$merchant) {
+            return response()->json([
+                'message' => 'Merchant profile not found'
+            ], 404);
+        }
+
+        // Get items using join to ensure proper ULID handling
+        $items = Item::join('merchant_item_interests', 'items.id', '=', 'merchant_item_interests.item_id')
+            ->where('merchant_item_interests.merchant_id', $merchant->ulid)
+            ->select('items.*')
+            ->get();
+
+        return response()->json($items);
     }
 }

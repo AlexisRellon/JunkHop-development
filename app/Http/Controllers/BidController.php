@@ -422,5 +422,152 @@ class BidController extends Controller
         return response()->json([
             'message' => 'Bid marked as completed successfully'
         ]);
+    }    /**
+     * Get all bids for a specific junkshop by its ULID.
+     */
+    public function getJunkshopBidsByUlid(Request $request, $ulid): JsonResponse
+    {
+        $user = Auth::user();
+        $junkshop = Junkshop::where('ulid', $ulid)->first();
+
+        if (!$junkshop) {
+            return response()->json([
+                'message' => 'Junkshop not found'
+            ], 404);
+        }
+
+        // Verify the user owns this junkshop
+        if ($junkshop->user_id !== $user->ulid) {
+            return response()->json([
+                'message' => 'Unauthorized access to junkshop'
+            ], 403);
+        }
+
+        // Get bids for this junkshop
+        $bids = Bid::with(['item'])
+            ->where('junkshop_id', $junkshop->ulid)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($bids);
+    }
+
+    /**
+     * Create a new bid from a junkshop by its ULID.
+     */
+    public function createJunkshopBidByUlid(Request $request, $ulid): JsonResponse
+    {        $validator = Validator::make($request->all(), [
+            'item_id' => 'required|exists:items,id',
+            'quantity' => 'required|numeric|min:0',
+            'price_per_kg' => 'required|numeric|min:0',
+            'notes' => 'nullable|string',
+            'status' => 'nullable|string|in:pending,accepted,rejected',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $junkshop = Junkshop::where('ulid', $ulid)->first();
+
+        if (!$junkshop) {
+            return response()->json([
+                'message' => 'Junkshop not found'
+            ], 404);
+        }        // Verify the user owns this junkshop
+        if ($junkshop->user_id !== $user->ulid) {
+            return response()->json([
+                'message' => 'Unauthorized access to junkshop'
+            ], 403);
+        }
+
+        // Verify the item exists and belongs to this junkshop
+        $item = Item::join('junkshop_items', 'items.id', '=', 'junkshop_items.item_id')
+            ->where('items.id', $request->item_id)
+            ->where('junkshop_items.junkshop_id', $junkshop->ulid)
+            ->select('items.*')
+            ->first();
+
+        if (!$item) {
+            return response()->json([
+                'message' => 'Item not found or does not belong to this junkshop'
+            ], 404);
+        }        // Create the bid
+        $bid = new Bid();
+        $bid->ulid = (string) Str::uuid();
+        $bid->junkshop_id = $junkshop->ulid;
+        $bid->merchant_id = $user->merchant ? $user->merchant->ulid : null;
+        $bid->item_id = $request->item_id;
+        $bid->quantity = $request->quantity;
+        $bid->price_per_kg = $request->price_per_kg;
+        $bid->notes = $request->notes;
+        $bid->status = $request->status ?? 'pending';
+        $bid->save();
+
+        // Load the item relationship
+        $bid->load('item');
+
+        return response()->json($bid, 201);
+    }
+
+    /**
+     * Update a junkshop bid's status.
+     */
+    public function updateJunkshopBidStatus(Request $request, $ulid, $bidId): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:pending,accepted,rejected',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = Auth::user();
+        $junkshop = Junkshop::where('ulid', $ulid)->first();
+
+        if (!$junkshop) {
+            return response()->json([
+                'message' => 'Junkshop not found'
+            ], 404);
+        }
+
+        // Verify the user owns this junkshop
+        if ($junkshop->user_id !== $user->ulid) {
+            return response()->json([
+                'message' => 'Unauthorized access to junkshop'
+            ], 403);
+        }
+
+        // Find the bid
+        $bid = Bid::where('id', $bidId)
+            ->where('junkshop_id', $junkshop->ulid)
+            ->first();
+
+        if (!$bid) {
+            return response()->json([
+                'message' => 'Bid not found or does not belong to this junkshop'
+            ], 404);
+        }
+
+        // Update status and related timestamps
+        $bid->status = $request->status;
+        
+        if ($request->status === 'accepted') {
+            $bid->accepted_at = now();
+        } else if ($request->status === 'rejected') {
+            $bid->rejected_at = now();
+        }
+
+        $bid->save();        // Load the item relationship        $bid->load('item');
+
+        return response()->json($bid);
     }
 }

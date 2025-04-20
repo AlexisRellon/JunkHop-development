@@ -74,10 +74,17 @@ class ItemController extends Controller
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
         
-        // Find the pivot record directly to avoid ambiguous ID issue
+        // First try to find the junction record by ID
         $junkshopItem = JunkshopItem::where('id', $itemId)
             ->where('junkshop_id', $junkshop->ulid)
-            ->firstOrFail();
+            ->first();
+            
+        // If not found, try to find by item_id (this allows frontend to use either ID)
+        if (!$junkshopItem) {
+            $junkshopItem = JunkshopItem::where('item_id', $itemId)
+                ->where('junkshop_id', $junkshop->ulid)
+                ->firstOrFail();
+        }
             
         // Get the associated item
         $item = Item::findOrFail($junkshopItem->item_id);
@@ -98,15 +105,11 @@ class ItemController extends Controller
             'price' => $request->price ?? $junkshopItem->price,
         ]);
 
-        return response()->json([
-            'id' => $junkshopItem->id,
-            'name' => $item->name,
-            'junkshop_id' => $junkshop->ulid,
-            'item_id' => $item->id,
-            'quantity' => $junkshopItem->quantity,
-            'grade' => $junkshopItem->grade,
-            'price' => $junkshopItem->price
-        ]);
+        // Return in the same format as the index endpoint for consistency
+        $itemWithPivot = $item->fresh();
+        $itemWithPivot->pivot = $junkshopItem->fresh();
+
+        return response()->json($itemWithPivot);
     }
 
     /**
