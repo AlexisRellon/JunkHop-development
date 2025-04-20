@@ -42,11 +42,19 @@ class Merchant extends Model
     }
 
     /**
+     * Get the items this merchant is interested in.
+     */
+    public function items()
+    {
+        return $this->belongsToMany(Item::class, 'merchant_item_interests', 'merchant_id', 'item_id')
+            ->withTimestamps();
+    }
+
+    /**
      * Get the wanted materials posted by this merchant.
      */
     public function wantedMaterials()
     {
         return $this->hasMany(WantedMaterial::class, 'merchant_id', 'ulid');
     }
-}
 }
