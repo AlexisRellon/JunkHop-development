@@ -93,15 +93,15 @@ const toggleSidebar = () => {
 
 // Navigation links for the merchant dashboard
 const links = [
-  { label: "Dashboard", to: "/dashboard/merchant", icon: "i-heroicons-home" },
+  { label: "Dashboard", to: "/dashboard", icon: "i-heroicons-home" },
   { label: "Material Marketplace", to: "/dashboard/merchant/material-marketplace", icon: "i-heroicons-shopping-bag" },
-  { label: "Connections", to: "/dashboard/merchant/connections", icon: "i-heroicons-link" },
-  { label: "Materials", to: "/dashboard/merchant/materials", icon: "i-heroicons-cube" },
-  { label: "Quality Verification", to: "/dashboard/merchant/quality-verification", icon: "i-heroicons-shield-check" },
-  { label: "Analytics", to: "/dashboard/merchant/analytics", icon: "i-heroicons-chart-bar" },
+  // { label: "Connections", to: "/dashboard/merchant/connections", icon: "i-heroicons-link" },
+  // { label: "Materials", to: "/dashboard/merchant/materials", icon: "i-heroicons-cube" },
+  // { label: "Quality Verification", to: "/dashboard/merchant/quality-verification", icon: "i-heroicons-shield-check" },
+  // { label: "Analytics", to: "/dashboard/merchant/analytics", icon: "i-heroicons-chart-bar" },
   { label: "Find Junkshops", to: "/finder", icon: "i-heroicons-map" },
-  { label: "Messages", to: "/dashboard/merchant/messages", icon: "i-heroicons-chat-bubble-left-ellipsis" },
-  { label: "Settings", to: "/dashboard/merchant/settings", icon: "i-heroicons-cog-6-tooth" },
+  // { label: "Messages", to: "/dashboard/merchant/messages", icon: "i-heroicons-chat-bubble-left-ellipsis" },
+  // { label: "Settings", to: "/dashboard/merchant/settings", icon: "i-heroicons-cog-6-tooth" },
 ];
 
 const userDropdownItems = [

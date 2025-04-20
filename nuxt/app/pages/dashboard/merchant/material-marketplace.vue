@@ -3,7 +3,7 @@
     <div class="mb-6 flex justify-between items-center">
       <div>
         <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Material Marketplace</h1>
-        <p class="text-gray-600 dark:text-gray-400">Manage your material requests and view listings</p>
+        <p class="text-gray-600 dark:text-gray-400">Manage your material requests, view listings, and handle bids</p>
       </div>
       
       <UButton 
@@ -112,11 +112,46 @@
                   </div>
                 </template>
               </UCard>
-            </div>
-          </div>
+            </div>          </div>
           
           <!-- Marketplace Tab -->
-          <div v-if="selectedTabId === 'marketplace'" class="space-y-6">            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+          <div v-if="selectedTabId === 'marketplace'" class="space-y-6">
+          
+          <!-- Received Bids Tab -->
+          <div v-if="selectedTabId === 'received-bids'" class="space-y-6">
+            <!-- Bid Statistics Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <UCard class="dark:bg-gray-800 border-l-4 border-blue-500">
+                <div class="text-center">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Total Bids</div>
+                  <div class="text-3xl font-bold text-gray-800 dark:text-white mt-1">
+                    {{ bidStats.total_bids || 0 }}
+                  </div>
+                </div>
+              </UCard>
+              
+              <UCard class="dark:bg-gray-800 border-l-4 border-amber-500">
+                <div class="text-center">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Pending</div>
+                  <div class="text-3xl font-bold text-gray-800 dark:text-white mt-1">
+                    {{ bidStats.pending_bids || 0 }}
+                  </div>
+                </div>
+              </UCard>
+              
+              <UCard class="dark:bg-gray-800 border-l-4 border-green-500">
+                <div class="text-center">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Accepted</div>
+                  <div class="text-3xl font-bold text-gray-800 dark:text-white mt-1">
+                    {{ bidStats.accepted_bids || 0 }}
+                  </div>
+                </div>
+              </UCard>
+            </div>
+            
+            <!-- Include the ReceivedBids component -->
+            <MerchantReceivedBids />
+          </div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
               <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Filter Listings</h3>
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -443,12 +478,18 @@ const showNewListingModal = ref(false);
 const showDetailsModal = ref(false);
 const editMode = ref(false);
 const selectedListing = ref(null);
+const bidStats = ref({
+  total_bids: 0,
+  pending_bids: 0,
+  accepted_bids: 0
+});
 
 // Tab state
 const activeTab = ref('my-listings');
 const tabs = [
-  { id: 'my-listings', label: 'My Requests' },
-  { id: 'marketplace', label: 'Material Marketplace' }
+  { id: 'my-listings', label: 'My Requests', icon: 'i-heroicons-document-text' },
+  { id: 'marketplace', label: 'Material Marketplace', icon: 'i-heroicons-shopping-bag' },
+  { id: 'received-bids', label: 'Received Bids', icon: 'i-heroicons-currency-dollar' }
 ];
 
 // Filter state
@@ -492,9 +533,21 @@ const itemOptions = ref([]);
 onMounted(async () => {
   await Promise.all([
     fetchItems(),
-    fetchMyListings()
+    fetchMyListings(),
+    fetchBidStats()
   ]);
 });
+
+// Fetch bid statistics
+const fetchBidStats = async () => {
+  try {
+    const response = await $fetch('/api/v1/bids/stats');
+    bidStats.value = response;
+  } catch (error) {
+    console.error('Failed to fetch bid statistics', error);
+    toast.error('Failed to load bid statistics');
+  }
+};
 
 // Fetch all available material items
 const fetchItems = async () => {
@@ -566,6 +619,11 @@ const onTabChange = (tabId) => {
   // Load marketplace data if switching to that tab
   if (tabId === 'marketplace' && marketplaceListings.value.length === 0) {
     fetchMarketplaceListings();
+  }
+  
+  // Refresh bid statistics when switching to the received-bids tab
+  if (tabId === 'received-bids') {
+    fetchBidStats();
   }
 };
 

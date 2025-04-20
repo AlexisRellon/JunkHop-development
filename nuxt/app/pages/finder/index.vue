@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/auth";
 
 // Utility function to check user roles
 const hasRole = (auth, role: string) => {
-  return auth.logged && auth.user?.value?.roles?.includes(role);
+  return auth.logged && auth.user?.roles?.includes(role);
 };
 
 /**
@@ -33,11 +33,8 @@ interface JunkshopItem {
 const junkshops = ref<Junkshop[]>([]);
 const isLoading = ref(true);
 const searchQuery = ref("");
-const selectedFilterCategory = ref<string[]>([]);
-const filterCategories = ref<string[]>([]);
 const junkshopItems = ref<JunkshopItem[]>([]);
 const isLoadingItems = ref(false);
-const allJunkshopItems = ref<{ [key: string]: JunkshopItem[] }>({});
 const isAddingInterest = ref(false);
 const isSavingNote = ref(false);
 const interestNote = ref("");
@@ -46,6 +43,13 @@ const interestNote = ref("");
 const auth = useAuthStore();
 // Check if user is a guest (not logged in)
 const isGuest = computed(() => !auth.logged);
+
+// Check if user is a merchant
+const isMerchant = computed(() => {
+  console.log('Auth user:', auth.user);
+  console.log('Is merchant?', hasRole(auth, 'merchant'));
+  return hasRole(auth, 'merchant');
+});
 // Merchant profile
 const merchantProfile = ref(null);
 const isLoadingMerchantProfile = ref(false);
@@ -69,11 +73,6 @@ onMounted(async () => {
     if (auth.logged && hasRole(auth, 'merchant')) {
       fetchMerchantProfile();
     }
-    
-    // Load junkshop items for filtering
-    if (junkshops.value.length > 0) {
-      await fetchAllJunkshopItems();
-    }
   } catch (error) {
     console.error('Failed to fetch junkshops:', error);
   } finally {
@@ -81,48 +80,11 @@ onMounted(async () => {
   }
 });
 
-/**
- * Fetch items for all junkshops to build a complete database of items
- */
-const fetchAllJunkshopItems = async () => {
-  try {
-    const junkshopsWithUlid = junkshops.value.filter(shop => shop.ulid);
 
-    // Fetch items for each junkshop
-    await Promise.all(junkshopsWithUlid.map(async (shop) => {
-      if (shop.ulid) {
-        try {
-          const items = await $fetch<JunkshopItem[]>(`/junkshop/${shop.ulid}/items`);
-          allJunkshopItems.value[shop.ulid] = items;
-        } catch (error) {
-          console.error(`Failed to fetch items for junkshop ${shop.name}:`, error);
-        }
-      }
-    }));
-
-    // Extract unique item names for filter categories
-    const uniqueCategories = new Set<string>();
-    Object.values(allJunkshopItems.value).forEach(items => {
-      items.forEach(item => {
-        if (item.name) {
-          uniqueCategories.add(item.name);
-        }
-      });
-    });
-
-    filterCategories.value = Array.from(uniqueCategories).sort();
-  } catch (error) {
-    console.error('Failed to fetch all junkshop items:', error);
-  }
-};
 
 /**
  * Interfaces for merchant API responses
  */
-interface JunkshopConnection {
-  ulid: string;
-  // other properties as needed
-}
 
 interface ItemInterest {
   id: number;
@@ -136,15 +98,11 @@ const fetchMerchantProfile = async () => {
   try {
     isLoadingMerchantProfile.value = true;
     // Fetch merchant profile
-    const profile = await $fetch('/api/v1/merchant/profile');
+    const profile = await $fetch('/merchant/profile');
     merchantProfile.value = profile;
 
-    // Fetch junkshop connections
-    const connections = await $fetch<JunkshopConnection[]>('/api/v1/merchant/connected-junkshops');
-    merchantJunkshopConnections.value = connections.map(j => j.ulid);
-
     // Fetch item interests
-    const items = await $fetch<ItemInterest[]>('/api/v1/merchant/interested-items');
+    const items = await $fetch<ItemInterest[]>('/merchant/interested-items');
     merchantItemInterests.value = items.map(i => i.id);
   } catch (error) {
     console.error('Failed to fetch merchant profile:', error);
@@ -157,30 +115,12 @@ const fetchMerchantProfile = async () => {
  * A computed property that filters the junkshops based on search query and selected category.
  */
 const filteredJunkshops = computed(() => {
-  // First, filter by search query
-  let filtered = junkshops.value.filter((shop) =>
+  // Filter by search query only
+  return junkshops.value.filter((shop) =>
     shop.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     shop.address.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     (shop.description && shop.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
   );
-
-  // Then, filter by selected categories if any are selected
-  if (selectedFilterCategory.value.length > 0) {
-    filtered = filtered.filter(shop => {
-      // If the shop has no ulid or no items, filter it out when categories are selected
-      if (!shop.ulid || !allJunkshopItems.value[shop.ulid]) {
-        return false;
-      }
-
-      // Check if any of the shop's items match any of the selected categories
-      const shopItems = allJunkshopItems.value[shop.ulid];
-      return shopItems.some(item =>
-        selectedFilterCategory.value.includes(item.name)
-      );
-    });
-  }
-
-  return filtered;
 });
 
 const [parent] = useAutoAnimate();
@@ -193,10 +133,23 @@ const open = ref(false);
 const openModal = async (shop: Junkshop) => {
   selectedJunkshop.value = shop;
   open.value = true;
+  junkshopItems.value = []; // Reset items before loading new ones
+  isLoadingItems.value = true;
 
-  // If the shop has a ulid, fetch its items
-  if (shop.ulid) {
-    await fetchJunkshopItems(shop.ulid);
+  try {
+    // If the shop has a ulid, fetch its items
+    if (shop.ulid) {
+      await fetchJunkshopItems(shop.ulid);
+    }
+  } catch (error) {
+    console.error('Failed to load junkshop items:', error);
+    useToast().add({
+      title: 'Error',
+      description: 'Failed to load materials list. Please try again.',
+      color: 'red'
+    });
+  } finally {
+    isLoadingItems.value = false;
   }
 };
 
@@ -239,7 +192,6 @@ const redirectToGoogleMaps = (location: string) => {
  */
 const resetFilters = () => {
   searchQuery.value = "";
-  selectedFilterCategory.value = [];
 };
 
 /**
@@ -257,7 +209,7 @@ const toggleJunkshopInterest = async (shop) => {
 
   try {
     isAddingInterest.value = true;
-    const response = await $fetch<JunkshopConnectionResponse>(`/api/v1/merchant/connect/${shop.ulid}`, {
+    const response = await $fetch<JunkshopConnectionResponse>(`/merchant/connect/${shop.ulid}`, {
       method: 'POST',
     });
 
@@ -311,7 +263,7 @@ interface ItemInterestResponse {
  */
 const toggleItemInterest = async (item) => {
   try {
-    const response = await $fetch<ItemInterestResponse>(`/api/v1/merchant/item-interest/${item.id}`, {
+    const response = await $fetch<ItemInterestResponse>(`/merchant/item-interest/${item.id}`, {
       method: 'POST',
     });
 
@@ -401,23 +353,6 @@ const saveInterestNote = () => {
             </template>
           </UInput>
         </div>
-
-        <div class="hidden md:block border-l border-gray-200 dark:border-gray-700 h-11 self-stretch"></div>
-
-        <div>
-          <USelectMenu v-model="selectedFilterCategory" :options="filterCategories" multiple searchable
-            searchable-placeholder="Search materials..." color="gray" size="lg" class="min-w-[200px] relative">
-            <template #label>
-              <div class="flex items-center gap-2">
-                <UIcon name="i-heroicons-funnel" />
-                <span class="text-gray-600">Filter by materials</span>
-                <UBadge v-if="selectedFilterCategory.length" color="teal" size="xs">
-                  {{ selectedFilterCategory.length }}
-                </UBadge>
-              </div>
-            </template>
-          </USelectMenu>
-        </div>
       </div>
     </div>
   </div>
@@ -429,18 +364,11 @@ const saveInterestNote = () => {
       <div class="flex items-center justify-between mb-6">
         <p class="text-gray-700 dark:text-gray-300">
           <span class="font-medium">{{ filteredJunkshops.length }}</span> junkshops found
-          <span v-if="selectedFilterCategory.length" class="ml-1">
-            accepting <span class="font-medium text-teal-600 dark:text-teal-400">
-              {{ selectedFilterCategory.length > 1
-                ? `${selectedFilterCategory.length} materials`
-                : selectedFilterCategory[0] }}
-            </span>
-          </span>
         </p>
 
-        <UButton v-if="selectedFilterCategory.length || searchQuery" color="gray" variant="ghost" size="sm"
+        <UButton v-if="searchQuery" color="gray" variant="ghost" size="sm"
           @click="resetFilters" class="hover:bg-gray-100 dark:hover:bg-gray-700">
-          Clear filters
+          Clear search
           <template #trailing>
             <UIcon name="i-heroicons-x-mark" />
           </template>
@@ -612,13 +540,35 @@ const saveInterestNote = () => {
             </div>
 
             <div v-else class="flex flex-wrap gap-2">
-              <UBadge v-for="item in junkshopItems" :key="item.id" color="gray" class="dark:bg-gray-700"
-                @click="hasRole(auth, 'merchant') && !isGuest && toggleItemInterest(item)"
-                :class="hasRole(auth, 'merchant') && !isGuest ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600' : ''">
-                {{ item.name }}
-                <UIcon v-if="hasRole(auth, 'merchant') && !isGuest && isMerchantInterestedInItem(item.id)"
-                  name="i-heroicons-star-solid" class="ml-1 text-amber-500" size="xs" />
-              </UBadge>
+              <template v-for="item in junkshopItems" :key="item.id">
+                <UTooltip v-if="isMerchant" :text="isMerchantInterestedInItem(item.id) ? 'Click to remove from interests' : 'Click to add to interests'">
+                  <UBadge color="gray" 
+                    class="dark:bg-gray-700 transition-all duration-300"
+                    :class="{
+                      'cursor-pointer hover:bg-teal-100 dark:hover:bg-teal-800': isMerchant,
+                      'bg-teal-50 dark:bg-teal-900 !border-teal-500': isMerchantInterestedInItem(item.id)
+                    }"
+                    @click="toggleItemInterest(item)">
+                    <div class="flex items-center gap-1">
+                      {{ item.name }}
+                      <UIcon v-if="isMerchantInterestedInItem(item.id)"
+                        name="i-heroicons-star-solid" class="text-amber-500" size="xs" />
+                    </div>
+                  </UBadge>
+                </UTooltip>
+                <UBadge v-else
+                  color="gray" class="dark:bg-gray-700">
+                  {{ item.name }}
+                </UBadge>
+              </template>
+            </div>
+
+            <!-- Material Interest Instructions -->
+            <div v-if="hasRole(auth, 'merchant') && !isGuest" class="mt-4">
+              <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                <UIcon name="i-heroicons-information-circle" />
+                Click on material tags to add them to your interests
+              </p>
             </div>
 
             <h4 class="font-semibold text-lg border-b pb-2 dark:border-gray-700 mt-6 dark:text-gray-100">Ratings</h4>
@@ -631,57 +581,7 @@ const saveInterestNote = () => {
             </div>
           </div>
 
-          <!-- Merchant Section -->
-          <div v-if="hasRole(auth, 'merchant') && !isGuest"
-            class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-            <h4 class="font-semibold text-lg mb-3 dark:text-gray-100">Merchant Options</h4>
-            <div class="flex flex-wrap items-center gap-3">
-              <UButton :color="isMerchantInterestedInJunkshop(selectedJunkshop.ulid) ? 'amber' : 'teal'"
-                :variant="isMerchantInterestedInJunkshop(selectedJunkshop.ulid) ? 'solid' : 'outline'"
-                @click="toggleJunkshopInterest(selectedJunkshop)" class="hover:shadow-md" :loading="isAddingInterest"
-                :icon="isMerchantInterestedInJunkshop(selectedJunkshop.ulid) ? 'i-heroicons-star-solid' : 'i-heroicons-star'">
-                {{ isMerchantInterestedInJunkshop(selectedJunkshop.ulid) ? 'Connected' : 'Connect with Shop' }}
-              </UButton>
-
-              <p v-if="!merchantProfile" class="text-sm text-gray-500 dark:text-gray-400 italic mt-2">
-                <UIcon name="i-heroicons-information-circle" class="inline-block mr-1" />
-                Set up your merchant profile to connect with junkshops
-              </p>
-            </div>
-
-            <div v-if="isMerchantInterestedInJunkshop(selectedJunkshop.ulid)" class="mt-4">
-              <UTextarea v-model="interestNote"
-                placeholder="Add a note about your interest in this junkshop's materials..." class="text-sm"
-                :rows="2" />
-              <div class="flex justify-end mt-2">
-                <UButton color="teal" size="sm" variant="soft" @click="saveInterestNote" :loading="isSavingNote">
-                  Save Note
-                </UButton>
-              </div>
-            </div>
-          </div>
-
-          <!-- Guest Merchant Message -->
-          <div v-else-if="isGuest" class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex gap-3">
-              <UIcon name="i-heroicons-information-circle"
-                class="text-blue-500 dark:text-blue-400 flex-shrink-0 mt-1" />
-              <div>
-                <h4 class="font-medium text-blue-700 dark:text-blue-300">Are you a merchant?</h4>
-                <p class="text-sm text-blue-600 dark:text-blue-200 mt-1">
-                  Sign up as a merchant to connect with junkshops and source recycled materials for your business.
-                </p>
-                <div class="mt-3">
-                  <UButton to="/auth/register" color="blue" size="sm" variant="solid">
-                    Register as a Merchant
-                  </UButton>
-                  <UButton to="/auth/login" color="gray" size="sm" variant="ghost" class="ml-2">
-                    Login
-                  </UButton>
-                </div>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </div>
 

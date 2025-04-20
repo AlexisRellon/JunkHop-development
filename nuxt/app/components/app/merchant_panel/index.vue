@@ -61,13 +61,7 @@
                 
                 <div>
                   <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Business Statistics</h4>
-                  <div class="grid grid-cols-2 gap-4">
-                    <UCard class="bg-teal-50 dark:bg-teal-900/30 border-0">
-                      <div class="text-center">
-                        <div class="text-2xl font-bold text-teal-600 dark:text-teal-400">{{ connectedJunkshops.length }}</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">Connected Junkshops</div>
-                      </div>
-                    </UCard>
+                  <div class="grid grid-cols-1 gap-4">
                     <UCard class="bg-amber-50 dark:bg-amber-900/30 border-0">
                       <div class="text-center">
                         <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ interestedItems.length }}</div>
@@ -84,7 +78,7 @@
               <div class="text-center mb-6">
                 <UIcon name="i-heroicons-building-storefront" class="text-teal-500 mx-auto mb-2 w-12 h-12" />
                 <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-1">Create Your Merchant Profile</h3>
-                <p class="text-gray-600 dark:text-gray-400">Set up your business profile to connect with junkshops</p>
+                <p class="text-gray-600 dark:text-gray-400">Set up your business profile to start listing material requests</p>
               </div>
               
               <UButton 
@@ -161,116 +155,6 @@
               </UBadge>
             </div>
           </UCard>
-        </div>
-        
-        <!-- Junkshop Connections Section -->
-        <div class="mt-8" v-if="merchant.ulid">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-medium text-gray-700 dark:text-gray-200">Junkshop Connections</h2>
-            <UButton
-              to="/finder"
-              color="teal"
-              variant="soft"
-              size="sm"
-              icon="i-heroicons-map"
-            >
-              Find Junkshops
-            </UButton>
-          </div>
-          
-          <div v-if="!merchant.ulid" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-            <div class="p-4 mb-4 bg-amber-100 dark:bg-amber-900/30 rounded-full inline-flex">
-              <UIcon name="i-heroicons-exclamation-triangle" class="text-amber-500 w-8 h-8" />
-            </div>
-            <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Create Your Profile First</h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">
-              You need to set up your merchant profile before connecting with junkshops.
-            </p>
-          </div>
-
-          <div v-else-if="isLoadingJunkshops" class="py-4 flex justify-center">
-            <UIcon name="i-heroicons-arrow-path" class="animate-spin text-teal-500 w-6 h-6" />
-          </div>
-          
-          <div v-else-if="connectedJunkshops.length === 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-            <div class="p-4 mb-4 bg-blue-100 dark:bg-blue-900/30 rounded-full inline-flex">
-              <UIcon name="i-heroicons-map" class="text-blue-500 w-8 h-8" />
-            </div>
-            <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No Connected Junkshops</h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">
-              You haven't connected with any junkshops yet. Use the finder to discover and connect with junkshops.
-            </p>
-            <UButton
-              to="/finder"
-              color="teal"
-              variant="solid"
-              icon="i-heroicons-map-pin"
-            >
-              Explore Junkshops
-            </UButton>
-          </div>
-          
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <UCard 
-              v-for="junkshop in connectedJunkshops" 
-              :key="junkshop.ulid" 
-              class="dark:bg-gray-800 dark:border-gray-700 hover:shadow-md transition-all duration-300"
-            >
-              <div class="flex justify-between">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-white">{{ junkshop.name }}</h3>
-                <UBadge color="teal" variant="subtle">Connected</UBadge>
-              </div>
-              
-              <div class="mt-3 space-y-2 text-gray-600 dark:text-gray-400">
-                <div class="flex items-center gap-2">
-                  <UIcon name="i-heroicons-map-pin" class="text-teal-500" />
-                  <span class="text-sm">{{ junkshop.address }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <UIcon name="i-heroicons-phone" class="text-teal-500" />
-                  <span class="text-sm">{{ junkshop.contact }}</span>
-                </div>
-              </div>
-              
-              <div class="mt-4 flex flex-wrap gap-1">
-                <UBadge 
-                  v-for="(item, index) in junkshop.items?.slice(0, 3)" 
-                  :key="index" 
-                  color="gray" 
-                  size="xs"
-                >
-                  {{ item.name }}
-                </UBadge>
-                <UBadge v-if="junkshop.items?.length > 3" color="gray" size="xs">
-                  +{{ junkshop.items.length - 3 }} more
-                </UBadge>
-              </div>
-              
-              <template #footer>
-                <div class="flex justify-between">
-                  <UButton
-                    :to="`/finder?junkshop=${junkshop.ulid}`"
-                    color="blue"
-                    variant="ghost"
-                    icon="i-heroicons-information-circle"
-                    size="sm"
-                  >
-                    View Details
-                  </UButton>
-                  
-                  <UButton
-                    @click="removeJunkshopConnection(junkshop.ulid)"
-                    color="red"
-                    variant="ghost"
-                    icon="i-heroicons-x-mark"
-                    size="sm"
-                  >
-                    Remove Connection
-                  </UButton>
-                </div>
-              </template>
-            </UCard>
-          </div>
         </div>
       </div>
     </div>
@@ -361,13 +245,9 @@ const isAdmin = computed(() => {
   return auth.user?.roles?.includes("admin");
 });
 
-const isJunkshopOwner = computed(() => {
-  return auth.user?.roles?.includes("junkshop_owner");
-});
-
 // Check if user has any of the allowed roles
 const hasAccess = computed(() => {
-  return isMerchant.value || isAdmin.value || isJunkshopOwner.value;
+  return isMerchant.value || isAdmin.value;
 });
 
 // Check user role and redirect if necessary
@@ -376,7 +256,7 @@ onMounted(() => {
     router.push('/');
     toast.add({
       title: 'Access Denied',
-      description: 'You need merchant, junkshop owner, or admin permissions to access this area.',
+      description: 'You need merchant or admin permissions to access this area.',
       color: 'red'
     });
   } else {
@@ -394,11 +274,9 @@ const merchant = ref({
 });
 const isLoading = ref(true);
 const isLoadingItems = ref(false);
-const isLoadingJunkshops = ref(false);
 const isSaving = ref(false);
 const isCreatingProfile = ref(false);
 const isEditingProfile = ref(false);
-const connectedJunkshops = ref([]);
 const interestedItems = ref([]);
 
 // Form state
@@ -425,8 +303,8 @@ const fetchMerchantProfile = async () => {
       formState.contact = merchant.value.contact;
       formState.description = merchant.value.description || '';
       
-      // Fetch junkshop connections and item interests
-      fetchConnections();
+      // Fetch item interests
+      fetchInterests();
     }
   } catch (error) {
     console.error('Failed to fetch merchant profile:', error);
@@ -442,28 +320,22 @@ const fetchMerchantProfile = async () => {
   }
 };
 
-// Fetch connected junkshops and interested items
-const fetchConnections = async () => {
+// Fetch interested items
+const fetchInterests = async () => {
   try {
-    isLoadingJunkshops.value = true;
     isLoadingItems.value = true;
-    
-    // Fetch junkshops this merchant is connected to
-    const junkshopsResponse = await $fetch('/merchant/connected-junkshops');
-    connectedJunkshops.value = junkshopsResponse || [];
     
     // Fetch items this merchant is interested in
     const itemsResponse = await $fetch('/merchant/interested-items');
     interestedItems.value = itemsResponse || [];
   } catch (error) {
-    console.error('Failed to fetch connections:', error);
+    console.error('Failed to fetch interests:', error);
     toast.add({
       title: 'Error',
-      description: 'Failed to load connections data.',
+      description: 'Failed to load interests data.',
       color: 'red'
     });
   } finally {
-    isLoadingJunkshops.value = false;
     isLoadingItems.value = false;
   }
 };
@@ -495,7 +367,7 @@ const saveProfile = async () => {
       
       // Refresh connections data if needed
       if (merchant.value.ulid) {
-        fetchConnections();
+        fetchInterests();
       }
     }
   } catch (error) {
@@ -507,33 +379,6 @@ const saveProfile = async () => {
     });
   } finally {
     isSaving.value = false;
-  }
-};
-
-// Handle remove junkshop connection
-const removeJunkshopConnection = async (junkshopUlid) => {
-  try {
-    const response = await $fetch(`/merchant/connect/${junkshopUlid}`, {
-      method: 'POST',
-    });
-    
-    if (response.status === 'disconnected') {
-      // Remove the junkshop from the connections list
-      connectedJunkshops.value = connectedJunkshops.value.filter(shop => shop.ulid !== junkshopUlid);
-      
-      toast.add({
-        title: 'Connection Removed',
-        description: 'You have removed your connection with this junkshop.',
-        color: 'gray'
-      });
-    }
-  } catch (error) {
-    console.error('Failed to remove junkshop connection:', error);
-    toast.add({
-      title: 'Error',
-      description: 'Failed to remove connection. Please try again.',
-      color: 'red'
-    });
   }
 };
 
