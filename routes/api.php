@@ -11,7 +11,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MerchantController;
 use App\Http\Controllers\WantedMaterialController;
 use App\Http\Controllers\BidController;
-use App\Http\Controllers\MaterialBidController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\QualityVerificationController;
@@ -44,6 +43,7 @@ Route::prefix('api/v1')->group(function () {
 
     // Route to fetch all junkshops
     Route::get('junkshop', [JunkshopController::class, 'index'])->name('junkshops.index');
+    Route::get('junkshop/{ulid}', [JunkshopController::class, 'show'])->name('junkshop.show');
 
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
@@ -59,7 +59,7 @@ Route::prefix('api/v1')->group(function () {
         });
 
         // Junkshop routes
-        Route::get('junkshop/{ulid}', [JunkshopController::class, 'show'])->name('junkshop.show');
+        
         Route::put('junkshop/{ulid}', [JunkshopController::class, 'update'])->name('junkshop.update');
         Route::post('junkshop', [JunkshopController::class, 'store'])->name('junkshop.store');
         Route::delete('junkshop/{ulid}', [JunkshopController::class, 'destroy'])->name('junkshop.destroy');
@@ -69,6 +69,11 @@ Route::prefix('api/v1')->group(function () {
         Route::post('junkshop/{ulid}/items', [ItemController::class, 'store'])->name('items.store');
         Route::put('junkshop/{ulid}/items/{itemId}', [ItemController::class, 'update'])->name('items.update');
         Route::delete('junkshop/{ulid}/items/{itemId}', [ItemController::class, 'destroy'])->name('items.destroy');
+
+        // Junkshop Bid routes
+        Route::get('junkshop/{ulid}/bids', [BidController::class, 'getJunkshopBidsByUlid']);
+        Route::post('junkshop/{ulid}/bids', [BidController::class, 'createJunkshopBidByUlid']);
+        Route::put('junkshop/{ulid}/bids/{bidId}', [BidController::class, 'updateJunkshopBidStatus']);
 
         Route::apiResource('junkshops', JunkshopController::class);
 
@@ -92,6 +97,8 @@ Route::prefix('api/v1')->group(function () {
             Route::get('/profile', [MerchantController::class, 'show']);
             Route::post('/profile', [MerchantController::class, 'store']);
             Route::put('/profile', [MerchantController::class, 'update']);
+            Route::post('/item-interest/{itemId}', [MerchantController::class, 'toggleItemInterest']);
+            Route::get('/interested-items', [MerchantController::class, 'getInterestedItems']);
         });
         
         // Wanted Material Marketplace routes
@@ -116,16 +123,6 @@ Route::prefix('api/v1')->group(function () {
             Route::post('/{ulid}/complete', [BidController::class, 'markCompleted']);
             Route::post('/{ulid}/cancel', [BidController::class, 'cancel']);
             Route::get('/{ulid}/counter-offers', [BidController::class, 'getCounterOffers']);
-        });
-        
-        // Material Marketplace Bidding System routes
-        Route::prefix('material-bids')->group(function() {
-            Route::get('/wanted-material/{wantedMaterialId}', [MaterialBidController::class, 'index']);
-            Route::post('/wanted-material/{wantedMaterialId}', [MaterialBidController::class, 'store']);
-            Route::get('/my-bids', [MaterialBidController::class, 'myBids']);
-            Route::get('/received-bids', [MaterialBidController::class, 'receivedBids']);
-            Route::put('/{bidId}/status', [MaterialBidController::class, 'updateStatus']);
-            Route::delete('/{bidId}', [MaterialBidController::class, 'cancel']);
         });
 
         // Inventory Visibility System routes
