@@ -10,12 +10,11 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        // Add inventory tracking fields to junkshop_items table
+    {        // Add inventory tracking fields to junkshop_items table
         Schema::table('items', function (Blueprint $table) {
             // Add quantity field if it doesn't exist
             if (!Schema::hasColumn('items', 'quantity')) {
-                $table->decimal('quantity', 10, 2)->default(0)->after('description');
+                $table->decimal('quantity', 10, 2)->default(0)->after('name');
             }
             
             // Add grade field if it doesn't exist
