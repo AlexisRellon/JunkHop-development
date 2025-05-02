@@ -43,7 +43,7 @@
         v-if="pageCount > 1"
         v-model="page"
         :page-count="pageCount"
-        :total="users.length"
+        :total="userCount + (userCount - 16)"
         :ui="{
           wrapper: 'flex items-center gap-1',
           rounded: 'rounded-md',
@@ -195,7 +195,6 @@ const fetchUsers = async () => {
     users.value = data;
     userCount = data.length;
     console.log("Users:", data);
-    console.log("Users cnt:", data.length);
   } catch (error) {
     console.error("Error fetching users:", error);
     console.error(
