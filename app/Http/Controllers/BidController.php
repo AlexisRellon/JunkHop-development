@@ -53,11 +53,9 @@ class BidController extends Controller
 
     /**
      * Store a newly created bid.
-     */
-    public function store(Request $request): JsonResponse
+     */    public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'junkshop_id' => 'required|string|exists:junkshops,ulid',
             'item_id' => 'required|exists:items,id',
             'quantity' => 'required|numeric|min:0.1',
             'price_per_kg' => 'required|numeric|min:0',
@@ -75,19 +73,19 @@ class BidController extends Controller
         }
 
         $user = Auth::user();
-        $merchant = $user->merchant;
+        $junkshop = $user->junkshop;
 
-        if (!$merchant) {
+        if (!$junkshop) {
             return response()->json([
-                'message' => 'Merchant profile not found'
+                'message' => 'Junkshop profile not found'
             ], 404);
         }
 
-        // Verify the junkshop exists
-        $junkshop = Junkshop::where('ulid', $request->junkshop_id)->first();
-        if (!$junkshop) {
+        // Verify the item exists
+        $item = Item::find($request->item_id);
+        if (!$item) {
             return response()->json([
-                'message' => 'Junkshop not found'
+                'message' => 'Item not found'
             ], 404);
         }
 
@@ -108,22 +106,20 @@ class BidController extends Controller
                     'message' => 'Wanted material listing not found or is inactive'
                 ], 404);
             }
-        }
-
-        // Create the bid
-        $bid = Bid::create([
-            'ulid' => (string) Str::ulid(),
-            'merchant_id' => $merchant->ulid,
-            'junkshop_id' => $request->junkshop_id,
-            'item_id' => $request->item_id,
-            'quantity' => $request->quantity,
-            'price_per_kg' => $request->price_per_kg,
-            'notes' => $request->notes,
-            'expiry_date' => $request->expiry_date,
-            'status' => 'pending',
-            'is_bulk_order' => $request->has('is_bulk_order') ? $request->is_bulk_order : false,
-            'wanted_material_id' => $wantedMaterialId,
-        ]);
+        }        // Create the bid
+        $bid = new Bid();
+        $bid->ulid = (string) Str::ulid();
+        $bid->junkshop_id = $junkshop->ulid;
+        $bid->merchant_id = null; // No merchant is assigned initially as per business logic
+        $bid->item_id = $request->item_id;
+        $bid->quantity = $request->quantity;
+        $bid->price_per_kg = $request->price_per_kg;
+        $bid->notes = $request->notes;
+        $bid->expiry_date = $request->expiry_date;
+        $bid->status = 'pending';
+        $bid->is_bulk_order = $request->has('is_bulk_order') ? $request->is_bulk_order : false;
+        $bid->wanted_material_id = $request->wanted_material_id;
+        $bid->save();
 
         // Load relationships
         $bid->load(['junkshop', 'item']);
@@ -498,14 +494,20 @@ class BidController extends Controller
             ], 404);
         }        // Create the bid
         $bid = new Bid();
-        $bid->ulid = (string) Str::uuid();
+        $bid->ulid = (string) Str::ulid();
         $bid->junkshop_id = $junkshop->ulid;
+        
+        // If this bid is created by a merchant, set merchant_id
+        // Otherwise, it's null (created by junkshop owner)
         $bid->merchant_id = $user->merchant ? $user->merchant->ulid : null;
+        
         $bid->item_id = $request->item_id;
         $bid->quantity = $request->quantity;
         $bid->price_per_kg = $request->price_per_kg;
         $bid->notes = $request->notes;
         $bid->status = $request->status ?? 'pending';
+        $bid->created_at = now();
+        $bid->updated_at = now();
         $bid->save();
 
         // Load the item relationship
