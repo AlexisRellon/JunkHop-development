@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Symfony\Component\Uid\Ulid;
 
 class Bid extends Model
 {
-    use HasFactory;    /**
+    use HasFactory;/**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -41,9 +42,7 @@ class Bid extends Model
         'expiration_date' => 'date',
         'accepted_at' => 'datetime',
         'rejected_at' => 'datetime',
-    ];
-
-    /**
+    ];    /**
      * Boot function from Laravel.
      */
     protected static function boot()
@@ -52,7 +51,8 @@ class Bid extends Model
 
         static::creating(function ($model) {
             if (empty($model->ulid)) {
-                $model->ulid = (string) Str::ulid();
+                // Use Symfony's ULID implementation to ensure proper format
+                $model->ulid = (new Ulid())->toBase32();
             }
         });
     }

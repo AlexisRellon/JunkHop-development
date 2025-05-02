@@ -38,7 +38,7 @@ class Item extends Model
      */
     public function junkshops()
     {
-        return $this->belongsToMany(Junkshop::class, 'junkshop_items');
+        return $this->belongsToMany(Junkshop::class, 'junkshop_items', 'item_id', 'junkshop_id');
     }
 
     /**
@@ -46,7 +46,7 @@ class Item extends Model
      */
     public function junkshop()
     {
-        return $this->belongsTo(Junkshop::class);
+        return $this->belongsTo(Junkshop::class, 'junkshop_id', 'ulid');
     }
 
     /**
