@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AdminBidController;
+use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\JunkshopController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\BidController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\QualityVerificationController;
+use App\Http\Controllers\Api\MarketplaceBidController;
 use App\Models\DashboardStatistic;
 use Illuminate\Support\Facades\Route;
 
@@ -171,5 +174,28 @@ Route::prefix('api/v1')->group(function () {
             Route::get('/roles', [\App\Http\Controllers\Api\DebugController::class, 'getRoleInfo']);
             Route::post('/fix-roles', [\App\Http\Controllers\Api\DebugController::class, 'fixRoles']);
         });
+        
+        // Admin routes
+        Route::prefix('admin')->group(function() {
+            // Dashboard statistics and activities
+            Route::get('/dashboard/statistics', [AdminDashboardController::class, 'getStatistics']);
+            Route::get('/activities', [AdminDashboardController::class, 'getActivities']);
+            
+            // Admin bid management routes
+            Route::prefix('bids')->group(function() {
+                Route::get('/', [AdminBidController::class, 'index']);
+                Route::get('/stats', [AdminBidController::class, 'getStats']);
+                Route::get('/{bidId}', [AdminBidController::class, 'show']);
+                Route::put('/{bidId}/status', [AdminBidController::class, 'updateStatus']);
+                Route::put('/{bidId}/junkshop/{ulid}', [BidController::class, 'updateJunkshopBidStatus']);
+                Route::put('/{bidId}/update-status', [AdminBidController::class, 'updateBidStatus']);
+            });
+        });
+    });
+
+    // Marketplace routes
+    Route::prefix('marketplace')->middleware(['auth:sanctum'])->group(function () {
+        Route::get('/bids', [MarketplaceBidController::class, 'index']);
+        Route::get('/bids/{ulid}', [MarketplaceBidController::class, 'show']);
     });
 });
