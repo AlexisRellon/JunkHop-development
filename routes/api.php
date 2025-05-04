@@ -180,6 +180,8 @@ Route::prefix('api/v1')->group(function () {
             // Dashboard statistics and activities
             Route::get('/dashboard/statistics', [AdminDashboardController::class, 'getStatistics']);
             Route::get('/activities', [AdminDashboardController::class, 'getActivities']);
+            Route::get('/activities/search', [AdminDashboardController::class, 'searchByType']);
+            Route::get('/activities/types', [AdminDashboardController::class, 'getActivityTypes']);
             
             // Admin bid management routes
             Route::prefix('bids')->group(function() {
@@ -189,6 +191,11 @@ Route::prefix('api/v1')->group(function () {
                 Route::put('/{bidId}/status', [AdminBidController::class, 'updateStatus']);
                 Route::put('/{bidId}/junkshop/{ulid}', [BidController::class, 'updateJunkshopBidStatus']);
                 Route::put('/{bidId}/update-status', [AdminBidController::class, 'updateBidStatus']);
+            });
+            
+            // Admin merchant management routes
+            Route::prefix('merchants')->group(function() {
+                Route::put('/{ulid}', [MerchantController::class, 'adminUpdate']);
             });
         });
     });
