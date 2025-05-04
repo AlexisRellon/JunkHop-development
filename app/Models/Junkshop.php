@@ -6,10 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use App\Traits\TracksActivity;
 
 class Junkshop extends Model
 {
-    use HasFactory, HasUlids;
+    use HasFactory, HasUlids, TracksActivity;
+
+    /**
+     * Activity type for logging
+     */
+    const ACTIVITY_TYPE = 'junkshop';
 
     /**
      * The primary key for the model.
