@@ -672,6 +672,15 @@ import { useRouter } from "vue-router";
 
 import { useNuxtApp } from "#app";
 
+// Helper function to generate a valid ULID in the format the server expects
+const generateULID = () => {
+  const timestamp = Math.floor(Date.now() / 1000).toString(36).padStart(6, '0');
+  const randomPart = Array.from({ length: 20 }, () => 
+    "0123456789ABCDEFGHJKMNPQRSTVWXYZ"[Math.floor(Math.random() * 32)]
+  ).join('');
+  return timestamp + randomPart;
+};
+
 const router = useRouter();
 const toast = useToast();
 const { $storage } = useNuxtApp();
@@ -1143,6 +1152,7 @@ const submitBid = async () => {
     const newBid = await $fetch(`/junkshop/${junkshop.ulid}/bids`, {
       method: "POST",
       body: {
+        ulid: generateULID(), // Generate proper ULID format
         item_id: selectedItem.value.id,
         quantity: bidQuantity.value,
         price_per_kg: bidPricePerKg.value,

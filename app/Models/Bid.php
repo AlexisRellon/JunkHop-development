@@ -49,6 +49,13 @@ class Bid extends Model
     protected static function boot()
     {
         parent::boot();
+        
+        // Don't auto-generate ULIDs since we're providing them from the frontend
+        static::creating(function ($model) {
+            if (empty($model->ulid)) {
+                $model->ulid = \Illuminate\Support\Str::ulid()->toBase32();
+            }
+        });
 
         static::creating(function ($model) {
             if (empty($model->ulid)) {
