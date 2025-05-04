@@ -38,14 +38,45 @@ class JunkshopController extends Controller
         ]);
 
         $owner = User::where('ulid', $request->owner_ulid)->firstOrFail();
+        
+        // Track changes
+        $changes = [];
+        $updatableFields = ['name', 'contact', 'description', 'address'];
+        
+        foreach ($updatableFields as $field) {
+            if ($request->has($field) && $junkshop->$field !== $request->$field) {
+                $changes[$field] = [
+                    'old' => $junkshop->$field,
+                    'new' => $request->$field
+                ];
+            }
+        }
+        
+        // If owner changed, track that change too
+        if ($junkshop->user_id !== $owner->ulid) {
+            $oldOwner = User::find($junkshop->user_id);
+            $changes['owner'] = [
+                'old' => $oldOwner ? $oldOwner->email : 'unknown',
+                'new' => $owner->email
+            ];
+        }
 
         $junkshop->update([
             'name' => $request->name,
             'contact' => $request->contact,
             'description' => $request->description,
             'address' => $request->address,
-            'user_id' => $owner->ulid, // Use ulid instead of id
+            'user_id' => $owner->ulid,
         ]);
+
+        // Log junkshop update with detailed changes
+        if (Auth::check()) {
+            if (Auth::user()->hasRole('admin')) {
+                \App\Services\ActivityLogger::logJunkshop($junkshop, 'updated', null, null, $changes);
+            } else {
+                \App\Services\ActivityLogger::logJunkshop($junkshop, 'updated', null, null, $changes);
+            }
+        }
 
         return response()->json($junkshop);
     }
@@ -96,6 +127,12 @@ class JunkshopController extends Controller
     public function destroy(string $ulid): JsonResponse
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
+        
+        // Log junkshop deletion by admin
+        if (Auth::check() && Auth::user()->hasRole('admin')) {
+            \App\Services\ActivityLogger::logJunkshop($junkshop, 'deleted', "Admin removed junkshop: {$junkshop->name}");
+        }
+        
         $junkshop->delete();
 
         return response()->json(['message' => 'Junkshop deleted successfully'], 200);

@@ -35,6 +35,12 @@ class DebugController extends Controller
             ];
         });
 
+        // Log that an admin accessed role information
+        \App\Services\AdminLogger::logMaintenance(
+            'view_role_info',
+            'Admin accessed detailed role information for all users'
+        );
+
         return response()->json([
             'roles' => $roles,
             'users' => $users,
@@ -89,6 +95,13 @@ class DebugController extends Controller
 
         // Clear permission cache again
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Log the role fix action by admin
+        \App\Services\AdminLogger::logMaintenance(
+            'fix_roles',
+            count($results['fixed_assignments'] ?? []) . ' role assignments fixed, ' . 
+            count($results['roles_created'] ?? []) . ' roles created'
+        );
 
         return response()->json([
             'message' => 'Role fixes applied',

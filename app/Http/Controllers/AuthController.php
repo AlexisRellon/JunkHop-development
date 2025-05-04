@@ -123,6 +123,14 @@ class AuthController extends Controller
             $user = $userProvider->user;
         }
 
+        // Update the last login timestamp
+        $user->update([
+            'last_login_at' => now(),
+        ]);
+        
+        // Log successful authentication
+        \App\Services\SecurityLogger::logSuccessfulAuth($user->email);
+        
         $token = $user->createDeviceToken(
             device: $request->deviceName(),
             ip: $request->ip(),
@@ -152,14 +160,25 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::select(['id', 'password'])->where('email', $request->email)->first();
+        $user = User::select(['id', 'email', 'password'])->where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            // Log failed authentication
+            \App\Services\SecurityLogger::logFailedAuth($request->email, 'Invalid credentials');
+            
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
         }
 
+        // Update the last login timestamp
+        $user->update([
+            'last_login_at' => now(),
+        ]);
+        
+        // Log successful authentication
+        \App\Services\SecurityLogger::logSuccessfulAuth($user->email);
+        
         $token = $user->createDeviceToken(
             device: $request->deviceName(),
             ip: $request->ip(),

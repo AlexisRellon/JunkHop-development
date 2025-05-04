@@ -22,12 +22,16 @@ class AdminBidController extends Controller
             return response()->json([
                 'message' => 'Unauthorized access. Admin role required.'
             ], 403);
-        }
-
-        // Get all bids with relationships
+        }        // Get all bids with relationships
         $bids = Bid::with(['item', 'junkshop'])
             ->orderBy('created_at', 'desc')
             ->get();
+
+        // Log that an admin viewed all bids
+        \App\Services\AdminLogger::logMaintenance(
+            'view_all_bids',
+            "Admin viewed list of all bids"
+        );
 
         return response()->json($bids);
     }
@@ -79,9 +83,14 @@ class AdminBidController extends Controller
             if ($request->has('rejection_reason')) {
                 $bid->rejection_reason = $request->rejection_reason;
             }
-        }
+        }        $bid->save();
 
-        $bid->save();
+        // Log bid status change by admin
+        \App\Services\TransactionLogger::logBidStatusChange(
+            $bid,
+            $bid->getOriginal('status'), // Original status before update
+            $status
+        );
 
         // Load relations
         $bid->load(['item', 'junkshop']);
@@ -100,9 +109,7 @@ class AdminBidController extends Controller
             return response()->json([
                 'message' => 'Unauthorized access. Admin role required.'
             ], 403);
-        }
-
-        // Find bid with relationships
+        }        // Find bid with relationships
         $bid = Bid::with(['item', 'junkshop'])
             ->where('id', $bidId)
             ->first();
@@ -112,6 +119,12 @@ class AdminBidController extends Controller
                 'message' => 'Bid not found'
             ], 404);
         }
+
+        // Log that an admin viewed bid details
+        \App\Services\AdminLogger::logMaintenance(
+            'view_bid_details',
+            "Admin viewed details for bid #{$bidId}"
+        );
 
         return response()->json($bid);
     }
