@@ -153,7 +153,7 @@
                     rounded: 'rounded-full',
                     padding: 'p-0.5'
                   }"
-                  @click="removeItemInterest(item.id)"
+                  @click="confirmRemoveItemInterest(item.id)"
                 />
               </UBadge>
             </div>
@@ -224,6 +224,17 @@
       </UForm>
     </UCard>
   </UModal>
+  
+  <!-- Remove Material Interest Confirmation Dialog -->
+  <UiConfirmationDialog
+    v-model:show="showRemoveConfirmation"
+    title="Remove Material of Interest"
+    :message="`Are you sure you want to remove '${itemToRemove?.name || 'this material'}' from your materials of interest?`"
+    @confirm="removeItemInterest(itemToRemove?.id)"
+    confirm-label="Yes, Remove"
+    confirm-color="amber"
+    confirm-icon="i-heroicons-trash"
+  />
 </template>
 
 <script setup>
@@ -282,6 +293,8 @@ const isSaving = ref(false);
 const isCreatingProfile = ref(false);
 const isEditingProfile = ref(false);
 const interestedItems = ref([]);
+const showRemoveConfirmation = ref(false);
+const itemToRemove = ref(null);
 
 // Form state
 const formState = reactive({
@@ -383,6 +396,15 @@ const saveProfile = async () => {
     });
   } finally {
     isSaving.value = false;
+  }
+};
+
+// Handle confirm item interest removal
+const confirmRemoveItemInterest = (itemId) => {
+  const item = interestedItems.value.find(item => item.id === itemId);
+  if (item) {
+    itemToRemove.value = item;
+    showRemoveConfirmation.value = true;
   }
 };
 

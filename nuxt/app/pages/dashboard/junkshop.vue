@@ -40,6 +40,17 @@
       </div>
     </div>
   </div>
+  
+  <!-- Logout Confirmation Dialog -->
+  <UiConfirmationDialog
+    v-model:show="confirmLogout"
+    title="Sign Out"
+    message="Are you sure you want to sign out?"
+    confirm-label="Yes, Sign Out"
+    confirm-color="red"
+    confirm-icon="i-heroicons-arrow-left-on-rectangle"
+    @confirm="auth.logout"
+  />
 </template>
 
 <script setup>
@@ -53,6 +64,7 @@ const { $storage } = useNuxtApp();
 // Sidebar state
 const isSidebarCollapsed = ref(false);
 const isDarkMode = ref(true);
+const confirmLogout = ref(false);
 
 const userItems = computed(() => [
   [
@@ -70,7 +82,7 @@ const userItems = computed(() => [
   [
     {
       label: "Sign out",
-      click: auth.logout,
+      click: () => confirmLogout.value = true,
       icon: "i-heroicons-arrow-left-on-rectangle",
     },
   ],

@@ -117,11 +117,9 @@
               variant="ghost" 
               size="xs"
               :tooltip="{ text: 'View Details' }"
-            />
-            
-            <template v-if="row.status === 'pending'">
-              <UButton 
-                @click="updateBidStatus(row.id, 'accepted')" 
+            />            
+            <template v-if="row.status === 'pending'">              <UButton 
+                @click="showApproveConfirmationDialog(row)" 
                 icon="i-heroicons-check" 
                 color="emerald" 
                 variant="ghost" 
@@ -129,14 +127,15 @@
                 :tooltip="{ text: 'Approve Bid' }"
               />
               
-              <UButton 
-                @click="updateBidStatus(row.id, 'rejected')" 
-                icon="i-heroicons-x-mark" 
-                color="red" 
-                variant="ghost" 
-                size="xs"
-                :tooltip="{ text: 'Reject Bid' }"
-              />
+              <UDropdown :items="rejectOptions(row)" :popper="{ placement: 'bottom-end' }">
+                <UButton
+                  icon="i-heroicons-x-mark"
+                  color="red"
+                  variant="ghost"
+                  size="xs"
+                  :tooltip="{ text: 'Reject Options' }"
+                />
+              </UDropdown>
             </template>
           </div>
         </template>
@@ -242,21 +241,20 @@
           
           <!-- Rejection Reason (if applicable) -->
           <div v-if="selectedBid.status === 'rejected' && selectedBid.rejection_reason">
-            <h4 class="font-medium mb-2 text-red-500">Rejection Reason</h4>
-            <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-              <p class="text-sm">{{ selectedBid.rejection_reason }}</p>
+            <h4 class="font-medium mb-2 text-red-500 dark:text-red-400">Rejection Reason</h4>
+            <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-900/50">
+              <p class="text-sm text-red-300">{{ selectedBid.rejection_reason }}</p>
             </div>
           </div>
         </div>
         
         <template #footer>
           <div class="flex justify-end gap-2">
-            <UButton color="gray" variant="soft" @click="closeBidDetails">
+            <UButton color="gray" variant="ghost" @click="closeBidDetails">
               Close
             </UButton>
-            
-            <template v-if="selectedBid.status === 'pending'">
-              <UButton color="emerald" @click="updateBidStatus(selectedBid.id, 'accepted')">
+              <template v-if="selectedBid.status === 'pending'">
+              <UButton color="emerald" @click="showApproveConfirmationDialog(selectedBid)">
                 Approve Bid
               </UButton>
               
@@ -268,10 +266,9 @@
         </template>
       </UCard>
     </UModal>
-    
-    <!-- Rejection Reason Modal -->
+      <!-- Rejection Reason Modal -->
     <UModal v-model="showRejectModal">
-      <UCard v-if="selectedBid" class="max-w-md">
+      <UCard v-if="selectedBid" class="max-w-lg">
         <template #header>
           <div class="flex justify-between items-center">
             <h3 class="text-lg font-semibold">Reject Bid</h3>
@@ -296,7 +293,7 @@
         
         <template #footer>
           <div class="flex justify-end gap-2">
-            <UButton color="gray" variant="soft" @click="closeRejectModal">
+            <UButton color="gray" variant="ghost" @click="closeRejectModal">
               Cancel
             </UButton>
             
@@ -312,6 +309,26 @@
         </template>
       </UCard>
     </UModal>
+
+    <!-- Approve Confirmation Dialog -->
+    <UiConfirmationDialog
+      v-model:show="showApproveConfirmation"
+      title="Approve Bid"
+      message="Are you sure you want to approve this bid? This action will notify the junkshop owner."
+      confirm-label="Yes, Approve"
+      confirm-color="green"
+      confirm-icon="i-heroicons-check"
+      @confirm="confirmApprove"
+    />    <!-- Reject Confirmation Dialog -->
+    <UiConfirmationDialog
+      v-model:show="showRejectConfirmation"
+      title="Reject Bid"
+      message="Are you sure you want to reject this bid without providing a reason? The junkshop will not receive feedback on why their bid was rejected."
+      confirm-label="Yes, Reject"
+      confirm-color="red"
+      confirm-icon="i-heroicons-x-mark"
+      @confirm="confirmReject"
+    />
   </div>
 </template>
 
@@ -338,6 +355,11 @@ const pagination = ref({
   perPage: 10,
   total: 0
 });
+
+// Confirmation dialog controls
+const showApproveConfirmation = ref(false);
+const showRejectConfirmation = ref(false);
+const bidToAction = ref(null);
 
 // Stats
 const stats = ref({
@@ -468,14 +490,68 @@ const closeBidDetails = () => {
 
 // Open reject modal
 const openRejectModal = () => {
-  rejectionReason.value = '';
-  showRejectModal.value = true;
+  if (selectedBid.value) {
+    showRejectWithReasonModal(selectedBid.value);
+  }
 };
 
 // Close reject modal
 const closeRejectModal = () => {
   showRejectModal.value = false;
   rejectionReason.value = '';
+};
+
+// Show approve confirmation dialog
+const showApproveConfirmationDialog = (bid) => {
+  bidToAction.value = bid;
+  showApproveConfirmation.value = true;
+};
+
+// Show reject confirmation dialog (for direct rejection without reason)
+const showRejectConfirmationDialog = (bid) => {
+  bidToAction.value = bid;
+  showRejectConfirmation.value = true;
+};
+
+// Show reject with reason modal
+const showRejectWithReasonModal = (bid) => {
+  selectedBid.value = bid;
+  rejectionReason.value = '';
+  showRejectModal.value = true;
+};
+
+// Confirm approve action
+const confirmApprove = () => {
+  if (bidToAction.value) {
+    updateBidStatus(bidToAction.value.id, 'accepted');
+  }
+};
+
+// Confirm reject action (direct rejection without reason)
+const confirmReject = () => {
+  if (bidToAction.value) {
+    // Use a default rejection reason when using quick reject
+    rejectionReason.value = "Bid rejected by administrator.";
+    updateBidStatus(bidToAction.value.id, 'rejected');
+  }
+};
+
+// Reject options for dropdown
+const rejectOptions = (bid) => {
+  return [
+    [
+      {
+        label: 'Reject',
+        icon: 'i-heroicons-x-mark',
+        click: () => showRejectConfirmationDialog(bid)
+      },
+      {
+        label: 'Reject with Reason',
+        icon: 'i-heroicons-chat-bubble-left-text',
+        click: () => showRejectWithReasonModal(bid)
+      }
+    ]
+  ];
 };
 
 // Update bid status
