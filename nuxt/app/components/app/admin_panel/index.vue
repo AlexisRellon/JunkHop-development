@@ -144,7 +144,7 @@
                 v-model="userGrowthTimeframe"
                 :options="timeframeOptions"
                 size="sm"
-                class="w-32"
+                class="relative w-32"
               />
             </div>
             <div class="h-64">
@@ -160,7 +160,7 @@
         <div class="mb-8">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-medium text-gray-700 dark:text-gray-200">Recent Activity</h2>
-            <UButton size="sm" color="primary" variant="soft" to="/dashboard/activity">View All</UButton>
+            <!-- <UButton size="sm" color="primary" variant="soft" to="/dashboard/activity">View All</UButton> -->
           </div>
           
           <UCard class="p-4">
@@ -204,7 +204,7 @@
         </div>
 
         <!-- Tables Section -->
-        <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div class="mt-8 grid grid-cols-1 gap-8">
           <!-- User Management Section -->
           <div>
             <div class="flex items-center justify-between mb-4">
@@ -215,7 +215,7 @@
                   v-model="userPagination.perPage"
                   :options="pageSizeOptions"
                   size="sm"
-                  class="w-24"
+                  class="relative w-24"
                 />
               </div>
             </div>
@@ -236,7 +236,7 @@
                   v-model="junkshopPagination.perPage"
                   :options="pageSizeOptions"
                   size="sm"
-                  class="w-24"
+                  class="relative w-24"
                 />
               </div>
             </div>
@@ -247,6 +247,15 @@
             />
           </div>
         </div>
+
+        <!-- Bid Management Section -->
+        <div class="mt-8">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-medium text-gray-700 dark:text-gray-200">Bid Management</h2>
+            <UButton size="sm" color="amber" variant="soft" to="/dashboard/bids">View All Bids</UButton>
+          </div>
+          <AdminPanelBidManagement />
+        </div>
       </div>
     </div>
   </div>
@@ -256,25 +265,65 @@
 import AdminSidebar from "./admin_sidebar.vue";
 import AdminPanelUserTable from "./admin_panel_user_table.vue";
 import AdminPanelJunkshopTable from "./admin_panel_junkshop_table.vue";
-import { ref, onMounted, computed, watch } from "vue";
+import AdminPanelBidManagement from "./admin_panel_bid_management.vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useNuxtApp } from '#app';
 
 const auth = useAuthStore();
 const { $storage } = useNuxtApp();
+const nuxtApp = useNuxtApp();
+const toast = useToast();
 
 // Sidebar state
 const isSidebarCollapsed = ref(false);
 
+// Table pagination controls
+const pageSizeOptions = [
+  { label: '5', value: 5 },
+  { label: '10', value: 10 },
+  { label: '25', value: 25 },
+  { label: '50', value: 50 },
+];
+
+// Pagination states
+const userPagination = ref({
+  currentPage: 1,
+  perPage: 10,
+  totalItems: 0
+});
+
+const junkshopPagination = ref({
+  currentPage: 1,
+  perPage: 10,
+  totalItems: 0
+});
+
+const activityPagination = ref({
+  currentPage: 1,
+  itemsPerPage: 3,
+  totalItems: 0,
+  totalPages: 0,
+  startIndex: 0,
+  endIndex: 0
+});
+
+// Dashboard statistics
 const totalUsers = ref(0);
 const activeUsers = ref(0);
 const totalJunkshops = ref(0);
-const totalTransactions = ref(0);
-const totalRevenue = ref(0);
+const userGrowthData = ref([]);
+const bidStats = ref({
+  total: 0,
+  pending: 0,
+  accepted: 0,
+  rejected: 0
+});
 
 const systemHealth = ref('Excellent');
 const systemUptime = ref('99.9%');
 
-// Analytics state - keeping only user growth timeframe
+// Analytics state
 const userGrowthTimeframe = ref('monthly');
 const timeframeOptions = [
   { label: 'Weekly', value: 'weekly' },
@@ -282,19 +331,110 @@ const timeframeOptions = [
   { label: 'Yearly', value: 'yearly' }
 ];
 
-// Recent activity
-const recentActivities = ref([
-  { type: 'user', description: 'New user registered: John Doe', timestamp: '10 minutes ago' },
-  { type: 'junkshop', description: 'Green Recycling Junkshop updated their information', timestamp: '1 hour ago' },
-  { type: 'transaction', description: 'Transaction #12345 completed', timestamp: '3 hours ago' },
-  { type: 'system', description: 'System maintenance scheduled for tomorrow', timestamp: '5 hours ago' },
-  { type: 'user', description: 'User Maria Garcia updated their profile', timestamp: '1 day ago' }
+// Recent activities
+const recentActivities = ref([]);
+
+// Function to fetch dashboard data
+const fetchDashboardData = async () => {
+  try {
+    const response = await $fetch('/admin/dashboard/statistics', {
+      headers: {
+        Authorization: `Bearer ${auth.token}`
+      }
+    });
+
+    if (response.success && response.data) {
+      const { statistics, recentActivities: activities, userGrowth, systemHealth: health } = response.data;
+      
+      // Update statistics
+      if (statistics?.users) {
+        totalUsers.value = statistics.users.total;
+        activeUsers.value = statistics.users.active;
+        userPagination.value.totalItems = statistics.users.total;
+      }
+      
+      if (statistics?.junkshops) {
+        totalJunkshops.value = statistics.junkshops.total;
+        junkshopPagination.value.totalItems = statistics.junkshops.total;
+      }
+      
+      if (statistics?.bids) {
+        bidStats.value = statistics.bids;
+      }
+
+      // Update activities
+      if (activities) {
+        recentActivities.value = activities;
+      }
+
+      // Update growth data
+      if (userGrowth) {
+        userGrowthData.value = userGrowth;
+      }
+
+      // Update system health
+      if (health) {
+        systemHealth.value = health.status;
+        systemUptime.value = health.uptime;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to load dashboard statistics',
+      color: 'red'
+    });
+  }
+};
+
+// Watch for pagination changes
+watch(
+  [
+    () => userPagination.value.currentPage,
+    () => junkshopPagination.value.currentPage,
+    () => userPagination.value.perPage,
+    () => junkshopPagination.value.perPage,
+  ],
+  () => {
+    fetchDashboardData();
+  }
+);
+
+// Computed property for paginated activities
+const paginatedActivities = computed(() => {
+  const start = (activityPagination.value.currentPage - 1) * activityPagination.value.itemsPerPage;
+  const end = start + activityPagination.value.itemsPerPage - 1;
+  
+  activityPagination.value.startIndex = start;
+  activityPagination.value.endIndex = end;
+  activityPagination.value.totalItems = recentActivities.value.length;
+  activityPagination.value.totalPages = Math.ceil(recentActivities.value.length / activityPagination.value.itemsPerPage);
+  
+  return recentActivities.value.slice(start, end + 1);
+});
+
+// User preferences
+const isDarkMode = ref(true);
+const userItems = computed(() => [
+  [{
+    label: !isDarkMode.value ? "Light Mode" : "Dark Mode",
+    icon: isDarkMode.value ? "i-heroicons-moon-20-solid" : "i-heroicons-sun-20-solid",
+    type: "checkbox",
+    checked: isDarkMode.value,
+    click: () => {
+      isDarkMode.value = !isDarkMode.value;
+      document.documentElement.classList.toggle("dark");
+    },
+  }],
+  [{
+    label: "Sign out",
+    click: auth.logout,
+    icon: "i-heroicons-arrow-left-on-rectangle",
+  }],
 ]);
 
-const isDarkMode = ref(true);
-
-
-// Get activity icon and class based on type
+// Activity icons
 const getActivityIcon = (type) => {
   switch (type) {
     case 'user': return 'mdi-account';
@@ -315,178 +455,46 @@ const getActivityIconClass = (type) => {
   }
 };
 
-// User Items dropdown
-const userItems = computed(() => [
-  [
-    {
-      label: !isDarkMode.value ? "Light Mode" : "Dark Mode",
-      icon: isDarkMode.value ? "i-heroicons-moon-20-solid" : "i-heroicons-sun-20-solid",
-      type: "checkbox",
-      checked: isDarkMode.value,
-      click: () => {
-        isDarkMode.value = !isDarkMode.value;
-        document.documentElement.classList.toggle("dark");
-      },
-    },
-  ],
-  [
-    {
-      label: "Sign out",
-      click: auth.logout,
-      icon: "i-heroicons-arrow-left-on-rectangle",
-    },
-  ],
-]);
-
-const updateStatistics = () => {
-  const userTable = document.querySelectorAll(".user-table-row");
-  const junkshopTable = document.querySelectorAll(".junkshop-table-row");
-  totalUsers.value = userTable.length || 6;
-  totalJunkshops.value = junkshopTable.length || 10;
-  // Assuming active users are a subset of total users
-  activeUsers.value = userTable.length || 2; // Update this logic as needed
-  
-  // Placeholder values for new metrics
-  totalTransactions.value = 245;
-  totalRevenue.value = 127850;
-};
-
-// Function to fetch data for the dashboard statistics
-const fetchDashboardData = async () => {
-  try {
-    // Use correct API paths without duplication
-    const [usersResponse, junkshopsResponse] = await Promise.all([
-      $fetch('/users', {
-        headers: {
-          Authorization: `Bearer ${auth.token}`
-        }
-      }),
-      $fetch('/junkshop', {
-        headers: {
-          Authorization: `Bearer ${auth.token}`
-        }
-      })
-    ]);
-
-    // Update statistics based on API responses
-    if (Array.isArray(usersResponse)) {
-      totalUsers.value = usersResponse.length;
-      activeUsers.value = usersResponse.filter(user => user.active).length ||
-                           Math.floor(usersResponse.length / 2); // Fallback approximation
-      userPagination.value.totalItems = usersResponse.length;
-    }
-
-    if (Array.isArray(junkshopsResponse)) {
-      totalJunkshops.value = junkshopsResponse.length;
-      junkshopPagination.value.totalItems = junkshopsResponse.length;
-    }
-
-    console.log('Dashboard data fetched successfully');
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-    // Fallback to DOM-based counting if API fails
-    updateStatistics();
-  }
-};
-
-// Update the onMounted hook to use the API data
+// Start auto-refresh when component is mounted
 onMounted(() => {
+  // Initial fetch
   fetchDashboardData();
-  // Fallback to DOM method as backup
-  updateStatistics();
-});
 
-watch([totalUsers, totalJunkshops], () => {
-  updateStatistics();
-});
-
-// Add pagination controls
-const pageSizeOptions = [
-  { label: '5', value: 5 },
-  { label: '10', value: 10 },
-  { label: '25', value: 25 },
-  { label: '50', value: 50 },
-];
-
-// User table pagination
-const userPagination = ref({
-  currentPage: 1,
-  perPage: 10,
-  totalItems: 0
-});
-
-// Junkshop table pagination
-const junkshopPagination = ref({
-  currentPage: 1,
-  perPage: 10,
-  totalItems: 0
-});
-
-// Activity pagination
-const activityPagination = ref({
-  currentPage: 1,
-  itemsPerPage: 3,
-  totalItems: 0,
-  totalPages: 0,
-  startIndex: 0,
-  endIndex: 0
-});
-
-// Computed property for paginated activities
-const paginatedActivities = computed(() => {
-  const start = (activityPagination.value.currentPage - 1) * activityPagination.value.itemsPerPage;
-  const end = start + activityPagination.value.itemsPerPage - 1;
+  // Set up auto-refresh every 15 minutes (900,000 ms) to optimize API usage costs
+  const refreshInterval = setInterval(fetchDashboardData, 900000);
   
-  activityPagination.value.startIndex = start;
-  activityPagination.value.endIndex = end;
-  activityPagination.value.totalItems = recentActivities.value.length;
-  activityPagination.value.totalPages = Math.ceil(recentActivities.value.length / activityPagination.value.itemsPerPage);
-  
-  return recentActivities.value.slice(start, end + 1);
-});
+  // Also add a manual refresh capability for when users need fresh data
+  const isRefreshing = ref(false);
+  const manualRefresh = async () => {
+    isRefreshing.value = true;
+    await fetchDashboardData();
+    isRefreshing.value = false;
+  };
 
-// Update when pagination params change
-watch([userPagination, junkshopPagination], () => {
-  updateStatistics();
-}, { deep: true });
-
-// Reset page when page size changes
-watch(() => userPagination.value.perPage, () => {
-  userPagination.value.currentPage = 1;
-});
-
-watch(() => junkshopPagination.value.perPage, () => {
-  junkshopPagination.value.currentPage = 1;
+  // Clean up interval on component unmount
+  onUnmounted(() => {
+    clearInterval(refreshInterval);
+  });
 });
 </script>
 
 <style scoped>
-/* Add subtle animations to cards for a more interactive feel */
-.u-card {
-  transition: all 0.3s ease;
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
-.u-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Custom scrollbar class for specific components */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  background-color: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
 }
 
-/* Smooth pagination transitions */
-.u-pagination {
-  transition: all 0.2s ease;
-}
-
-/* Page size dropdown styling */
-.page-size-select {
-  min-width: 70px;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #a0aec0;
 }
 </style>

@@ -17,6 +17,29 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = [
+        'email_verified_at',
+        'last_login_at',
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * Update the user's last login timestamp.
+     *
+     * @return bool
+     */
+    public function updateLastLoginAt()
+    {
+        $this->last_login_at = now();
+        return $this->save();
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -26,6 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'avatar',
         'password',
+        'last_login_at',
         'ulid',
     ];
 

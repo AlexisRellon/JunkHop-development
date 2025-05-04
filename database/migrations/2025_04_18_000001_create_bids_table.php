@@ -10,11 +10,10 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('bids', function (Blueprint $table) {
+    {        Schema::create('bids', function (Blueprint $table) {
             $table->id();
             $table->ulid('ulid')->unique();
-            $table->string('merchant_id');
+            $table->string('merchant_id')->nullable();
             $table->string('junkshop_id');
             $table->foreignId('item_id')->constrained();
             $table->decimal('quantity', 10, 2);

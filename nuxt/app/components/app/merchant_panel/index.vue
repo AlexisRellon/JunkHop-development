@@ -4,9 +4,7 @@
     <AppMerchantPanelMerchantSidebar v-model="isCollapsed" />
     
     <!-- Main Content -->
-    <div 
-      class="flex-1 overflow-y-auto custom-scrollbar transition-all duration-300" 
-    >
+    <div class="flex-1 overflow-y-auto custom-scrollbar transition-all duration-300">
       <!-- Header with Avatar and Welcome -->
       <header class="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 shadow-sm">
         <h1 class="text-xl font-semibold text-gray-800 dark:text-white">Merchant Dashboard</h1>
@@ -22,9 +20,14 @@
       </header>
 
       <div class="p-8">
-        <!-- Dashboard Summary Section -->
-        <div class="mb-6">
-          <h2 class="text-lg font-medium text-gray-700 dark:text-gray-200 mb-4">Business Profile</h2>
+        <!-- Router view for child routes -->
+        <NuxtPage v-if="$route.path !== '/dashboard/merchant'" />
+        
+        <!-- Dashboard content (only shown on main merchant dashboard) -->
+        <div v-if="$route.path === '/dashboard'" >
+          <!-- Dashboard Summary Section -->
+          <div class="mb-6">
+            <h2 class="text-lg font-medium text-gray-700 dark:text-gray-200 mb-4">Business Profile</h2>
           
           <!-- Business Profile Section -->
           <UCard v-if="!isLoading" class="dark:bg-gray-800 dark:border-gray-700 shadow-sm">
@@ -157,6 +160,7 @@
           </UCard>
         </div>
       </div>
+    </div>
     </div>
   </div>
   

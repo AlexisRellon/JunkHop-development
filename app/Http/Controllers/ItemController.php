@@ -27,7 +27,10 @@ class ItemController extends Controller
             return response()->json(['message' => 'Junkshop not found'], 404);
         }
 
-        return response()->json($junkshop->items);
+        // Get items with pivot relationship data explicitly including quantity
+        $items = $junkshop->items()->withPivot('quantity', 'grade', 'price', 'created_at', 'updated_at')->get();
+        
+        return response()->json($items);
     }
 
     /**
@@ -56,15 +59,23 @@ class ItemController extends Controller
         ]);
         $junkshopItem->save();
 
-        return response()->json([
-            'id' => $junkshopItem->id,
+        // Structure the response to match the index endpoint format
+        $response = [
+            'id' => $item->id,
             'name' => $item->name,
-            'junkshop_id' => $junkshop->ulid,
-            'item_id' => $item->id,
-            'quantity' => $junkshopItem->quantity,
-            'grade' => $junkshopItem->grade,
-            'price' => $junkshopItem->price
-        ]);
+            'created_at' => $item->created_at,
+            'updated_at' => $item->updated_at,
+            'pivot' => [
+                'junkshop_id' => $junkshopItem->junkshop_id,
+                'item_id' => $junkshopItem->item_id,
+                'id' => $junkshopItem->id,
+                'quantity' => $junkshopItem->quantity,
+                'created_at' => $junkshopItem->created_at,
+                'updated_at' => $junkshopItem->updated_at
+            ]
+        ];
+
+        return response()->json($response);
     }
 
     /**
@@ -105,11 +116,30 @@ class ItemController extends Controller
             'price' => $request->price ?? $junkshopItem->price,
         ]);
 
-        // Return in the same format as the index endpoint for consistency
-        $itemWithPivot = $item->fresh();
-        $itemWithPivot->pivot = $junkshopItem->fresh();
+        // Get fresh data and structure the response
+        $item = $item->fresh();
+        $junkshopItem = $junkshopItem->fresh();
+        
+        // Structure the response to match the index endpoint format
+        $response = [
+            'id' => $item->id,
+            'name' => $item->name,
+            'is_available' => $item->is_available,
+            'inventory_updated_at' => $item->inventory_updated_at,
+            'created_at' => $item->created_at,
+            'updated_at' => $item->updated_at,
+            'pivot' => [
+                'junkshop_id' => $junkshopItem->junkshop_id,
+                'item_id' => $junkshopItem->item_id,
+                'id' => $junkshopItem->id,
+                'quantity' => $junkshopItem->quantity,
+                'grade' => $junkshopItem->grade,
+                'created_at' => $junkshopItem->created_at,
+                'updated_at' => $junkshopItem->updated_at
+            ]
+        ];
 
-        return response()->json($itemWithPivot);
+        return response()->json($response);
     }
 
     /**
@@ -119,10 +149,32 @@ class ItemController extends Controller
     {
         $junkshop = Junkshop::where('ulid', $ulid)->firstOrFail();
         
-        // Find and delete the pivot record directly instead of using detach
-        JunkshopItem::where('id', $itemId)
+        // Try to find by pivot ID first
+        $junkshopItem = JunkshopItem::where('id', $itemId)
             ->where('junkshop_id', $junkshop->ulid)
-            ->delete();
+            ->first();
+            
+        // If not found by pivot ID, try to find by item_id
+        if (!$junkshopItem) {
+            $junkshopItem = JunkshopItem::where('item_id', $itemId)
+                ->where('junkshop_id', $junkshop->ulid)
+                ->first();
+        }
+
+        if (!$junkshopItem) {
+            return response()->json(['message' => 'Item not found in this junkshop'], 404);
+        }
+        
+        // Get the item record if it exists
+        $item = Item::find($junkshopItem->item_id);
+        
+        // Delete the junction record
+        $junkshopItem->delete();
+        
+        // Delete the main item if it exists and is not used by any other junkshop
+        if ($item && $item->junkshops()->count() === 0) {
+            $item->delete();
+        }
 
         return response()->json(['message' => 'Item deleted successfully']);
     }

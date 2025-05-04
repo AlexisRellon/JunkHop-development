@@ -24,14 +24,20 @@ class PopulateJunkshopSeeder extends Seeder
                 'description' => 'A reliable junkshop for all your recycling needs.',
                 'address' => 'Metro Manila, Philippines', // Default address
                 'user_id' => $owner->ulid,
-            ]);
-
-            // Randomly select between 10 and 20 items for each junkshop
+            ]);            // Randomly select between 10 and 20 items for each junkshop
             $randomItems = $allItems->random(rand(10, 20));
             
-            // Attach the selected items to the junkshop
+            // Attach the selected items to the junkshop with random quantities
             foreach ($randomItems as $item) {
-                $junkshop->items()->attach($item->id);
+                // Generate random quantity as whole numbers between 10 and 1000 kg
+                $quantity = rand(10, 1000);
+                
+                $junkshop->items()->attach($item->id, [
+                    'quantity' => $quantity,
+                    'price' => rand(5, 50), // Random price between 5 and 50 per kg
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
             }
         }
     }

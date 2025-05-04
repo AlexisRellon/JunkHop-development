@@ -1,387 +1,146 @@
 <template>
-  <div class="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
-    <div class="mb-6 flex justify-between items-center">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Material Marketplace</h1>
-        <p class="text-gray-600 dark:text-gray-400">Manage your material requests, view listings, and handle bids</p>
-      </div>
-      
-      <UButton 
-        color="teal" 
-        @click="showNewListingModal = true"
-        icon="i-heroicons-plus"
-      >
-        New Material Request
-      </UButton>
+  <div class="p-8">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Material Marketplace</h1>
+      <p class="text-gray-600 dark:text-gray-400">Browse verified material listings from junkshops</p>
     </div>
-    
-    <!-- Tabs -->
-    <UTabs :items="tabs" :default-index="0" @change="onTabChange">
-      <template #default="{ selectedTabId }">
-        <div class="mt-4">
-          <!-- My Listings Tab -->
-          <div v-if="selectedTabId === 'my-listings'" class="space-y-6">
-            <div v-if="isLoading" class="py-12 flex justify-center">
-              <UIcon name="i-heroicons-arrow-path" class="animate-spin text-teal-500 w-8 h-8" />
-            </div>
-            
-            <div v-else-if="myListings.length === 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 text-center">
-              <div class="mb-4 bg-amber-100 dark:bg-amber-900/30 rounded-full inline-flex p-4">
-                <UIcon name="i-heroicons-document-text" class="text-amber-500 w-8 h-8" />
-              </div>
-              <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">No Material Requests</h3>
-              <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                You haven't created any material requests yet. Create a listing to let junkshops know what materials you're looking for.
-              </p>
-              <UButton 
-                color="teal" 
-                @click="showNewListingModal = true"
-                icon="i-heroicons-plus"
-              >
-                Create Your First Request
-              </UButton>
-            </div>
-            
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <UCard
-                v-for="listing in myListings" 
-                :key="listing.ulid"
-                :class="!listing.is_active ? 'opacity-75 border-dashed' : ''"
-                class="dark:bg-gray-800 transition-all"
-              >
-                <template #header>
-                  <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-semibold flex items-center gap-2">
-                      {{ listing.item?.name || 'Material' }}
-                      <UBadge v-if="!listing.is_active" color="gray" class="text-xs">Inactive</UBadge>
-                    </h3>
-                    <UDropdown :items="getListingActions(listing)">
-                      <UButton color="gray" variant="ghost" icon="i-heroicons-ellipsis-vertical" size="xs" />
-                    </UDropdown>
-                  </div>
-                </template>
-                
-                <div class="space-y-2">
-                  <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Quantity:</span>
-                    <span class="font-medium">{{ listing.quantity }} kg</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Desired Price:</span>
-                    <span class="font-medium">₱{{ listing.desired_price }} / kg</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Grade:</span>
-                    <span class="font-medium">{{ listing.grade || 'Any' }}</span>
-                  </div>
-                  <div class="flex justify-between" v-if="listing.deadline">
-                    <span class="text-gray-600 dark:text-gray-400">Deadline:</span>
-                    <span class="font-medium">{{ formatDate(listing.deadline) }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Visibility:</span>
-                    <span class="font-medium">{{ listing.is_public ? 'Public' : 'Private' }}</span>
-                  </div>
-                  <div v-if="listing.description" class="mt-3">
-                    <div class="text-gray-600 dark:text-gray-400 text-sm">Description:</div>
-                    <p class="text-gray-800 dark:text-gray-300 text-sm mt-1">{{ listing.description }}</p>
-                  </div>
-                </div>
-                
-                <template #footer>
-                  <div class="flex justify-between">
-                    <UButton
-                      @click="editListing(listing)"
-                      color="blue"
-                      variant="ghost"
-                      icon="i-heroicons-pencil-square"
-                      size="sm"
-                    >
-                      Edit
-                    </UButton>
-                    
-                    <UButton
-                      @click="toggleListingActive(listing)"
-                      :color="listing.is_active ? 'gray' : 'teal'"
-                      variant="ghost"
-                      :icon="listing.is_active ? 'i-heroicons-pause' : 'i-heroicons-play'"
-                      size="sm"
-                    >
-                      {{ listing.is_active ? 'Deactivate' : 'Activate' }}
-                    </UButton>
-                  </div>
-                </template>
-              </UCard>
-            </div>          </div>
-          
-          <!-- Marketplace Tab -->
-          <div v-if="selectedTabId === 'marketplace'" class="space-y-6">
-          
-          <!-- Received Bids Tab -->
-          <div v-if="selectedTabId === 'received-bids'" class="space-y-6">
-            <!-- Bid Statistics Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <UCard class="dark:bg-gray-800 border-l-4 border-blue-500">
-                <div class="text-center">
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Total Bids</div>
-                  <div class="text-3xl font-bold text-gray-800 dark:text-white mt-1">
-                    {{ bidStats.total_bids || 0 }}
-                  </div>
-                </div>
-              </UCard>
-              
-              <UCard class="dark:bg-gray-800 border-l-4 border-amber-500">
-                <div class="text-center">
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Pending</div>
-                  <div class="text-3xl font-bold text-gray-800 dark:text-white mt-1">
-                    {{ bidStats.pending_bids || 0 }}
-                  </div>
-                </div>
-              </UCard>
-              
-              <UCard class="dark:bg-gray-800 border-l-4 border-green-500">
-                <div class="text-center">
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Accepted</div>
-                  <div class="text-3xl font-bold text-gray-800 dark:text-white mt-1">
-                    {{ bidStats.accepted_bids || 0 }}
-                  </div>
-                </div>
-              </UCard>
-            </div>
-            
-            <!-- Include the ReceivedBids component -->
-            <MerchantReceivedBids />
-          </div><div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
-              <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Filter Listings</h3>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <UFormGroup label="Material Type">
-                  <USelect
-                    v-model="filters.itemId"
-                    :options="itemOptions"
-                    placeholder="All materials"
-                    option-attribute="label"
-                    value-attribute="value"
-                  />
-                </UFormGroup>
-                
-                <UFormGroup label="Grade">
-                  <USelect
-                    v-model="filters.grade"
-                    :options="gradeOptions"
-                    placeholder="Any grade"
-                  />
-                </UFormGroup>
-              </div>
-              
-              <div class="flex justify-end mt-4">
-                <UButton @click="applyFilters" color="teal" icon="i-heroicons-funnel" size="sm">
-                  Apply Filters
-                </UButton>
-              </div>
-            </div>
-            
-            <div v-if="isLoadingMarketplace" class="py-12 flex justify-center">
-              <UIcon name="i-heroicons-arrow-path" class="animate-spin text-teal-500 w-8 h-8" />
-            </div>
-            
-            <div v-else-if="marketplaceListings.length === 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 text-center">
-              <div class="mb-4 bg-blue-100 dark:bg-blue-900/30 rounded-full inline-flex p-4">
-                <UIcon name="i-heroicons-shopping-bag" class="text-blue-500 w-8 h-8" />
-              </div>
-              <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">No Listings Found</h3>
-              <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                There are no material requests matching your filters. Try adjusting your search criteria or check back later.
-              </p>
-            </div>
-            
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <UCard
-                v-for="listing in marketplaceListings" 
-                :key="listing.ulid"
-                class="dark:bg-gray-800 transition-all"
-              >
-                <template #header>
-                  <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-semibold">{{ listing.item?.name || 'Material' }}</h3>
-                    <UBadge color="amber">Request</UBadge>
-                  </div>
-                </template>
-                
-                <div class="space-y-2">
-                  <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Merchant:</span>
-                    <span class="font-medium">{{ listing.merchant?.business_name || 'Unknown' }}</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Quantity:</span>
-                    <span class="font-medium">{{ listing.quantity }} kg</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Offering:</span>
-                    <span class="font-medium text-green-600 dark:text-green-400">₱{{ listing.desired_price }} / kg</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Grade:</span>
-                    <span class="font-medium">{{ listing.grade || 'Any' }}</span>
-                  </div>
-                  <div class="flex justify-between" v-if="listing.deadline">
-                    <span class="text-gray-600 dark:text-gray-400">Deadline:</span>
-                    <span class="font-medium">{{ formatDate(listing.deadline) }}</span>
-                  </div>
-                  <div v-if="listing.description" class="mt-3">
-                    <div class="text-gray-600 dark:text-gray-400 text-sm">Description:</div>
-                    <p class="text-gray-800 dark:text-gray-300 text-sm mt-1">{{ listing.description }}</p>
-                  </div>
-                </div>
-                
-                <template #footer>
-                  <div class="flex justify-between">                    <UButton
-                      color="blue"
-                      variant="ghost"
-                      icon="i-heroicons-information-circle"
-                      size="sm"
-                      @click="viewListingDetails(listing)"
-                    >
-                      View Details
-                    </UButton>
-                    
-                    <UButton
-                      color="teal"
-                      variant="soft"
-                      icon="i-heroicons-currency-dollar"
-                      size="sm"
-                      @click="placeBid(listing)"
-                    >
-                      Place Bid
-                    </UButton>
-                  </div>
-                </template>
-              </UCard>
-            </div>
-          </div>
-        </div>
-      </template>
-    </UTabs>
-  </div>
-  
-  <!-- Create/Edit Material Request Modal -->
-  <UModal v-model="showNewListingModal" :ui="{ width: 'sm:max-w-lg' }">
-    <UCard class="dark:bg-gray-800">
-      <template #header>
-        <div class="flex justify-between items-center">
-          <h3 class="text-xl font-semibold dark:text-white">
-            {{ editMode ? 'Edit Material Request' : 'New Material Request' }}
-          </h3>
-          <UButton
-            color="gray" 
-            variant="ghost"
-            icon="i-heroicons-x-mark"
-            @click="closeListingModal"
-            size="sm"
-            square
-          />
-        </div>
-      </template>
+
+    <!-- Filter Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Filter Materials</h3>
       
-      <UForm :state="formState" class="space-y-4" @submit="saveListing">
-        <UFormGroup label="Material Type" name="item_id" required>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <UFormGroup label="Material Type">
           <USelect
-            v-model="formState.item_id"
+            v-model="filters.itemId"
             :options="itemOptions"
+            placeholder="All materials"
             option-attribute="label"
             value-attribute="value"
-            placeholder="Select material type"
-            required
           />
         </UFormGroup>
         
-        <div class="grid grid-cols-2 gap-4">
-          <UFormGroup label="Quantity (kg)" name="quantity" required>
-            <UInput 
-              v-model="formState.quantity" 
-              type="number"
-              min="0"
-              step="0.01"
-              required
-            />
-          </UFormGroup>
-          
-          <UFormGroup label="Desired Price (₱/kg)" name="desired_price" required>
-            <UInput 
-              v-model="formState.desired_price" 
-              type="number"
-              min="0"
-              step="0.01"
-              required
-            />
-          </UFormGroup>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4">
-          <UFormGroup label="Grade Preference" name="grade">
-            <USelect
-              v-model="formState.grade"
-              :options="gradeOptions"
-              placeholder="Any grade"
-            />
-          </UFormGroup>
-          
-          <UFormGroup label="Deadline (Optional)" name="deadline">
-            <UInput 
-              v-model="formState.deadline" 
-              type="date"
-              :min="minDate"
-            />
-          </UFormGroup>
-        </div>
-        
-        <UFormGroup label="Description (Optional)" name="description">
-          <UTextarea 
-            v-model="formState.description" 
-            placeholder="Describe any specific requirements or details about the materials you're looking for"
-            :rows="3"
+        <UFormGroup label="Grade">
+          <USelect
+            v-model="filters.grade"
+            :options="gradeOptions"
+            placeholder="Any grade"
           />
         </UFormGroup>
-        
-        <UFormGroup>
-          <div class="flex items-center">
-            <UCheckbox v-model="formState.is_public" name="is_public" />
-            <label for="is_public" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Make this request public in the marketplace
-            </label>
+
+        <UFormGroup label="Price Range">
+          <div class="flex gap-2">
+            <UInput
+              v-model="filters.minPrice"
+              type="number"
+              placeholder="Min ₱"
+              min="0"
+            />
+            <UInput
+              v-model="filters.maxPrice"
+              type="number"
+              placeholder="Max ₱"
+              min="0"
+            />
           </div>
         </UFormGroup>
+      </div>
+      
+      <div class="flex justify-end mt-4">
+        <UButton @click="applyFilters" color="teal" icon="i-heroicons-funnel" size="sm">
+          Apply Filters
+        </UButton>
+      </div>
+    </div>
+
+    <!-- Listings Grid -->
+    <div v-if="isLoadingMarketplace" class="py-12 flex justify-center">
+      <UIcon name="i-heroicons-arrow-path" class="animate-spin text-teal-500 w-8 h-8" />
+    </div>
+    
+    <div v-else-if="marketplaceListings.length === 0" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 text-center">
+      <div class="mb-4 bg-blue-100 dark:bg-blue-900/30 rounded-full inline-flex p-4">
+        <UIcon name="i-heroicons-shopping-bag" class="text-blue-500 w-8 h-8" />
+      </div>
+      <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">No Verified Bids Available</h3>
+      <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+        There are currently no verified material bids available. Try adjusting your filters or check back later.
+      </p>
+    </div>
+    
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <UCard
+        v-for="bid in marketplaceListings" 
+        :key="bid.ulid"
+        class="dark:bg-gray-800 transition-all hover:border-teal-500"
+      >
+        <template #header>
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold">{{ bid.item?.name }}</h3>
+            <UBadge color="emerald">Verified</UBadge>
+          </div>
+        </template>
         
-        <div class="flex justify-end gap-2 mt-6">
-          <UButton
-            color="gray"
-            variant="ghost"
-            @click="closeListingModal"
-          >
-            Cancel
-          </UButton>
-          
-          <UButton
-            type="submit"
-            color="teal"
-            :loading="isSavingListing"
-          >
-            {{ editMode ? 'Update Request' : 'Create Request' }}
-          </UButton>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-gray-600 dark:text-gray-400">Junkshop:</span>
+            <span class="font-medium">{{ bid.junkshop?.name }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600 dark:text-gray-400">Available Quantity:</span>
+            <span class="font-medium">{{ bid.quantity }} kg</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600 dark:text-gray-400">Price:</span>
+            <span class="font-medium text-green-600 dark:text-green-400">₱{{ formatPrice(bid.price_per_kg) }} / kg</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600 dark:text-gray-400">Grade:</span>
+            <span class="font-medium">{{ bid.grade || 'Any' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600 dark:text-gray-400">Verified On:</span>
+            <span class="font-medium">{{ formatDate(bid.accepted_at) }}</span>
+          </div>
+          <div v-if="bid.notes" class="mt-3">
+            <div class="text-gray-600 dark:text-gray-400 text-sm">Notes:</div>
+            <p class="text-gray-800 dark:text-gray-300 text-sm mt-1">{{ bid.notes }}</p>
+          </div>
         </div>
-      </UForm>
-    </UCard>
-  </UModal>
+        
+        <template #footer>
+          <div class="flex justify-between">
+            <UButton
+              color="blue"
+              variant="ghost"
+              icon="i-heroicons-information-circle"
+              size="sm"
+              @click="viewBidDetails(bid)"
+            >
+              View Details
+            </UButton>
+            
+            <UButton
+              color="teal"
+              variant="soft"
+              icon="i-heroicons-phone"
+              size="sm"
+              @click="contactJunkshop(bid)"
+            >
+              Contact
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </div>
+  </div>
   
-  <!-- View Listing Details Modal -->
+  <!-- Bid Details Modal -->
   <UModal v-model="showDetailsModal" :ui="{ width: 'sm:max-w-lg' }">
-    <UCard class="dark:bg-gray-800" v-if="selectedListing">
+    <UCard class="dark:bg-gray-800" v-if="selectedBid">
       <template #header>
         <div class="flex justify-between items-center">
-          <h3 class="text-xl font-semibold dark:text-white">
-            Material Request Details
-          </h3>
+          <h3 class="text-xl font-semibold dark:text-white">Bid Details</h3>
           <UButton
             color="gray" 
             variant="ghost"
@@ -395,35 +154,35 @@
       
       <div class="space-y-4">
         <div>
-          <h4 class="text-lg font-medium text-gray-800 dark:text-white">{{ selectedListing.item?.name }}</h4>
+          <h4 class="text-lg font-medium text-gray-800 dark:text-white">{{ selectedBid.item?.name }}</h4>
           <div class="flex items-center mt-1">
             <UIcon name="i-heroicons-building-storefront" class="text-teal-500 mr-2" />
-            <span class="text-gray-600 dark:text-gray-400">{{ selectedListing.merchant?.business_name }}</span>
+            <span class="text-gray-600 dark:text-gray-400">{{ selectedBid.junkshop?.name }}</span>
           </div>
         </div>
         
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Quantity Needed</div>
-            <div class="font-medium">{{ selectedListing.quantity }} kg</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Available Quantity</div>
+            <div class="font-medium">{{ selectedBid.quantity }} kg</div>
           </div>
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Offered Price</div>
-            <div class="font-medium text-green-600 dark:text-green-400">₱{{ selectedListing.desired_price }} / kg</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Price per KG</div>
+            <div class="font-medium text-green-600 dark:text-green-400">₱{{ formatPrice(selectedBid.price_per_kg) }}</div>
           </div>
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Grade Preference</div>
-            <div class="font-medium">{{ selectedListing.grade || 'Any' }}</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Grade</div>
+            <div class="font-medium">{{ selectedBid.grade || 'Any' }}</div>
           </div>
-          <div v-if="selectedListing.deadline">
-            <div class="text-sm text-gray-500 dark:text-gray-400">Deadline</div>
-            <div class="font-medium">{{ formatDate(selectedListing.deadline) }}</div>
+          <div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Total Value</div>
+            <div class="font-medium text-green-600 dark:text-green-400">₱{{ formatPrice(selectedBid.quantity * selectedBid.price_per_kg) }}</div>
           </div>
         </div>
         
-        <div v-if="selectedListing.description">
-          <div class="text-sm text-gray-500 dark:text-gray-400">Description</div>
-          <p class="text-gray-800 dark:text-gray-300 mt-1">{{ selectedListing.description }}</p>
+        <div v-if="selectedBid.notes">
+          <div class="text-sm text-gray-500 dark:text-gray-400">Notes</div>
+          <p class="text-gray-800 dark:text-gray-300 mt-1">{{ selectedBid.notes }}</p>
         </div>
         
         <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
@@ -431,11 +190,11 @@
           <div class="mt-2">
             <div class="flex items-center">
               <UIcon name="i-heroicons-map-pin" class="text-teal-500 mr-2" />
-              <span>{{ selectedListing.merchant?.address || 'Address not provided' }}</span>
+              <span>{{ selectedBid.junkshop?.address || 'Address not provided' }}</span>
             </div>
             <div class="flex items-center mt-1">
               <UIcon name="i-heroicons-phone" class="text-teal-500 mr-2" />
-              <span>{{ selectedListing.merchant?.contact || 'Contact not provided' }}</span>
+              <span>{{ selectedBid.junkshop?.contact || 'Contact not provided' }}</span>
             </div>
           </div>
         </div>
@@ -453,9 +212,10 @@
           
           <UButton
             color="teal"
-            icon="i-heroicons-chat-bubble-left-ellipsis"
+            icon="i-heroicons-phone"
+            @click="contactJunkshop(selectedBid)"
           >
-            Contact Merchant
+            Contact Junkshop
           </UButton>
         </div>
       </template>
@@ -469,28 +229,10 @@ import { ref, reactive, computed, onMounted } from 'vue';
 const toast = useToast();
 
 // State variables
-const isLoading = ref(true);
 const isLoadingMarketplace = ref(true);
-const isSavingListing = ref(false);
-const myListings = ref([]);
 const marketplaceListings = ref([]);
-const showNewListingModal = ref(false);
 const showDetailsModal = ref(false);
-const editMode = ref(false);
-const selectedListing = ref(null);
-const bidStats = ref({
-  total_bids: 0,
-  pending_bids: 0,
-  accepted_bids: 0
-});
-
-// Tab state
-const activeTab = ref('my-listings');
-const tabs = [
-  { id: 'my-listings', label: 'My Requests', icon: 'i-heroicons-document-text' },
-  { id: 'marketplace', label: 'Material Marketplace', icon: 'i-heroicons-shopping-bag' },
-  { id: 'received-bids', label: 'Received Bids', icon: 'i-heroicons-currency-dollar' }
-];
+const selectedBid = ref(null);
 
 // Filter state
 const filters = reactive({
@@ -498,24 +240,6 @@ const filters = reactive({
   minPrice: null,
   maxPrice: null,
   grade: null
-});
-
-// Form state
-const formState = reactive({
-  item_id: null,
-  quantity: null,
-  desired_price: null,
-  grade: null,
-  deadline: null,
-  description: '',
-  is_public: true
-});
-
-// Computed properties
-const minDate = computed(() => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split('T')[0];
 });
 
 // Options for dropdowns
@@ -532,56 +256,9 @@ const itemOptions = ref([]);
 // Load data on component mount
 onMounted(async () => {
   await Promise.all([
-    fetchItems(),
-    fetchMyListings(),
-    fetchBidStats()
+    fetchMarketplaceListings()
   ]);
 });
-
-// Fetch bid statistics
-const fetchBidStats = async () => {
-  try {
-    const response = await $fetch('/api/v1/bids/stats');
-    bidStats.value = response;
-  } catch (error) {
-    console.error('Failed to fetch bid statistics', error);
-    toast.error('Failed to load bid statistics');
-  }
-};
-
-// Fetch all available material items
-const fetchItems = async () => {
-  try {
-    const response = await $fetch('/materials');
-    itemOptions.value = response.map(item => ({
-      label: item.name,
-      value: item.id
-    }));
-    
-    // Add an "All materials" option for filters
-    itemOptions.value.unshift({
-      label: 'All Materials',
-      value: null
-    });
-  } catch (error) {
-    console.error('Failed to fetch materials', error);
-    toast.error('Failed to load material types');
-  }
-};
-
-// Fetch the merchant's listings
-const fetchMyListings = async () => {
-  try {
-    isLoading.value = true;
-    const response = await $fetch('/marketplace/my-listings');
-    myListings.value = response;
-  } catch (error) {
-    console.error('Failed to fetch your material listings', error);
-    toast.error('Failed to load your material requests');
-  } finally {
-    isLoading.value = false;
-  }
-};
 
 // Fetch marketplace listings
 const fetchMarketplaceListings = async () => {
@@ -595,7 +272,7 @@ const fetchMarketplaceListings = async () => {
     if (filters.maxPrice) params.append('max_price', filters.maxPrice);
     if (filters.grade) params.append('grade', filters.grade);
     
-    const url = `/marketplace/wanted-materials${params.toString() ? `?${params.toString()}` : ''}`;
+    const url = `/marketplace/bids${params.toString() ? `?${params.toString()}` : ''}`;
     const response = await $fetch(url);
     
     marketplaceListings.value = response;
@@ -612,152 +289,24 @@ const applyFilters = () => {
   fetchMarketplaceListings();
 };
 
-// Handle tab change
-const onTabChange = (tabId) => {
-  activeTab.value = tabId;
-  
-  // Load marketplace data if switching to that tab
-  if (tabId === 'marketplace' && marketplaceListings.value.length === 0) {
-    fetchMarketplaceListings();
-  }
-  
-  // Refresh bid statistics when switching to the received-bids tab
-  if (tabId === 'received-bids') {
-    fetchBidStats();
-  }
-};
-
-// Save a new or updated listing
-const saveListing = async () => {
-  try {
-    isSavingListing.value = true;
-    
-    if (editMode.value) {
-      // Update existing listing
-      await $fetch(`/marketplace/wanted-materials/${selectedListing.value.ulid}`, {
-        method: 'PUT',
-        body: formState
-      });
-      
-      toast.success('Material request updated successfully');
-    } else {
-      // Create new listing
-      await $fetch('/marketplace/wanted-materials', {
-        method: 'POST',
-        body: formState
-      });
-      
-      toast.success('Material request created successfully');
-    }
-    
-    // Refresh listings and close modal
-    await fetchMyListings();
-    closeListingModal();
-  } catch (error) {
-    console.error('Failed to save material request', error);
-    toast.error('Failed to save material request');
-  } finally {
-    isSavingListing.value = false;
-  }
-};
-
-// Edit an existing listing
-const editListing = (listing) => {
-  selectedListing.value = listing;
-  editMode.value = true;
-  
-  // Populate form with listing data
-  formState.item_id = listing.item_id;
-  formState.quantity = listing.quantity;
-  formState.desired_price = listing.desired_price;
-  formState.grade = listing.grade;
-  formState.deadline = listing.deadline;
-  formState.description = listing.description || '';
-  formState.is_public = listing.is_public;
-  
-  showNewListingModal.value = true;
-};
-
-// Close the listing modal and reset form
-const closeListingModal = () => {
-  // Reset form state
-  formState.item_id = null;
-  formState.quantity = null;
-  formState.desired_price = null;
-  formState.grade = null;
-  formState.deadline = null;
-  formState.description = '';
-  formState.is_public = true;
-  
-  // Reset edit mode
-  editMode.value = false;
-  selectedListing.value = null;
-  
-  // Close modal
-  showNewListingModal.value = false;
-};
-
-// Toggle the active status of a listing
-const toggleListingActive = async (listing) => {
-  try {
-    const response = await $fetch(`/marketplace/wanted-materials/${listing.ulid}/toggle-active`, {
-      method: 'POST'
-    });
-    
-    // Update the listing in the local array
-    const index = myListings.value.findIndex(item => item.ulid === listing.ulid);
-    if (index !== -1) {
-      myListings.value[index].is_active = !myListings.value[index].is_active;
-    }
-    
-    toast.success(response.message);
-  } catch (error) {
-    console.error('Failed to toggle listing status', error);
-    toast.error('Failed to update listing status');
-  }
-};
-
-// View listing details
-const viewListingDetails = (listing) => {
-  selectedListing.value = listing;
+// View bid details
+const viewBidDetails = (bid) => {
+  selectedBid.value = bid;
   showDetailsModal.value = true;
 };
 
-// Generate actions for listing dropdown menu
-const getListingActions = (listing) => {
-  return [
-    {
-      label: 'Edit',
-      icon: 'i-heroicons-pencil-square',
-      click: () => editListing(listing)
-    },
-    {
-      label: listing.is_active ? 'Deactivate' : 'Activate',
-      icon: listing.is_active ? 'i-heroicons-pause' : 'i-heroicons-play',
-      click: () => toggleListingActive(listing)
-    },
-    {
-      label: 'Delete',
-      icon: 'i-heroicons-trash',
-      click: async () => {
-        if (confirm('Are you sure you want to delete this listing?')) {
-          try {
-            await $fetch(`/marketplace/wanted-materials/${listing.ulid}`, {
-              method: 'DELETE'
-            });
-            
-            // Remove from local array
-            myListings.value = myListings.value.filter(item => item.ulid !== listing.ulid);
-            
-            toast.success('Material request deleted successfully');
-          } catch (error) {
-            console.error('Failed to delete listing', error);
-            toast.error('Failed to delete material request');
-          }
-        }
-      }
-    }
-  ];
+// Contact junkshop
+const contactJunkshop = (bid) => {
+  // Implement contact functionality
+  if (!bid.junkshop?.contact) {
+    toast.info('Contact information not available');
+    return;
+  }
+  
+  // Copy contact to clipboard
+  navigator.clipboard.writeText(bid.junkshop.contact).then(() => {
+    toast.success('Contact number copied to clipboard');
+  });
 };
 
 // Format date for display
@@ -771,9 +320,13 @@ const formatDate = (dateString) => {
   });
 };
 
+// Format price with 2 decimal places
+const formatPrice = (price) => {
+  return Number(price).toFixed(2);
+};
+
 // Define page metadata
 definePageMeta({
-  layout: "dashboard",
-  middleware: ["auth"]
+  middleware: ['auth', 'role-merchant']
 });
 </script>
