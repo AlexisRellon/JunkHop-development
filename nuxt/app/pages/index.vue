@@ -273,8 +273,11 @@ function animateRecyclingItems() {
       <!-- Right Column: Image/Visual -->
       <div class="relative hidden md:block" data-aos="fade-left" data-aos-duration="1000">
         <div class="relative">
-          <img src="/JunkHop-icon.png" alt="Person recycling materials at a junk shop"
-            class="object-cover w-[500px] floating" />
+          <img 
+            src="/JunkHop-icon.png" 
+            alt="Person recycling materials at a junk shop" 
+            class="object-cover w-[35rem] relative left-16"
+          />
 
           <!-- Floating UI Elements -->
           <div
