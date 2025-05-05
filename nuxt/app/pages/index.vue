@@ -221,7 +221,7 @@ function animateRecyclingItems() {
 <template>
   <!-- Hero Section with Interactive Elements -->
   <section
-    class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 hero-section">
+    class="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden bg-gradient-to-b from-teal-900 via-teal-800 to-teal-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 hero-section">
     <!-- Animated background elements -->
     <div v-if="heroParticlesEnabled" class="absolute inset-0 overflow-hidden pointer-events-none">
       <UIcon v-for="(item, index) in recyclingItems" :key="index" :name="item.icon" :class="[item.color, item.size]"
