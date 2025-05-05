@@ -2,8 +2,26 @@
   <div v-if="isAdminUser">
     <AppAdminPanel />
   </div>
-  <div v-else>
+  <div v-else-if="isJunkshopOwnerUser">
     <AppJunkshopPanel />
+  </div>
+  <div v-else-if="isMerchantUser">
+    <AppMerchantPanel />
+  </div>
+  <div v-else>
+    <!-- Fallback or redirect -->
+    <div class="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
+      <div class="text-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+        <UIcon name="i-heroicons-exclamation-triangle" class="w-16 h-16 text-amber-500 mx-auto mb-4" />
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Access Not Configured</h2>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">
+          Your account doesn't have a role assigned to access the dashboard.
+        </p>
+        <UButton to="/account/general" color="primary">
+          Go to Account
+        </UButton>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -11,6 +29,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+
 const authStore = useAuthStore();
 const router = useRouter();
 
@@ -20,6 +39,16 @@ const user = computed(() => authStore.user);
 // Determine if the user role is admin
 const isAdminUser = computed(() => {
   return user.value?.roles?.includes("admin");
+});
+
+// Determine if the user role is junkshop_owner
+const isJunkshopOwnerUser = computed(() => {
+  return user.value?.roles?.includes("junkshop_owner");
+});
+
+// Determine if the user role is merchant
+const isMerchantUser = computed(() => {
+  return user.value?.roles?.includes("merchant");
 });
 
 // Determine if the user role is user

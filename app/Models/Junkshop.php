@@ -6,10 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use App\Traits\TracksActivity;
 
 class Junkshop extends Model
 {
-    use HasFactory, HasUlids;
+    use HasFactory, HasUlids, TracksActivity;
+
+    /**
+     * Activity type for logging
+     */
+    const ACTIVITY_TYPE = 'junkshop';
 
     /**
      * The primary key for the model.
@@ -52,6 +58,15 @@ class Junkshop extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'user_id', 'ulid');
+    }
+
+    /**
+     * Get the merchants interested in this junkshop
+     */
+    public function merchants()
+    {
+        return $this->belongsToMany(Merchant::class, 'merchant_junkshop', 'junkshop_id', 'merchant_id')
+            ->withTimestamps();
     }
 
     /**

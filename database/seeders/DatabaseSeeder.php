@@ -32,7 +32,8 @@ class DatabaseSeeder extends Seeder
             'admin',
             'user',
             'junkshop_owner',
-            'baranggay_admin'
+            'baranggay_admin',
+            'merchant'  // Adding merchant role for Phase 2
         ];
 
         foreach ($roles as $role) {

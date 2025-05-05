@@ -11,7 +11,7 @@
         :class="isCollapsed ? 'justify-center mx-auto' : ''"
       >
         <img src="/Logo.svg" alt="Logo" class="w-8 h-8" />
-        <span v-show="!isCollapsed" class="transition-opacity duration-300" :class="isCollapsed ? 'opacity-0' : 'opacity-100'">CleanSnap</span>
+        <span v-show="!isCollapsed" class="transition-opacity duration-300" :class="isCollapsed ? 'opacity-0' : 'opacity-100'">JunkHop</span>
       </NuxtLink>
       <button
         @click="toggleSidebar"
@@ -100,7 +100,8 @@ const links = [
   { label: "Dashboard", to: "/dashboard", icon: "mdi-view-dashboard" },
   { label: "Users", to: "/dashboard/users", icon: "mdi-account-group" },
   { label: "Junkshops", to: "/dashboard/junkshop", icon: "mdi-home" },
-  // { label: "Transactions", to: "/dashboard/transactions", icon: "mdi-receipt" },
+  { label: "Bid Management", to: "/dashboard/bids", icon: "mdi-currency-usd" },
+  { label: "Activity", to: "/dashboard/activity", icon: "mdi-clock" },
   // { label: "Schedule", to: "/dashboard/schedule", icon: "mdi-calendar" },
   // { label: "Reports", to: "/dashboard/reports", icon: "mdi-chart-bar" },
   // { label: "Notifications", to: "/dashboard/notifications", icon: "mdi-bell" },

@@ -5,34 +5,52 @@
 
     <!-- Main Content -->
     <div class="flex flex-col flex-1 overflow-hidden">
-      <!-- Header with Avatar and Dropdown -->
+      <!-- Header with Avatar and Breadcrumb -->
       <header class="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 shadow-sm">
-        <h1 class="text-xl font-semibold text-gray-800 dark:text-white">Junkshop Management</h1>
+        <div class="flex items-center">
+          <h1 class="text-xl font-semibold text-gray-800 dark:text-white">Junkshop Management</h1>
+          <nav class="ml-4">
+            <ol class="flex text-sm">
+              <li class="flex items-center">
+                <NuxtLink to="/dashboard" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">Dashboard</NuxtLink>
+                <UIcon name="i-heroicons-chevron-right" class="w-4 h-4 mx-2 text-gray-400" />
+              </li>
+              <li>
+                <span class="text-gray-700 dark:text-gray-300">Junkshops</span>
+              </li>
+            </ol>
+          </nav>
+        </div>
         <div class="flex items-center gap-4">
           <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Welcome, {{ auth.user.name }}</span>
-          <UDropdown
-            :items="userItems"
-            :ui="{ item: { disabled: 'cursor-text select-text' } }"
-            :popper="{ placement: 'bottom-end' }"
-          >
-            <UAvatar
-              size="sm"
-              :src="$storage(auth.user.avatar)"
-              :alt="auth.user.name"
-              :ui="{ rounded: 'rounded-full', ring: 'ring-2 ring-primary-500' }"
-            />
-          </UDropdown>
+          <UAvatar 
+            size="sm" 
+            :src="$storage(auth.user.avatar)" 
+            :alt="auth.user.name" 
+            :ui="{ rounded: 'rounded-full', ring: 'ring-2 ring-teal-500' }" 
+          />
         </div>
       </header>
 
       <div class="flex-1 p-6 overflow-y-auto">
         <!-- Main content area that will take remaining height -->
         <div class="h-full">
-          <AppAdminPanelJunkshopTable class="w-full h-full" />
+          <AppAdminPanelJunkshopTable />
         </div>
       </div>
     </div>
   </div>
+  
+  <!-- Logout Confirmation Dialog -->
+  <UiConfirmationDialog
+    v-model:show="confirmLogout"
+    title="Sign Out"
+    message="Are you sure you want to sign out?"
+    confirm-label="Yes, Sign Out"
+    confirm-color="red"
+    confirm-icon="i-heroicons-arrow-left-on-rectangle"
+    @confirm="auth.logout"
+  />
 </template>
 
 <script setup>
@@ -46,6 +64,7 @@ const { $storage } = useNuxtApp();
 // Sidebar state
 const isSidebarCollapsed = ref(false);
 const isDarkMode = ref(true);
+const confirmLogout = ref(false);
 
 const userItems = computed(() => [
   [
@@ -63,7 +82,7 @@ const userItems = computed(() => [
   [
     {
       label: "Sign out",
-      click: auth.logout,
+      click: () => confirmLogout.value = true,
       icon: "i-heroicons-arrow-left-on-rectangle",
     },
   ],

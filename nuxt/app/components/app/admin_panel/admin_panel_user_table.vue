@@ -1,7 +1,7 @@
 <template>
   <!-- Users Table Card -->
   <UCard
-    class="col-span-1 p-8 bg-white rounded-lg shadow-lg md:col-span-2 lg:col-span-3 dark:bg-gray-800"
+    class="col-span-1 p-8 bg-white rounded-lg shadow-lg md:col-span-2 lg:col-span-3 dark:bg-gray-900/30 border-0"
   >
     <span class="flex items-center justify-between">
       <h2 class="mb-4 text-2xl font-bold dark:text-gray-100">Users</h2>
@@ -19,14 +19,14 @@
           <UButton
             @click="editUser(row)"
             color="teal"
-            variant="solid"
+            variant="soft"
             class="px-3 py-1 rounded-md"
             >Edit</UButton
           >
           <UButton
-            @click="deleteUser(row.ulid)"
+            @click="confirmDeleteUser(row)"
             color="red"
-            variant="solid"
+            variant="soft"
             class="px-3 py-1 rounded-md"
             >Delete</UButton
           >
@@ -43,7 +43,7 @@
         v-if="pageCount > 1"
         v-model="page"
         :page-count="pageCount"
-        :total="users.length"
+        :total="userCount.length"
         :ui="{
           wrapper: 'flex items-center gap-1',
           rounded: 'rounded-md',
@@ -145,7 +145,7 @@
             <UButton
               @click="cancelEdit"
               color="gray"
-              variant="outline"
+              variant="ghost"
               class="flex justify-center w-full py-2 rounded-md"
             >Cancel</UButton>
           </UForm>
@@ -153,6 +153,18 @@
       </UCard>
     </UContainer>
   </USlideover>
+  
+  <!-- Delete User Confirmation Dialog -->
+  <UiConfirmationDialog
+    v-model:show="showDeleteConfirmation"
+    title="Delete User"
+    :message="userToDelete ? `Are you sure you want to delete ${userToDelete.name}? This action cannot be undone.` : 'Are you sure you want to delete this user?'"
+    confirm-label="Yes, Delete"
+    confirm-color="red"
+    confirm-icon="i-heroicons-trash"
+    destructive
+    @confirm="executeUserDeletion"
+  />
 </template>
 
 <script setup>
@@ -161,6 +173,8 @@ import { useRouter } from 'vue-router';
 
 const users = ref([]);
 const loading = ref(false);
+const showDeleteConfirmation = ref(false);
+const userToDelete = ref(null);
 const editingUser = reactive({
   ulid: "",
   name: "",
@@ -193,9 +207,8 @@ const fetchUsers = async () => {
       }
     });
     users.value = data;
-    userCount = data.length;
+    userCount = data;
     console.log("Users:", data);
-    console.log("Users cnt:", data.length);
   } catch (error) {
     console.error("Error fetching users:", error);
     console.error(
@@ -215,12 +228,7 @@ const page = ref(1);
 const itemsPerPage = ref(5);
 
 // Computed for pagination - Fix pagination logic
-const pageCount = computed(() => {
-  if (loading.value) {
-    return 1; // Default to 1 page while loading
-  }
-  return Math.max(1, Math.ceil(users.value.length / itemsPerPage.value));
-});
+const pageCount = itemsPerPage.value;
 
 // Log users count after data is loaded
 watch(() => loading.value, (isLoading) => {
@@ -240,7 +248,8 @@ const roleOptions = [
   'admin',
   'user',
   'junkshop_owner',
-  'baranggay_admin'
+  'baranggay_admin',
+  'merchant',
 ];
 
 /**
@@ -415,6 +424,26 @@ const onError = (event) => {
   const element = document.getElementById(event.errors[0].id);
   element?.focus();
   element?.scrollIntoView({ behavior: "smooth", block: "center" });
+};
+
+/**
+ * Confirm before deleting a user.
+ *
+ * @param {Object} user - The user to delete.
+ */
+const confirmDeleteUser = (user) => {
+  userToDelete.value = user;
+  showDeleteConfirmation.value = true;
+};
+
+/**
+ * Execute user deletion after confirmation.
+ */
+const executeUserDeletion = async () => {
+  if (userToDelete.value) {
+    await deleteUser(userToDelete.value.ulid);
+    userToDelete.value = null;
+  }
 };
 
 /**

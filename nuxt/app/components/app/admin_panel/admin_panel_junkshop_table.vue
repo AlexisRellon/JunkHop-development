@@ -1,7 +1,7 @@
 <template>
   <!-- Junkshop Table Card -->
   <UCard
-    class="col-span-1 p-8 bg-white rounded-lg shadow-lg md:col-span-2 lg:col-span-3 dark:bg-gray-800"
+    class="col-span-1 p-8 bg-white rounded-lg shadow-lg md:col-span-2 lg:col-span-3 dark:bg-gray-900/30 border-0"
   >
     <span class="flex justify-between items-center">
       <h2 class="mb-4 text-2xl font-bold dark:text-gray-100">Junkshops</h2>
@@ -23,13 +23,13 @@
           <UButton
             @click="editJunkshop(row)"
             color="teal"
-            variant="solid"
+            variant="soft"
             class="px-3 py-1 rounded-md"
           >Edit</UButton>
           <UButton
             @click="deleteJunkshop(row.ulid)"
             color="red"
-            variant="solid"
+            variant="soft"
             class="px-3 py-1 rounded-md"
           >Delete</UButton>
         </div>
@@ -146,7 +146,7 @@
             <UButton
               @click="cancelEditJunkshop"
               color="gray"
-              variant="outline"
+              variant="ghost"
               class="flex justify-center w-full py-2 rounded-md"
             >Cancel</UButton>
           </UForm>
@@ -187,21 +187,13 @@ const page = ref(1);
 const itemsPerPage = ref(5);
 
 // Computed for pagination
-const pageCount = computed(() => Math.ceil(junkshops.value.length / itemsPerPage.value));
+const pageCount = itemsPerPage.value;
+
 const startIndex = computed(() => (page.value - 1) * itemsPerPage.value);
 const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, junkshops.value.length));
 const paginatedJunkshops = computed(() => {
   return junkshops.value.slice(startIndex.value, endIndex.value);
 });
-
-// Watch for changes in junkshops array length to handle page adjustments
-watch(() => junkshops.value.length, (newLength, oldLength) => {
-  // If junkshops are removed and current page would be empty, go to previous page
-  const maxPage = Math.max(1, Math.ceil(newLength / itemsPerPage.value));
-  if (page.value > maxPage) {
-    page.value = maxPage;
-  }
-}, { immediate: true });
 
 const router = useRouter();
 const toast = useToast();

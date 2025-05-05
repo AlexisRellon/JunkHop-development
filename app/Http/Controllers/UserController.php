@@ -25,6 +25,13 @@ class UserController extends Controller
     public function destroy($ulid)
     {
         $user = User::where('ulid', $ulid)->firstOrFail();
+        
+        // Log user deletion by admin
+        if (Auth::check() && Auth::user()->hasRole('admin')) {
+            $userName = $user->name ?? $user->email;
+            \App\Services\ActivityLogger::logUser($user, 'deleted', "Admin removed user: {$userName}");
+        }
+        
         $user->delete();
         return response()->json(['message' => 'User deleted successfully']);
     }
@@ -42,7 +49,7 @@ class UserController extends Controller
                     'email',
                     Rule::unique('users')->ignore($user->id)
                 ],
-                'role' => ['sometimes', 'required', 'string', Rule::in(['admin', 'user', 'junkshop_owner', 'baranggay_admin'])],
+                'role' => ['sometimes', 'required', 'string', Rule::in(['admin', 'user', 'junkshop_owner', 'baranggay_admin', 'merchant'])],
                 'password' => ['sometimes', 'nullable', 'string', 'min:8']
             ]);
 
@@ -70,7 +77,30 @@ class UserController extends Controller
                     'fields' => array_keys($validated)
                 ]);
 
+                // Track changes for activity log
+                $changes = [];
+                foreach ($validated as $field => $newValue) {
+                    if ($user->{$field} !== $newValue) {
+                        $changes[$field] = [
+                            'old' => $user->{$field},
+                            'new' => $newValue
+                        ];
+                    }
+                }
+
                 $user->update($validated);
+
+                // Log the changes with detailed information
+                if (!empty($changes)) {
+                    \App\Services\ActivityLogger::log(
+                        'user',
+                        $user,
+                        'updated',
+                        null,
+                        Auth::check() ? Auth::user()->ulid : null,
+                        $changes
+                    );
+                }
 
                 Log::info("✅ User basic info updated");
             }
@@ -134,6 +164,26 @@ class UserController extends Controller
                         'found' => !empty($verification),
                         'role' => !empty($verification) ? $verification[0]->name : null
                     ]);
+                    
+                    // Log role change to activity log
+                    if (!empty($verification)) {
+                        $oldRole = $user->getRoleNames()->first() ?? 'none';
+                        $newRole = $verification[0]->name;
+                        
+                        \App\Services\ActivityLogger::log(
+                            'user',
+                            $user,
+                            'role_updated',
+                            "User role changed from {$oldRole} to {$newRole}",
+                            Auth::check() ? Auth::user()->ulid : null,
+                            [
+                                'role' => [
+                                    'old' => $oldRole,
+                                    'new' => $newRole
+                                ]
+                            ]
+                        );
+                    }
 
                     // Force permission cache clear
                     app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
@@ -195,11 +245,30 @@ class UserController extends Controller
         }
 
         $validated = $request->validate([
-            'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin'
+            'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin,merchant'
         ]);
+        
+        // Get old role before updating
+        $oldRole = $user->getRoleNames()->first() ?? 'none';
+        $newRole = $validated['role'];
 
         // Remove existing roles and assign new role
         $user->syncRoles([$validated['role']]);
+        
+        // Log role change to activity log
+        \App\Services\ActivityLogger::log(
+            'user',
+            $user,
+            'role_updated',
+            "User role changed from {$oldRole} to {$newRole}",
+            Auth::id(),
+            [
+                'role' => [
+                    'old' => $oldRole,
+                    'new' => $newRole
+                ]
+            ]
+        );
 
         return response()->json([
             'message' => 'User role updated successfully',
@@ -219,7 +288,7 @@ class UserController extends Controller
                 $validatedData = $request->validate([
                     'name' => 'required|string|max:255',
                     'email' => 'required|string|email|max:255|unique:users,email',
-                    'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin',
+                    'role' => 'required|string|in:admin,user,junkshop_owner,baranggay_admin,merchant',
                     'password' => 'required|string|min:8',
                 ]);
 
@@ -254,6 +323,21 @@ class UserController extends Controller
                     'role_id' => $role->id,
                     'role_name' => $role->name
                 ]);
+                
+                // Log role assignment to activity log
+                \App\Services\ActivityLogger::log(
+                    'user',
+                    $user,
+                    'role_assigned',
+                    "Initial role assigned: {$role->name}",
+                    Auth::check() ? Auth::user()->ulid : null,
+                    [
+                        'role' => [
+                            'old' => 'none',
+                            'new' => $role->name
+                        ]
+                    ]
+                );
 
                 // Clear permission cache again
                 app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
