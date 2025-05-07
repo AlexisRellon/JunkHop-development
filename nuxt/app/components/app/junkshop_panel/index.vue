@@ -238,12 +238,11 @@
                           <UButton @click="cancelEdit" color="gray" variant="soft" icon="i-heroicons-x-mark" size="sm"
                             square :tooltip="{ text: 'Cancel' }" />
                         </template>
-                        <template v-else>
-                          <UButton @click="createBidForItem(item)" color="amber" variant="ghost"
+                        <template v-else>                          <UButton @click="createBidForItem(item)" color="amber" variant="ghost"
                             icon="i-heroicons-currency-dollar" size="xs" square :tooltip="{ text: 'Create Bid' }" />
                           <UButton @click="editItem(item)" color="blue" variant="ghost" icon="i-heroicons-pencil-square"
                             size="xs" square :tooltip="{ text: 'Edit' }" />
-                          <UButton @click="deleteItem(item.id)" color="red" variant="ghost" icon="i-heroicons-trash"
+                          <UButton @click="confirmDeleteItem(item)" color="red" variant="ghost" icon="i-heroicons-trash"
                             size="xs" square :tooltip="{ text: 'Delete' }" />
                         </template>
                       </div>
@@ -443,27 +442,44 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <div v-if="selectedBid.notes" class="space-y-2">
+        </div>        <div v-if="selectedBid.notes" class="space-y-2">
           <div class="text-xs text-gray-500 dark:text-gray-400">Notes</div>
           <div class="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
             {{ selectedBid.notes }}
           </div>
         </div>
-      </div> <template #footer>
+
+        <!-- Rejection Reason (if rejected) -->
+        <div v-if="selectedBid.status === 'rejected' && selectedBid.rejection_reason" class="space-y-2">
+          <div class="text-xs text-red-500 dark:text-red-400 font-medium">Rejection Reason</div>
+          <div class="text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-red-800 dark:text-red-300 border border-red-200 dark:border-red-900/50">
+            {{ selectedBid.rejection_reason }}
+          </div>
+        </div>
+      </div><template #footer>
         <div class="flex justify-end gap-2">
-          <UButton color="gray" variant="soft" @click="closeBidDetails">
+          <UButton color="gray" variant="ghost" @click="closeBidDetails">
             Close
           </UButton>
           <div v-if="selectedBid.status === 'pending'" class="flex items-center mr-2">
             <UIcon name="i-heroicons-clock" class="text-amber-500 mr-1" />
             <span class="text-sm text-amber-500">Awaiting Admin Review</span>
           </div>
-        </div>
-      </template>
+        </div>      </template>
     </UCard>
   </UModal>
+  
+  <!-- Delete Confirmation Dialog -->
+  <UiConfirmationDialog
+    v-model:show="showDeleteConfirmation"
+    title="Delete Item"
+    :message="'Are you sure you want to delete ' + (itemToDelete?.name || 'this item') + '?'"
+    confirm-label="Yes, Delete"
+    confirm-color="red"
+    confirm-icon="i-heroicons-trash"
+    destructive
+    @confirm="confirmItemDeletion"
+  />
 </template>
 
 <script setup lang="ts">
@@ -553,6 +569,10 @@ const editItemQuantityInput = ref(null);
 const editingItemId = ref<number | null>(null);
 const editingItemName = ref("");
 const editingItemQuantity = ref(0);
+
+// State for item deletion confirmation
+const showDeleteConfirmation = ref(false);
+const itemToDelete = ref<any>(null);
 
 // State for bids
 const pendingBids = ref<any[]>([]);
@@ -813,6 +833,20 @@ const addItem = async () => {
   } catch (error) {
     console.error('Error adding item:', error);
     handleApiError(error, 'Failed to add item. Please try again.');
+  }
+};
+
+// Function to handle delete confirmation
+const confirmDeleteItem = (item: any) => {
+  itemToDelete.value = item;
+  showDeleteConfirmation.value = true;
+};
+
+// Function to proceed with item deletion after confirmation
+const confirmItemDeletion = async () => {
+  if (itemToDelete.value && itemToDelete.value.id) {
+    await deleteItem(itemToDelete.value.id);
+    itemToDelete.value = null;
   }
 };
 

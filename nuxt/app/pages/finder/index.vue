@@ -18,6 +18,7 @@ interface Junkshop {
   description?: string;
   contact: string;
   ulid?: string;
+  category?: string;
 }
 
 /**
@@ -114,13 +115,19 @@ const fetchMerchantProfile = async () => {
 /**
  * A computed property that filters the junkshops based on search query and selected category.
  */
+const selectedCategory = ref(""); // Ref for selected category
+
 const filteredJunkshops = computed(() => {
-  // Filter by search query only
-  return junkshops.value.filter((shop) =>
-    shop.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    shop.address.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    (shop.description && shop.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
-  );
+  return junkshops.value.filter((shop) => {
+    const matchesSearchQuery =
+      shop.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      shop.address.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      (shop.description && shop.description.toLowerCase().includes(searchQuery.value.toLowerCase()));
+
+    const matchesCategory = !selectedCategory.value || shop.category === selectedCategory.value;
+
+    return matchesSearchQuery && matchesCategory;
+  });
 });
 
 const [parent] = useAutoAnimate();

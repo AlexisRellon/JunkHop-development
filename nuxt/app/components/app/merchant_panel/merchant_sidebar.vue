@@ -62,6 +62,17 @@
         </UDropdown>
       </div>
     </div>
+  
+    <!-- Logout Confirmation Dialog -->
+    <UiConfirmationDialog
+      v-model:show="confirmLogout"
+      title="Sign Out"
+      message="Are you sure you want to sign out?"
+      confirm-label="Yes, Sign Out"
+      confirm-color="red"
+      confirm-icon="i-heroicons-arrow-left-on-rectangle"
+      @confirm="auth.logout"
+    />
   </div>
 </template>
 
@@ -70,6 +81,7 @@ import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 
 const auth = useAuthStore();
+const confirmLogout = ref(false);
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
   modelValue: {
@@ -120,7 +132,7 @@ const userDropdownItems = [
   [
     {
       label: "Sign out",
-      click: () => auth.logout(),
+      click: () => confirmLogout.value = true,
       icon: "i-heroicons-arrow-right-on-rectangle",
     },
   ],

@@ -5,10 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Traits\TracksActivity;
 
 class Merchant extends Model
 {
-    use HasFactory;
+    use HasFactory, TracksActivity;
+
+    /**
+     * Activity type for logging
+     */
+    const ACTIVITY_TYPE = 'merchant';
 
     protected $fillable = [
         'ulid',

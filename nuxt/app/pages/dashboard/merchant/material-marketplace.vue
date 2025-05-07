@@ -102,10 +102,7 @@
             <span class="text-gray-600 dark:text-gray-400">Verified On:</span>
             <span class="font-medium">{{ formatDate(bid.accepted_at) }}</span>
           </div>
-          <div v-if="bid.notes" class="mt-3">
-            <div class="text-gray-600 dark:text-gray-400 text-sm">Notes:</div>
-            <p class="text-gray-800 dark:text-gray-300 text-sm mt-1">{{ bid.notes }}</p>
-          </div>
+          
         </div>
         
         <template #footer>
@@ -136,7 +133,7 @@
   </div>
   
   <!-- Bid Details Modal -->
-  <UModal v-model="showDetailsModal" :ui="{ width: 'sm:max-w-lg' }">
+  <UModal v-model="showDetailsModal" :ui="{ width: 'w-2/3 sm:max-w-lg' }">
     <UCard class="dark:bg-gray-800" v-if="selectedBid">
       <template #header>
         <div class="flex justify-between items-center">

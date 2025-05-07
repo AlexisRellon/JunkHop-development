@@ -117,42 +117,18 @@ class InventoryController extends Controller
         }
 
         $updateData = [];
+        $changes = [];
         $updateType = 'update';
-        $quantityChanged = false;
-        $priceChanged = false;
 
-        // Handle quantity update
-        if ($request->has('quantity') && $request->quantity != $item->quantity) {
-            $previousQuantity = $item->quantity;
-            $newQuantity = $request->quantity;
-            $updateData['quantity'] = $newQuantity;
-            $updateData['is_available'] = $newQuantity > 0;
-            $quantityChanged = true;
-            
-            $updateType = $newQuantity > $previousQuantity ? 'add' : 'remove';
-        }
-
-        // Handle price update
-        if ($request->has('price') && $request->price != $item->price) {
-            $updateData['price'] = $request->price;
-            $priceChanged = true;
-            
-            if (!$quantityChanged) {
-                $updateType = 'price_change';
-            }
-        }
-
-        // Handle grade update
-        if ($request->has('grade')) {
-            $updateData['grade'] = $request->grade;
-        }
-
-        // Handle availability update
-        if ($request->has('is_available') && $request->is_available != $item->is_available) {
-            $updateData['is_available'] = $request->is_available;
-            
-            if (!$quantityChanged && !$priceChanged) {
-                $updateType = $request->is_available ? 'restock' : 'out_of_stock';
+        // Track all changes
+        $updatableFields = ['quantity', 'price', 'grade', 'is_available'];
+        foreach ($updatableFields as $field) {
+            if ($request->has($field) && $item->$field != $request->$field) {
+                $updateData[$field] = $request->$field;
+                $changes[$field] = [
+                    'old' => $item->$field,
+                    'new' => $request->$field
+                ];
             }
         }
 
@@ -160,20 +136,30 @@ class InventoryController extends Controller
         if (!empty($updateData)) {
             $updateData['inventory_updated_at'] = now();
             $item->update($updateData);
-            
-            // Record the inventory update
+
+            // Create inventory update record
             $inventoryUpdate = InventoryUpdate::create([
                 'item_id' => $item->id,
-                'previous_quantity' => $quantityChanged ? $previousQuantity : $item->quantity,
-                'new_quantity' => $quantityChanged ? $newQuantity : $item->quantity,
-                'previous_price' => $priceChanged ? $item->getOriginal('price') : $item->price,
-                'new_price' => $priceChanged ? $request->price : $item->price,
+                'previous_quantity' => $changes['quantity']['old'] ?? $item->quantity,
+                'new_quantity' => $changes['quantity']['new'] ?? $item->quantity,
+                'previous_price' => $changes['price']['old'] ?? $item->price,
+                'new_price' => $changes['price']['new'] ?? $item->price,
                 'update_type' => $updateType,
                 'source' => 'manual',
                 'notes' => $request->notes,
             ]);
             
-            // Send notifications to interested merchants
+            // Log the activity with detailed changes
+            \App\Services\ActivityLogger::log(
+                'inventory',
+                $item,
+                'updated',
+                null,
+                null,
+                $changes
+            );
+
+            // Notify interested merchants about the changes
             $this->notifyInterestedMerchants($item, $inventoryUpdate);
 
             return response()->json([

@@ -61,8 +61,8 @@
             >
               <div class="p-5 bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/30">
                 <div class="flex justify-between items-center">
-                  <div>
-                    <p class="text-sm font-medium text-teal-600 dark:text-teal-300">Active Users</p>
+                  <div class="w-1/2">
+                    <p class="text-sm font-medium text-teal-600 dark:text-teal-300 flex gap-3">Active Users <p style="font-size: 0.6rem;">(Last 30 days)</p></p>
                     <h3 class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ activeUsers }}</h3>
                   </div>
                   <div class="p-3 bg-teal-500 rounded-full bg-opacity-10 w-[48px] h-[48px] flex justify-center items-center dark:bg-opacity-20">
@@ -259,6 +259,17 @@
       </div>
     </div>
   </div>
+  
+  <!-- Logout Confirmation Dialog -->
+  <UiConfirmationDialog
+    v-model:show="confirmLogout"
+    title="Sign Out"
+    message="Are you sure you want to sign out?"
+    confirm-label="Yes, Sign Out"
+    confirm-color="red"
+    confirm-icon="i-heroicons-arrow-left-on-rectangle"
+    @confirm="auth.logout"
+  />
 </template>
 
 <script setup>
@@ -269,6 +280,8 @@ import AdminPanelBidManagement from "./admin_panel_bid_management.vue";
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useNuxtApp } from '#app';
+
+const confirmLogout = ref(false);
 
 const auth = useAuthStore();
 const { $storage } = useNuxtApp();
@@ -429,7 +442,7 @@ const userItems = computed(() => [
   }],
   [{
     label: "Sign out",
-    click: auth.logout,
+    click: () => confirmLogout.value = true,
     icon: "i-heroicons-arrow-left-on-rectangle",
   }],
 ]);

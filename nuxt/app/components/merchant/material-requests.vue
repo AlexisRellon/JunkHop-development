@@ -399,12 +399,11 @@
                 </div>
               </div>
               
-              <div class="flex gap-2" v-if="bid.status === 'pending'">
-                <UButton
+              <div class="flex gap-2" v-if="bid.status === 'pending'">                <UButton
                   color="green"
                   size="sm"
                   icon="i-heroicons-check"
-                  @click="updateBidStatus(bid.ulid, 'accepted')"
+                  @click="confirmBidAction(bid.ulid, 'accepted')"
                 >
                   Accept
                 </UButton>
@@ -413,7 +412,7 @@
                   color="red"
                   size="sm" 
                   icon="i-heroicons-x-mark"
-                  @click="updateBidStatus(bid.ulid, 'rejected')"
+                  @click="confirmBidAction(bid.ulid, 'rejected')"
                 >
                   Reject
                 </UButton>
@@ -432,9 +431,21 @@
               Close
             </UButton>
           </div>
-        </template>
-      </UCard>
+        </template>      </UCard>
     </UModal>
+    
+    <!-- Bid Action Confirmation Dialog -->
+    <UiConfirmationDialog
+      v-model:show="showBidConfirmation"
+      :title="bidAction === 'accepted' ? 'Accept Bid' : 'Reject Bid'"
+      :message="bidAction === 'accepted' 
+        ? 'Are you sure you want to accept this bid? This will create a transaction with the junkshop.' 
+        : 'Are you sure you want to reject this bid? This action cannot be undone.'"
+      :confirm-label="bidAction === 'accepted' ? 'Yes, Accept' : 'Yes, Reject'"
+      :confirm-color="bidAction === 'accepted' ? 'green' : 'red'"
+      :confirm-icon="bidAction === 'accepted' ? 'i-heroicons-check' : 'i-heroicons-x-mark'"
+      @confirm="proceedWithBidAction"
+    />
   </div>
 </template>
 
@@ -455,7 +466,12 @@ const selectedRequest = ref(null);
 const showNewRequestModal = ref(false);
 const showDetailsModal = ref(false);
 const showBidsModal = ref(false);
+const showBidConfirmation = ref(false);
 const editMode = ref(false);
+
+// Bid action variables
+const bidToAction = ref(null);
+const bidAction = ref('');
 
 // Form state
 const formState = reactive({
@@ -602,6 +618,20 @@ const editRequest = (request) => {
   showDetailsModal.value = false;
   // Open edit modal
   showNewRequestModal.value = true;
+};
+
+// Initiate the bid action confirmation process
+const confirmBidAction = (bidUlid, action) => {
+  bidToAction.value = bidUlid;
+  bidAction.value = action;
+  showBidConfirmation.value = true;
+};
+
+// Proceed with the bid action after confirmation
+const proceedWithBidAction = () => {
+  if (bidToAction.value && bidAction.value) {
+    updateBidStatus(bidToAction.value, bidAction.value);
+  }
 };
 
 // Toggle the active status of a request

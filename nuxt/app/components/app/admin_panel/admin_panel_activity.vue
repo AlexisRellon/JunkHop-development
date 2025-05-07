@@ -113,7 +113,13 @@ const activityTypes = [
   { label: 'All', value: '' },
   { label: 'User', value: 'user' },
   { label: 'Junkshop', value: 'junkshop' },
+  { label: 'Merchant', value: 'merchant' },
   { label: 'Transaction', value: 'transaction' },
+  { label: 'Security', value: 'security' },
+  { label: 'Data', value: 'data' },
+  { label: 'Email', value: 'email' },
+  { label: 'Performance', value: 'performance' },
+  { label: 'Admin', value: 'admin' },
   { label: 'System', value: 'system' }
 ];
 
@@ -195,7 +201,13 @@ const getActivityIcon = (type) => {
   switch (type) {
     case 'user': return 'i-heroicons-user-circle';
     case 'junkshop': return 'i-heroicons-home';
+    case 'merchant': return 'i-heroicons-shopping-bag';
     case 'transaction': return 'i-heroicons-receipt-percent';
+    case 'security': return 'i-heroicons-shield-check';
+    case 'data': return 'i-heroicons-database';
+    case 'email': return 'i-heroicons-envelope';
+    case 'performance': return 'i-heroicons-chart-bar';
+    case 'admin': return 'i-heroicons-cog-6-tooth';
     case 'system': return 'i-heroicons-cog';
     default: return 'i-heroicons-question-mark-circle';
   }
@@ -205,7 +217,13 @@ const getActivityIconClass = (type) => {
   switch (type) {
     case 'user': return 'bg-indigo-500';
     case 'junkshop': return 'bg-amber-500';
+    case 'merchant': return 'bg-emerald-500';
     case 'transaction': return 'bg-violet-500';
+    case 'security': return 'bg-red-500';
+    case 'data': return 'bg-cyan-500';
+    case 'email': return 'bg-orange-500';
+    case 'performance': return 'bg-yellow-500';
+    case 'admin': return 'bg-purple-500';
     case 'system': return 'bg-blue-500';
     default: return 'bg-gray-500';
   }

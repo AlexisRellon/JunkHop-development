@@ -92,7 +92,84 @@ class MerchantController extends Controller
             ], 404);
         }
 
+        // Track changes
+        $changes = [];
+        $updatableFields = ['business_name', 'contact', 'description', 'address'];
+        
+        foreach ($updatableFields as $field) {
+            if ($request->has($field) && $merchant->$field !== $request->$field) {
+                $changes[$field] = [
+                    'old' => $merchant->$field,
+                    'new' => $request->$field
+                ];
+            }
+        }
+
         $merchant->update($request->all());
+        
+        // Log merchant update with detailed changes
+        if (!empty($changes)) {
+            if (Auth::check() && Auth::user()->hasRole('admin')) {
+                \App\Services\AdminLogger::log(
+                    'admin',
+                    $merchant,
+                    'merchant_updated',
+                    "Admin updated merchant: {$merchant->business_name}",
+                    Auth::id(),
+                    $changes
+                );
+            } else {
+                \App\Services\ActivityLogger::logMerchant($merchant, 'updated', null, Auth::id(), $changes);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Merchant profile updated successfully',
+            'merchant' => $merchant
+        ]);
+    }
+
+    /**
+     * Update the specified Merchant by an admin.
+     */
+    public function adminUpdate(Request $request, string $ulid): \Illuminate\Http\JsonResponse
+    {
+        $merchant = Merchant::where('ulid', $ulid)->firstOrFail();
+
+        $request->validate([
+            'business_name' => 'sometimes|required|string|max:255',
+            'contact' => 'sometimes|required|string|max:255',
+            'address' => 'sometimes|required|string',
+            'description' => 'nullable|string',
+            'user_id' => 'sometimes|required|string|exists:users,ulid',
+        ]);
+
+        $updateData = $request->only(['business_name', 'contact', 'address', 'description', 'user_id']);
+        
+        // Track changes for activity log
+        $changes = [];
+        foreach ($updateData as $field => $newValue) {
+            if ($merchant->{$field} !== $newValue) {
+                $changes[$field] = [
+                    'old' => $merchant->{$field},
+                    'new' => $newValue
+                ];
+            }
+        }
+
+        $merchant->update($updateData);
+        
+        // Log merchant update with detailed changes
+        if (!empty($changes)) {
+            \App\Services\ActivityLogger::log(
+                'merchant',
+                $merchant,
+                'updated',
+                null,
+                Auth::check() ? Auth::user()->ulid : null,
+                $changes
+            );
+        }
 
         return response()->json([
             'message' => 'Merchant profile updated successfully',
@@ -197,5 +274,22 @@ class MerchantController extends Controller
             ->get();
 
         return response()->json($items);
+    }
+
+    /**
+     * Remove the specified Merchant.
+     */
+    public function destroy(string $ulid): \Illuminate\Http\JsonResponse
+    {
+        $merchant = Merchant::where('ulid', $ulid)->firstOrFail();
+        
+        // Log merchant deletion by admin
+        if (Auth::check() && Auth::user()->hasRole('admin')) {
+            \App\Services\ActivityLogger::logMerchant($merchant, 'deleted', "Admin removed merchant: {$merchant->business_name}");
+        }
+        
+        $merchant->delete();
+
+        return response()->json(['message' => 'Merchant deleted successfully'], 200);
     }
 }

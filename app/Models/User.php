@@ -10,11 +10,17 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Notifications\CustomVerifyEmail;
+use App\Traits\TracksActivity;
 use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, HasRoles, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, TracksActivity;
+    
+    /**
+     * Activity type for logging
+     */
+    const ACTIVITY_TYPE = 'user';
 
     /**
      * The attributes that should be mutated to dates.

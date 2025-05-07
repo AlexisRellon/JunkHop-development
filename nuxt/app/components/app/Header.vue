@@ -3,6 +3,7 @@ const auth = useAuthStore();
 const { $storage } = useNuxtApp();
 
 const isDarkMode = ref(true);
+const confirmLogout = ref(false);
 
 // Save user's dark mode preference
 
@@ -41,13 +42,13 @@ const userItems = computed(() => [
   [
     {
       label: "Sign out",
-      click: auth.logout,
+      click: () => confirmLogout.value = true,
       icon: "i-heroicons-arrow-left-on-rectangle",
     },
   ],
 ]);
 
-const navItems = [
+const navItems = computed(() => [
   {
     label: "Home",
     to: "/",
@@ -82,7 +83,7 @@ const navItems = [
     icon: "i-heroicons-question-mark-circle-20-solid",
     target: "_self",
   },
-];
+]);
 
 const isSideOpen = ref(false);
 const openSide = () => {
@@ -136,7 +137,7 @@ const routePrivacyAndTerms = computed(() => route.path.startsWith("/privacy-poli
         <ul
           class="flex flex-col items-end lg:flex-row lg:items-center lg:gap-x-8"
         >
-          <li v-for="item in navItems" class="relative">
+          <li v-for="item in navItems" class="relative" :class="item.class">
             <NuxtLink
               v-if="
                 item.condition === undefined || (item.condition && auth.logged)
@@ -216,11 +217,22 @@ const routePrivacyAndTerms = computed(() => route.path.startsWith("/privacy-poli
     <UContainer class="flex-1 py-4 sm:py-6">
       <UVerticalNavigation :links="navItems">
         <template #default="{ link }">
-          <span class="relative group-hover:text-primary">{{
+          <span v-if="link.condition === undefined || (link.condition && auth.logged)" class="relative group-hover:text-primary" :class="link.class">{{
             link.label
           }}</span>
         </template>
       </UVerticalNavigation>
     </UContainer>
   </USlideover>
+  
+  <!-- Logout Confirmation Dialog -->
+  <UiConfirmationDialog
+    v-model:show="confirmLogout"
+    title="Sign Out"
+    message="Are you sure you want to sign out?"
+    confirm-label="Yes, Sign Out"
+    confirm-color="red"
+    confirm-icon="i-heroicons-arrow-left-on-rectangle"
+    @confirm="auth.logout"
+  />
 </template>

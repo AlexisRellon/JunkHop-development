@@ -48,9 +48,42 @@ class AccountController extends Controller
 
         $email = $user->email;
         
+        // Track changes for activity log
+        $changes = [];
+        if ($user->name !== $request->name) {
+            $changes['name'] = [
+                'old' => $user->name,
+                'new' => $request->name
+            ];
+        }
+        if ($user->email !== $request->email) {
+            $changes['email'] = [
+                'old' => $user->email,
+                'new' => $request->email
+            ];
+        }
+        if ($request->has('avatar') && $request->avatar !== $user->avatar) {
+            $changes['avatar'] = [
+                'old' => $user->avatar ?? 'none',
+                'new' => $request->avatar
+            ];
+        }
+        
         $user->name = $request->name;
         $user->email = $request->email;
         $user->save();
+
+        // Log profile updates with detailed changes
+        if (!empty($changes)) {
+            \App\Services\ActivityLogger::log(
+                'user',
+                $user,
+                'updated',
+                null,
+                $user->ulid,
+                $changes
+            );
+        }
 
         if ($email !== $request->email) {
             $user->email_verified_at = null;
@@ -86,6 +119,15 @@ class AccountController extends Controller
         $user->update([
             'password' => Hash::make($request->password),
         ]);
+
+        // Log password change (without exposing the actual password)
+        \App\Services\ActivityLogger::log(
+            'user',
+            $user,
+            'updated',
+            "User {$user->name} changed their password",
+            $user->ulid
+        );
 
         return response()->json([
             'ok' => true,

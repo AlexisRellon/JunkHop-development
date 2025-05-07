@@ -11,7 +11,7 @@
         :class="isCollapsed ? 'justify-center mx-auto' : ''"
       >
         <img src="/Logo.svg" alt="Logo" class="w-8 h-8" />
-        <span v-show="!isCollapsed" class="transition-opacity duration-300" :class="isCollapsed ? 'opacity-0' : 'opacity-100'">CleanSnap</span>
+        <span v-show="!isCollapsed" class="transition-opacity duration-300" :class="isCollapsed ? 'opacity-0' : 'opacity-100'">JunkHop</span>
       </NuxtLink>
       <button
         @click="toggleSidebar"
