@@ -238,7 +238,8 @@
                           <UButton @click="cancelEdit" color="gray" variant="soft" icon="i-heroicons-x-mark" size="sm"
                             square :tooltip="{ text: 'Cancel' }" />
                         </template>
-                        <template v-else>                          <UButton @click="createBidForItem(item)" color="amber" variant="ghost"
+                        <template v-else>
+                          <UButton @click="createBidForItem(item)" color="amber" variant="ghost"
                             icon="i-heroicons-currency-dollar" size="xs" square :tooltip="{ text: 'Create Bid' }" />
                           <UButton @click="editItem(item)" color="blue" variant="ghost" icon="i-heroicons-pencil-square"
                             size="xs" square :tooltip="{ text: 'Edit' }" />
@@ -294,7 +295,7 @@
             <UTable :columns="[
               { key: 'item', label: 'Item' },
               { key: 'quantity', label: 'Quantity (kg)' },
-              { key: 'price', label: 'Price/kg' },
+              { key: 'price', label: 'Starting Bid' },
               { key: 'total', label: 'Total' },
               { key: 'status', label: 'Status' },
               { key: 'created_at', label: 'Date' },
@@ -371,17 +372,30 @@
             icon="i-heroicons-scale" />
         </UFormGroup>
 
-        <UFormGroup label="Price per kg (₱)" required>
-          <UInput v-model="bidPricePerKg" type="number" min="0" step="0.01" placeholder="Enter price per kilogram"
+        <UFormGroup label="Bid Starting Amount Price (₱)" required>
+          <UInput v-model="bidPricePerKg" type="number" min="0" step="0.01" placeholder="Enter starting bid amount"
             icon="i-heroicons-currency-dollar" />
         </UFormGroup>
+
+        <div class="grid grid-cols-2 gap-4">
+          <UFormGroup label="Start Date" required>
+            <UInput v-model="bidStartDate" type="date" icon="i-heroicons-calendar"
+              :min="new Date().toISOString().split('T')[0]" />
+          </UFormGroup>
+
+          <UFormGroup label="End Date" required>
+            <UInput v-model="bidEndDate" type="date" icon="i-heroicons-calendar"
+              :min="bidStartDate || new Date().toISOString().split('T')[0]" />
+          </UFormGroup>
+        </div>
 
         <UFormGroup label="Notes">
           <UTextarea v-model="bidNotes" placeholder="Additional notes or conditions (optional)" :rows="3" />
         </UFormGroup>
-      </div> <template #footer>
+      </div>
+      <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton color="gray" variant="soft" @click="cancelBid">
+          <UButton color="gray" variant="ghost" @click="cancelBid">
             Cancel
           </UButton>
           <UButton color="amber" :loading="isBidLoading"
@@ -418,7 +432,7 @@
               <div class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ selectedBid.quantity }} kg</div>
             </div>
             <div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">Price per kg</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Starting Bid Amount</div>
               <div class="text-sm font-medium text-gray-700 dark:text-gray-200">₱{{
                 Number(selectedBid.price_per_kg).toFixed(2) }}</div>
             </div>
@@ -442,7 +456,8 @@
               </div>
             </div>
           </div>
-        </div>        <div v-if="selectedBid.notes" class="space-y-2">
+        </div>
+        <div v-if="selectedBid.notes" class="space-y-2">
           <div class="text-xs text-gray-500 dark:text-gray-400">Notes</div>
           <div class="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
             {{ selectedBid.notes }}
@@ -452,7 +467,8 @@
         <!-- Rejection Reason (if rejected) -->
         <div v-if="selectedBid.status === 'rejected' && selectedBid.rejection_reason" class="space-y-2">
           <div class="text-xs text-red-500 dark:text-red-400 font-medium">Rejection Reason</div>
-          <div class="text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-red-800 dark:text-red-300 border border-red-200 dark:border-red-900/50">
+          <div
+            class="text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-red-800 dark:text-red-300 border border-red-200 dark:border-red-900/50">
             {{ selectedBid.rejection_reason }}
           </div>
         </div>
@@ -465,21 +481,16 @@
             <UIcon name="i-heroicons-clock" class="text-amber-500 mr-1" />
             <span class="text-sm text-amber-500">Awaiting Admin Review</span>
           </div>
-        </div>      </template>
+        </div>
+      </template>
     </UCard>
   </UModal>
-  
+
   <!-- Delete Confirmation Dialog -->
-  <UiConfirmationDialog
-    v-model:show="showDeleteConfirmation"
-    title="Delete Item"
+  <UiConfirmationDialog v-model:show="showDeleteConfirmation" title="Delete Item"
     :message="'Are you sure you want to delete ' + (itemToDelete?.name || 'this item') + '?'"
-    confirm-label="Yes, Delete"
-    confirm-color="red"
-    confirm-icon="i-heroicons-trash"
-    destructive
-    @confirm="confirmItemDeletion"
-  />
+    confirm-label="Yes, Delete" confirm-color="red" confirm-icon="i-heroicons-trash" destructive
+    @confirm="confirmItemDeletion" />
 </template>
 
 <script setup lang="ts">
@@ -492,7 +503,7 @@ import { useNuxtApp } from "#app";
 // Helper function to generate a valid ULID in the format the server expects
 const generateULID = () => {
   const timestamp = Math.floor(Date.now() / 1000).toString(36).padStart(6, '0');
-  const randomPart = Array.from({ length: 20 }, () => 
+  const randomPart = Array.from({ length: 20 }, () =>
     "0123456789ABCDEFGHJKMNPQRSTVWXYZ"[Math.floor(Math.random() * 32)]
   ).join('');
   return timestamp + randomPart;
@@ -580,10 +591,23 @@ const pendingBidsCount = computed(() => pendingBids.value.length);
 const selectedItem = ref<any>(null);
 const bidQuantity = ref<number>(0);
 const bidPricePerKg = ref<number>(0);
+const bidStartDate = ref<string>('');
+const bidEndDate = ref<string>('');
 const bidNotes = ref<string>('');
 const showBidModal = ref(false);
 const showBidDetailsModal = ref(false);
 const selectedBid = ref<any>(null);
+
+// Debug function to log the current junkshop state
+const logJunkshopState = () => {
+  console.group('Junkshop State');
+  console.log('Junkshop object:', junkshop);
+  console.log('ULID:', junkshop.ulid);
+  console.log('Auth Token:', auth.token ? 'Exists (not showing for security)' : 'Missing');
+  console.log('Selected Item:', selectedItem.value);
+  console.log('User ID:', auth.user?.ulid);
+  console.groupEnd();
+};
 
 // Define proper interface for the junkshop response
 interface JunkshopResponse {
@@ -992,58 +1016,158 @@ const createBidForItem = (item: any) => {
   selectedItem.value = item;
   bidQuantity.value = 1; // Default to 1 kg
   bidPricePerKg.value = 0;
+  bidStartDate.value = '';
+  bidEndDate.value = '';
   bidNotes.value = '';
   showBidModal.value = true;
 };
 
-// Function to submit a new bid
+// Submit bid
 const submitBid = async () => {
-  if (!junkshop.ulid || !selectedItem.value || bidQuantity.value <= 0 || bidPricePerKg.value <= 0) {
+  // First, verify we have a valid junkshop
+  if (!junkshop || !junkshop.ulid) {
+    // Try to refresh the junkshop data
+    console.log('No junkshop data found, attempting to refresh...');
+    const refreshSuccessful = await refreshJunkshopData();
+    
+    if (!refreshSuccessful || !junkshop.ulid) {
+      // Try to fetch directly from the API as a fallback
+      const directFetchSuccessful = await fetchDirectJunkshopData();
+      if (!directFetchSuccessful || !junkshop.ulid) {
+        // If both attempts fail, show an error and exit
+        toast.add({
+          title: 'Error',
+          description: 'Junkshop profile not found. Please refresh the page or contact support.',
+          color: 'red'
+        });
+        return;
+      }
+    }
+  }
+  
+  if (!selectedItem.value || !bidQuantity.value || !bidPricePerKg.value || bidQuantity.value <= 0 || bidPricePerKg.value <= 0) {
     toast.add({
       title: 'Error',
-      description: 'Please enter valid quantity and price per kg',
+      description: 'Please fill in all required fields',
       color: 'red'
     });
     return;
   }
-
+  
+  // Validate dates for the bidding system
+  if (!bidStartDate.value || !bidEndDate.value) {
+    toast.add({
+      title: 'Error',
+      description: 'Please select start and end dates for the bid',
+      color: 'red'
+    });
+    return;
+  }
+  
+  // Validate end date is after start date
+  if (new Date(bidEndDate.value) <= new Date(bidStartDate.value)) {
+    toast.add({
+      title: 'Error',
+      description: 'End date must be after start date',
+      color: 'red'
+    });
+    return;
+  }
+  
+  // Make sure we have a starting bid price for bidding
+  if (bidPricePerKg.value <= 0) {
+    toast.add({
+      title: 'Error',
+      description: 'Starting bid price must be greater than zero',
+      color: 'red'
+    });
+    return;
+  }
+  
+  // Format dates properly to avoid timezone issues
+  const formattedStartDate = new Date(bidStartDate.value).toISOString().split('T')[0];
+  const formattedEndDate = new Date(bidEndDate.value).toISOString().split('T')[0];
+  
   try {
     isBidLoading.value = true;
-
-    const newBid = await $fetch(`/junkshop/${junkshop.ulid}/bids`, {
-      method: "POST",
+    
+    // Log detailed information for debugging
+    logJunkshopState();
+    console.log('Submitting bid with data:', {
+      junkshopId: junkshop.ulid,
+      itemId: selectedItem.value?.id,
+      quantity: bidQuantity.value,
+      pricePerKg: bidPricePerKg.value,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate
+    });
+    
+    // Ensure we have a valid junkshop ID
+    if (!junkshop.ulid) {
+      throw new Error('Junkshop ID not found. Please refresh the page and try again.');
+    }
+    
+    // Try multiple possible endpoints based on API structure
+    // BidController route is used for regular bids
+    const endpoint = `/bids`;
+    
+    console.log(`Submitting bid to ${endpoint} with junkshop ID: ${junkshop.ulid}`);
+    
+    const response = await $fetch(endpoint, {
+      method: 'POST',
       body: {
-        ulid: generateULID(), // Generate proper ULID format
+        junkshop_id: junkshop.ulid,
         item_id: selectedItem.value.id,
         quantity: bidQuantity.value,
         price_per_kg: bidPricePerKg.value,
+        start_date: formattedStartDate,
+        end_date: formattedEndDate,
         notes: bidNotes.value,
-        status: 'pending'
+        is_bidding_enabled: true,
+        starting_bid: bidPricePerKg.value
       },
       headers: {
         Authorization: `Bearer ${auth.token}`,
         'Content-Type': 'application/json'
-      },
+      }
     });
-
-    // Add new bid to the list
-    pendingBids.value.push(newBid);
-
-    // Close modal and reset values
+    
+    // Close modal and refresh bids
     showBidModal.value = false;
+    
+    // Reset form
     selectedItem.value = null;
     bidQuantity.value = 0;
     bidPricePerKg.value = 0;
+    bidStartDate.value = '';
+    bidEndDate.value = '';
     bidNotes.value = '';
-
+    
+    // Show success message
     toast.add({
       title: 'Success',
-      description: 'Bid created successfully',
+      description: 'Bid created successfully and is awaiting admin approval',
       color: 'green'
     });
+    
+    // Refresh bids
+    await fetchBids();
   } catch (error) {
     console.error('Error creating bid:', error);
-    handleApiError(error, 'Failed to create bid. Please try again.');
+    
+    // Display detailed error message for debugging
+    let errorMessage = 'Failed to create bid. Please try again.';
+    
+    if (error.response) {
+      console.log('Error response data:', error.response._data);
+      errorMessage = error.response._data?.message || errorMessage;
+    }
+    
+    toast.add({
+      title: 'Error',
+      description: errorMessage,
+      color: 'red'
+    });
   } finally {
     isBidLoading.value = false;
   }
@@ -1055,6 +1179,8 @@ const cancelBid = () => {
   selectedItem.value = null;
   bidQuantity.value = 0;
   bidPricePerKg.value = 0;
+  bidStartDate.value = '';
+  bidEndDate.value = '';
   bidNotes.value = '';
 };
 
@@ -1107,6 +1233,66 @@ const updateBidStatus = async (bidId: string, newStatus: string) => {
     handleApiError(error, 'Failed to update bid status. Please try again.');
   } finally {
     isBidLoading.value = false;
+  }
+};
+
+// Function to fetch fresh junkshop data
+const refreshJunkshopData = async () => {
+  try {
+    console.log('Refreshing junkshop data...');
+    
+    // Only proceed if we have a current user
+    if (!auth.user || !auth.user.ulid) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Fetch the latest junkshop data
+    const response = await $fetch<any[]>('/user/junkshops', {
+      headers: {
+        Authorization: `Bearer ${auth.token}`
+      }
+    });
+    
+    console.log('Raw response from /user/junkshops:', response);
+    
+    // Update the junkshop data if available
+    if (response && Array.isArray(response) && response.length > 0) {
+      // Update junkshop properties individually since it's a constant
+      Object.assign(junkshop, response[0]);
+      console.log('Refreshed junkshop data:', junkshop);
+      return true;
+    } else {
+      console.error('No junkshop data found in response:', response);
+      throw new Error('No junkshop found for this user');
+    }
+  } catch (error) {
+    console.error('Error refreshing junkshop data:', error);
+    return false;
+  }
+};
+
+// Function to fetch junkshop from direct API endpoint
+const fetchDirectJunkshopData = async () => {
+  try {
+    console.log('Fetching from direct API endpoint as fallback...');
+    const junkshopResponse = await $fetch<{ulid: string}>('/junkshops/my-junkshop', {
+      headers: {
+        Authorization: `Bearer ${auth.token}`
+      }
+    });
+    
+    if (junkshopResponse && junkshopResponse.ulid) {
+      // Update junkshop properties with the response
+      Object.assign(junkshop, junkshopResponse);
+      console.log('Successfully fetched junkshop data from fallback API:', junkshop);
+      return true;
+    } else {
+      console.error('No valid junkshop data returned from fallback API:', junkshopResponse);
+      return false;
+    }
+  } catch (error) {
+    console.error('Fallback API request failed:', error);
+    return false;
   }
 };
 </script>
