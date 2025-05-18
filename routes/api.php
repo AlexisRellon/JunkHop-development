@@ -17,7 +17,6 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\QualityVerificationController;
 use App\Http\Controllers\Api\MarketplaceBidController;
-use App\Models\DashboardStatistic;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -128,6 +127,20 @@ Route::prefix('api/v1')->group(function () {
             Route::get('/{ulid}/counter-offers', [BidController::class, 'getCounterOffers']);
         });
 
+        // Enhanced Bidding System Routes
+        Route::middleware(['auth:sanctum'])->group(function () {
+            // Junkshop bidding routes
+            Route::post('/bids/enable-bidding/{ulid}', [\App\Http\Controllers\BidController::class, 'enableBidding']);
+            Route::post('/bids/disable-bidding/{ulid}', [\App\Http\Controllers\BidController::class, 'disableBidding']);
+            
+            // Merchant bidding routes
+            Route::get('/bidding/available', [\App\Http\Controllers\Api\MerchantBidController::class, 'index']);
+            Route::get('/bidding/item/{ulid}', [\App\Http\Controllers\Api\MerchantBidController::class, 'show']);
+            Route::post('/bidding/place-bid/{ulid}', [\App\Http\Controllers\Api\MerchantBidController::class, 'placeBid']);
+            Route::get('/bidding/my-bids', [\App\Http\Controllers\Api\MerchantBidController::class, 'getMyBids']);
+            Route::get('/bidding/history/{ulid}', [\App\Http\Controllers\Api\MerchantBidController::class, 'getBidHistory']);
+        });
+        
         // Inventory Visibility System routes
         Route::prefix('inventory')->group(function() {
             Route::get('/junkshops/{junkshopUlid}/items', [InventoryController::class, 'index']);
