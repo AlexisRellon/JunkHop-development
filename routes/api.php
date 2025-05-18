@@ -17,6 +17,9 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\QualityVerificationController;
 use App\Http\Controllers\Api\MarketplaceBidController;
+use App\Http\Controllers\MerchantPreferenceController;
+use App\Http\Controllers\Api\MaterialPreferenceController;
+use App\Http\Controllers\Api\MaterialMarketplaceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -67,6 +70,7 @@ Route::prefix('api/v1')->group(function () {
         Route::delete('junkshop/{ulid}', [JunkshopController::class, 'destroy'])->name('junkshop.destroy');
 
         // Item routes
+        Route::get('/items', [ItemController::class, 'getAllItems'])->name('items.all'); // New route for all items
         Route::get('junkshop/{ulid}/items', [ItemController::class, 'index'])->name('items.index');
         Route::post('junkshop/{ulid}/items', [ItemController::class, 'store'])->name('items.store');
         Route::put('junkshop/{ulid}/items/{itemId}', [ItemController::class, 'update'])->name('items.update');
@@ -99,12 +103,22 @@ Route::prefix('api/v1')->group(function () {
             Route::get('/profile', [MerchantController::class, 'show']);
             Route::post('/profile', [MerchantController::class, 'store']);
             Route::put('/profile', [MerchantController::class, 'update']);
+            
+            // Material preferences routes
+            Route::get('/material-preferences', [MaterialPreferenceController::class, 'index']);
+            Route::post('/material-preferences/{itemId}', [MaterialPreferenceController::class, 'updateOrCreate']);
+            
+            // Legacy preference routes
+            Route::get('/preferences', [MerchantPreferenceController::class, 'index']);
+            Route::post('/preferences', [MerchantPreferenceController::class, 'store']);
+            
             Route::post('/item-interest/{itemId}', [MerchantController::class, 'toggleItemInterest']);
             Route::get('/interested-items', [MerchantController::class, 'getInterestedItems']);
         });
         
-        // Wanted Material Marketplace routes
+        // Material Marketplace routes
         Route::prefix('marketplace')->group(function() {
+            Route::get('/materials', [\App\Http\Controllers\Api\MaterialMarketplaceController::class, 'index']); // New personalized marketplace endpoint
             Route::get('/wanted-materials', [WantedMaterialController::class, 'index']);
             Route::get('/wanted-materials/{ulid}', [WantedMaterialController::class, 'show']);
             Route::post('/wanted-materials', [WantedMaterialController::class, 'store']);
@@ -186,6 +200,14 @@ Route::prefix('api/v1')->group(function () {
         Route::prefix('debug')->group(function() {
             Route::get('/roles', [\App\Http\Controllers\Api\DebugController::class, 'getRoleInfo']);
             Route::post('/fix-roles', [\App\Http\Controllers\Api\DebugController::class, 'fixRoles']);
+            
+            // Debug route
+            Route::get('/bids', function() {
+                return response()->json([
+                    'bids' => \App\Models\Bid::with(['item', 'junkshop'])->get(),
+                    'total' => \App\Models\Bid::count()
+                ]);
+            });
         });
         
         // Admin routes
@@ -218,4 +240,12 @@ Route::prefix('api/v1')->group(function () {
         Route::get('/bids', [MarketplaceBidController::class, 'index']);
         Route::get('/bids/{ulid}', [MarketplaceBidController::class, 'show']);
     });
+});
+
+// Material Preference Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    // ...existing routes...
+    
+    // Get matched marketplace listings
+    Route::get('/merchant/matched-listings', [MaterialPreferenceController::class, 'getMatchedListings']);
 });
