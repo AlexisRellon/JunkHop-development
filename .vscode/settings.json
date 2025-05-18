@@ -36,5 +36,6 @@
         "terminal.ansiRed": "#F07178",
         "terminal.ansiWhite": "#EEFFFF",
         "terminal.ansiYellow": "#FFCB6B"
-    }
+    },
+    "dbt.dbtIntegration": "cloud"
 }
