@@ -1,6 +1,19 @@
 <script lang="ts" setup>
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  }
+});
+
 useSeoMeta({
-  title: 'Account',
+  title: 'Account Settings | JunkHop',
+  description: 'Manage your JunkHop account profile, update personal information and change your password',
+  ogTitle: 'JunkHop Account Settings',
+  ogDescription: 'Access and modify your account settings and profile information',
+  twitterCard: 'summary',
+  twitterTitle: 'JunkHop Account Settings',
+  twitterDescription: 'Manage your profile on the JunkHop platform',
+  robots: 'noindex, nofollow' // For privacy protection of user account pages
 })
 </script>
 <template>

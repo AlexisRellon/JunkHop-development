@@ -1,6 +1,25 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue';
 
+// Add SEO metadata
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  }
+});
+
+useSeoMeta({
+  title: 'Recycling Resources & Educational Materials | JunkHop',
+  description: 'Access videos, guides, and educational resources about recycling, waste management, and environmental sustainability',
+  ogTitle: 'JunkHop Resources - Learn About Sustainable Waste Management',
+  ogDescription: 'Educational materials and resources to help you maximize your recycling efforts',
+  ogImage: '/resources-preview.jpg',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'JunkHop Educational Resources',
+  twitterDescription: 'Videos and guides for better waste management practices',
+  keywords: 'recycling resources, waste management education, sustainability guides, environmental videos'
+});
+
 interface VideoResource {
   id: number;
   youtubeId: string;

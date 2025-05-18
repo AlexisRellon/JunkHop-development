@@ -20,14 +20,36 @@ function scrollToDetails() {
 }
 
 /**
+ * Sets HTML attributes for SEO.
+ */
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  },
+  link: [
+    { rel: 'canonical', href: 'https://junkhop.com/' }
+  ]
+});
+
+/**
  * Sets the SEO metadata for the page.
  */
 useSeoMeta({
   title: "JunkHop | Connecting Communities to Recycling Solutions",
-  description: "Find nearby junk shops, manage recycling activities, and track your environmental impact with JunkHop",
+  description: "Find nearby junk shops, manage recycling activities, and track your environmental impact with JunkHop's sustainable waste management platform",
+  ogTitle: "JunkHop - Waste Management & Recycling Platform",
+  ogDescription: "Connect with recycling centers, track your environmental impact, and join our sustainable community",
   ogImage: {
-    url: '/social-preview.jpg'
-  }
+    url: '/social-preview.jpg',
+    width: 1200,
+    height: 630,
+    alt: "JunkHop sustainability platform"
+  },
+  twitterCard: "summary_large_image",
+  twitterTitle: "JunkHop - Sustainable Waste Management",
+  twitterDescription: "Discover how JunkHop helps communities manage waste efficiently",
+  twitterImage: '/social-preview.jpg',
+  keywords: "junk shop finder, recycling centers, waste management, environmental impact, sustainable solutions, recycling platform"
 });
 
 /* Text Animation */

@@ -181,8 +181,22 @@
 </template>
 
 <script lang="ts" setup>
-definePageMeta({
-  title: 'Terms of Service',
-  description: 'JunkHop terms of service - Understanding your rights and responsibilities'
-})
+// Add SEO metadata
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  }
+});
+
+useSeoMeta({
+  title: 'Terms of Service | JunkHop',
+  description: 'JunkHop terms of service - Understanding your rights and responsibilities when using our platform',
+  ogTitle: 'JunkHop Terms of Service',
+  ogDescription: 'Review the legal terms and conditions for using the JunkHop waste management platform',
+  ogImage: '/legal-preview.jpg',
+  twitterCard: 'summary',
+  twitterTitle: 'JunkHop Terms of Service',
+  twitterDescription: 'Legal terms for using the JunkHop platform',
+  keywords: 'JunkHop terms, waste management terms of service, recycling platform terms'
+});
 </script>

@@ -156,6 +156,25 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 
+// Add SEO metadata
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  }
+});
+
+useSeoMeta({
+  title: 'Frequently Asked Questions | JunkHop',
+  description: 'Find answers to common questions about JunkHop waste management platform, recycling processes, and account management',
+  ogTitle: 'JunkHop FAQ - Get Your Questions Answered',
+  ogDescription: 'Frequently asked questions about using JunkHop for waste management and recycling',
+  ogImage: '/social-preview.jpg',
+  twitterCard: 'summary',
+  twitterTitle: 'JunkHop FAQ',
+  twitterDescription: 'Get answers to your questions about JunkHop',
+  keywords: 'JunkHop FAQ, waste management questions, recycling FAQ, junk shop platform help'
+});
+
 // FAQs data formatted for UAccordion
 const faqItems = [
   {

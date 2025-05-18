@@ -182,8 +182,22 @@
 </template>
 
 <script lang="ts" setup>
-definePageMeta({
-  title: 'Privacy Policy',
-  description: 'JunkHop privacy policy - Learn how we collect and protect your personal information'
-})
+// Add SEO metadata
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  }
+});
+
+useSeoMeta({
+  title: 'Privacy Policy | JunkHop',
+  description: 'JunkHop privacy policy - Learn how we collect, use, and protect your personal information on our platform',
+  ogTitle: 'JunkHop Privacy Policy',
+  ogDescription: 'Read about how JunkHop handles your data and respects your privacy',
+  ogImage: '/legal-preview.jpg',
+  twitterCard: 'summary',
+  twitterTitle: 'JunkHop Privacy Policy',
+  twitterDescription: 'How JunkHop protects your privacy and personal data',
+  keywords: 'JunkHop privacy, waste management privacy policy, data protection, user information'
+});
 </script>

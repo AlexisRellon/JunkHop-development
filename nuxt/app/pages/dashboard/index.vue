@@ -30,6 +30,24 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
+// Add SEO metadata
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  }
+});
+
+useSeoMeta({
+  title: 'Dashboard | JunkHop',
+  description: 'Access your JunkHop dashboard to manage recycling activities, view statistics, and monitor your environmental impact',
+  ogTitle: 'JunkHop User Dashboard',
+  ogDescription: 'Access your personalized dashboard on the JunkHop platform',
+  twitterCard: 'summary',
+  twitterTitle: 'JunkHop Dashboard',
+  twitterDescription: 'Manage your activities on JunkHop',
+  robots: 'noindex, nofollow' // Protect private user dashboard data from search engines
+});
+
 const authStore = useAuthStore();
 const router = useRouter();
 

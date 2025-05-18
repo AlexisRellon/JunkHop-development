@@ -1,6 +1,25 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 
+// Add SEO metadata
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  }
+});
+
+useSeoMeta({
+  title: 'Customer Support & Contact | JunkHop',
+  description: 'Get help with your JunkHop account, send inquiries, or report issues with our platform',
+  ogTitle: 'JunkHop Support Center',
+  ogDescription: 'Contact our team for assistance with the JunkHop platform',
+  ogImage: '/support-preview.jpg',
+  twitterCard: 'summary',
+  twitterTitle: 'JunkHop Support',
+  twitterDescription: 'Get help with your JunkHop account or platform questions',
+  keywords: 'JunkHop support, waste management help, recycling platform assistance, contact JunkHop'
+});
+
 /**
  * Reactive reference to the form data.
  * @type {Object}

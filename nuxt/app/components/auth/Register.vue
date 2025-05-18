@@ -9,6 +9,9 @@ const state = reactive({
   password_confirmation: "",
 });
 
+const showPassword = ref(false);
+const showPasswordConfirmation = ref(false);
+
 const { refresh: onSubmit, status: registerStatus } = useFetch<any>("register", {
   method: "POST",
   body: state,
@@ -61,15 +64,37 @@ const { refresh: onSubmit, status: registerStatus } = useFetch<any>("register", 
         :ui="{ hint: 'text-xs text-gray-500 dark:text-gray-400' }"
         required
       >
-        <UInput v-model="state.password" type="password" autocomplete="off" />
+        <div class="relative">
+          <UInput
+            v-model="state.password"
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="off"
+          />
+          <UButton
+            class="absolute right-0 top-0 bottom-0"
+            color="gray"
+            variant="ghost"
+            :icon="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+            @click="showPassword = !showPassword"
+          />
+        </div>
       </UFormGroup>
 
       <UFormGroup label="Repeat Password" name="password_confirmation" required>
-        <UInput
-          v-model="state.password_confirmation"
-          type="password"
-          autocomplete="off"
-        />
+        <div class="relative">
+          <UInput
+            v-model="state.password_confirmation"
+            :type="showPasswordConfirmation ? 'text' : 'password'"
+            autocomplete="off"
+          />
+          <UButton
+            class="absolute right-0 top-0 bottom-0"
+            color="gray"
+            variant="ghost"
+            :icon="showPasswordConfirmation ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+            @click="showPasswordConfirmation = !showPasswordConfirmation"
+          />
+        </div>
       </UFormGroup>
 
       <div class="flex items-center justify-end space-x-4">

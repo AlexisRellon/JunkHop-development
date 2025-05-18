@@ -1,7 +1,7 @@
 <template>
   <div>
     <UButton @click="scrollToTop" v-if="showButton"
-      class="fixed bottom-10 right-10 p-4 bg-teal-600 dark:text-white rounded-full w-12 h-12 flex items-center justify-center shadow-xl"
+      class="fixed bottom-16 right-10 p-4 bg-teal-600 dark:text-white rounded-full w-12 h-12 flex items-center justify-center shadow-xl"
       icon="i-heroicons-arrow-up" size="md" />
   </div>
 </template>

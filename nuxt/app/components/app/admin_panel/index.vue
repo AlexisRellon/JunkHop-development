@@ -62,7 +62,9 @@
               <div class="p-5 bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/30">
                 <div class="flex justify-between items-center">
                   <div class="w-1/2">
-                    <p class="text-sm font-medium text-teal-600 dark:text-teal-300 flex gap-3">Active Users <p style="font-size: 0.6rem;">(Last 30 days)</p></p>
+                    <div class="flex gap-2 items-center">
+                      <p class="text-sm font-medium text-teal-600 dark:text-teal-300 flex gap-3">Active Users </p><p class="text-teal-600 dark:text-teal-300" style="font-size: 0.6rem;">(Last 30 days)</p>
+                    </div>
                     <h3 class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ activeUsers }}</h3>
                   </div>
                   <div class="p-3 bg-teal-500 rounded-full bg-opacity-10 w-[48px] h-[48px] flex justify-center items-center dark:bg-opacity-20">

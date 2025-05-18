@@ -3,6 +3,42 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useAutoAnimate } from "@formkit/auto-animate/vue";
 import { useAuthStore } from "@/stores/auth";
 
+// Pagination
+const page = ref(1);
+const itemsPerPage = ref(6);
+
+// Computed for pagination
+const pageCount = itemsPerPage.value;
+const startIndex = computed(() => (page.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, filteredJunkshops.value.length));
+const paginatedJunkshops = computed(() => {
+  return filteredJunkshops.value.slice(startIndex.value, endIndex.value);
+});
+
+// Add SEO metadata
+useHead({
+  htmlAttrs: {
+    lang: 'en'
+  }
+});
+
+useSeoMeta({
+  title: 'Junk Shop Finder | JunkHop',
+  description: 'Find nearby junk shops and recycling centers on our interactive map. Filter by materials accepted and check operating hours.',
+  ogTitle: 'Junk Shop Finder | JunkHop',
+  ogDescription: 'Locate recycling centers near you and discover which materials they accept',
+  ogImage: {
+    url: '/finder-preview.jpg',
+    width: 1200,
+    height: 630,
+    alt: "JunkHop Shop Finder"
+  },
+  twitterCard: "summary_large_image",
+  twitterTitle: "Find Recycling Centers Near You",
+  twitterDescription: "Use JunkHop's interactive map to find junk shops and recycling centers in your area",
+  keywords: "junk shop finder, recycling center locator, waste management map, materials recycling"
+});
+
 // Utility function to check user roles
 const hasRole = (auth, role: string) => {
   return auth.logged && auth.user?.roles?.includes(role);
@@ -370,7 +406,9 @@ const saveInterestNote = () => {
       <!-- Results Count -->
       <div class="flex items-center justify-between mb-6">
         <p class="text-gray-700 dark:text-gray-300">
-          <span class="font-medium">{{ filteredJunkshops.length }}</span> junkshops found
+          <span class="font-medium">
+            Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, filteredJunkshops.length) }} of {{ filteredJunkshops.length }}
+          </span> junkshops found
         </p>
 
         <UButton v-if="searchQuery" color="gray" variant="ghost" size="sm"
@@ -424,7 +462,7 @@ const saveInterestNote = () => {
 
         <!-- Results -->
         <ul v-else ref="parent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
-          <li v-for="shop in filteredJunkshops" :key="shop.id" class="group">
+          <li v-for="shop in paginatedJunkshops" :key="shop.id" class="group">
             <UCard
               class="h-full border transition-all duration-300 hover:border-teal-500 hover:shadow-md dark:hover:border-teal-400 dark:bg-gray-800 dark:border-gray-700">
               <template #header>
@@ -464,25 +502,50 @@ const saveInterestNote = () => {
               </div>
 
               <template #footer>
-                <div class="flex justify-between items-center">
-                  <UButton color="teal" variant="ghost" @click="openModal(shop)" icon="i-heroicons-information-circle"
-                    class="text-sm hover:bg-teal-50 dark:hover:bg-teal-900/20">
+                <div class="flex justify-between items-center gap-2">
+                  <UButton color="teal" variant="ghost" @click="openModal(shop)" size="sm"
+                    class="hover:bg-teal-50 dark:hover:bg-teal-900/20">
+                    <template #leading>
+                      <UIcon name="i-heroicons-information-circle" />
+                    </template>
                     Details
                   </UButton>
 
-                  <UButton color="teal" variant="solid" @click="redirectToGoogleMaps(shop.address)"
-                    class="text-sm hover:shadow-md">
-                    <template #leading>
-                      <UIcon name="i-heroicons-map" />
-                    </template>
-                    View on Map
-                  </UButton>
+                  <div class="flex gap-2">
+                    <UButton color="teal" variant="solid" @click="redirectToGoogleMaps(shop.address)"
+                      class="text-sm hover:shadow-md">
+                      <template #leading>
+                        <UIcon name="i-heroicons-map" />
+                      </template>
+                      View on Map
+                    </UButton>
+                  </div>
                 </div>
               </template>
             </UCard>
           </li>
         </ul>
       </UCard>
+
+      <!-- Pagination Controls -->
+      <div class="flex justify-between items-center mt-6 px-4">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Showing <span class="font-medium">{{ startIndex + 1 }}</span> to <span class="font-medium">{{ Math.min(endIndex, filteredJunkshops.length) }}</span> of <span class="font-medium">{{ filteredJunkshops.length }}</span> junkshops
+        </p>
+        <UPagination
+          v-if="pageCount > 1"
+          v-model="page"
+          :page-count="pageCount"
+          :total="filteredJunkshops.length"
+          :ui="{
+            wrapper: 'flex items-center gap-1',
+            rounded: 'rounded-md',
+            default: {
+              size: 'sm'
+            }
+          }"
+        />
+      </div>
     </div>
   </div>
 
@@ -495,7 +558,7 @@ const saveInterestNote = () => {
           <UBadge color="teal" variant="subtle" class="dark:bg-teal-900/50">Verified</UBadge>
         </div>
       </template>
-
+      
       <div class="space-y-6">
         <p v-if="selectedJunkshop.description"
           class="text-gray-600 dark:text-gray-300 italic border-l-4 border-teal-500 pl-4 py-2 bg-teal-50/50 dark:bg-teal-900/10 rounded-r">
@@ -504,7 +567,8 @@ const saveInterestNote = () => {
 
         <div class="grid md:grid-cols-2 gap-6">
           <div class="space-y-4">
-            <h4 class="font-semibold text-lg border-b pb-2 dark:border-gray-700 dark:text-gray-100">Contact Information
+            <h4 class="font-semibold text-lg border-b pb-2 dark:border-gray-700 dark:text-gray-100">
+              Contact Information
             </h4>
 
             <div class="space-y-3">
@@ -534,7 +598,8 @@ const saveInterestNote = () => {
           </div>
 
           <div class="space-y-4">
-            <h4 class="font-semibold text-lg border-b pb-2 dark:border-gray-700 dark:text-gray-100">Accepted Materials
+            <h4 class="font-semibold text-lg border-b pb-2 dark:border-gray-700 dark:text-gray-100">
+              Accepted Materials
             </h4>
 
             <div v-if="isLoadingItems" class="py-2">
@@ -587,22 +652,22 @@ const saveInterestNote = () => {
               </div>
             </div>
           </div>
-
-          
         </div>
       </div>
 
       <template #footer>
         <div class="flex justify-between items-center gap-4">
-          <UButton color="gray" variant="ghost" @click="closeModal" class="hover:bg-gray-100 dark:hover:bg-gray-700">
+          <UButton color="gray" variant="ghost" @click="closeModal" size="sm" 
+            class="hover:bg-gray-100 dark:hover:bg-gray-700">
             Close
           </UButton>
 
-          <UButton color="teal" @click="redirectToGoogleMaps(selectedJunkshop.address)" class="hover:shadow-md">
+          <UButton color="teal" variant="solid" @click="redirectToGoogleMaps(selectedJunkshop.address)" size="sm"
+            class="hover:shadow-md">
             <template #leading>
               <UIcon name="i-heroicons-map" />
             </template>
-            View on Google Maps
+            View on Maps
           </UButton>
         </div>
       </template>
@@ -633,5 +698,32 @@ const saveInterestNote = () => {
 /* Dark mode adjustments */
 .dark .group:hover UCard {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+.chat-enter-active,
+.chat-leave-active {
+  transition: all 0.3s ease;
+}
+
+.chat-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.chat-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+/* Add CSS transitions */
+.chat-enter-active,
+.chat-leave-active {
+  transition: all 0.3s ease;
+}
+
+.chat-enter-from,
+.chat-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 </style>

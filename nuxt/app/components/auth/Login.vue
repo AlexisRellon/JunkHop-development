@@ -4,6 +4,8 @@ const router = useRouter();
 const auth = useAuthStore();
 const form = ref();
 
+const showPassword = ref(false);
+
 type Provider = {
   name: string;
   icon: string;
@@ -111,7 +113,20 @@ onBeforeUnmount(() => window.removeEventListener("message", handleMessage));
       </UFormGroup>
 
       <UFormGroup label="Password" name="password" required>
-        <UInput v-model="state.password" type="password" />
+        <div class="relative">
+          <UInput
+            v-model="state.password"
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="off"
+          />
+          <UButton
+            class="absolute right-0 top-0 bottom-0"
+            color="gray"
+            variant="ghost"
+            :icon="showPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'"
+            @click="showPassword = !showPassword"
+          />
+        </div>
       </UFormGroup>
 
       <UTooltip text="for 1 month" :popper="{ placement: 'right' }">
