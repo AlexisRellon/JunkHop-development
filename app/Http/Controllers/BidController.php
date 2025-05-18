@@ -63,6 +63,10 @@ class BidController extends Controller
             'expiry_date' => 'nullable|date|after:today',
             'is_bulk_order' => 'boolean',
             'wanted_material_id' => 'nullable|exists:wanted_materials,id',
+            'is_bidding_enabled' => 'boolean',
+            'start_date' => 'nullable|date|required_if:is_bidding_enabled,true',
+            'end_date' => 'nullable|date|required_if:is_bidding_enabled,true|after:start_date',
+            'starting_bid' => 'nullable|numeric|min:0|required_if:is_bidding_enabled,true',
         ]);
 
         if ($validator->fails()) {
@@ -89,14 +93,6 @@ class BidController extends Controller
             ], 404);
         }
 
-        // Verify the item exists
-        $item = Item::find($request->item_id);
-        if (!$item) {
-            return response()->json([
-                'message' => 'Item not found'
-            ], 404);
-        }
-
         // Check if bidding on a wanted material
         $wantedMaterialId = $request->wanted_material_id;
         if ($wantedMaterialId) {
@@ -106,7 +102,9 @@ class BidController extends Controller
                     'message' => 'Wanted material listing not found or is inactive'
                 ], 404);
             }
-        }        // Create the bid
+        }
+
+        // Create the bid
         $bid = new Bid();
         $bid->ulid = (string) Str::ulid();
         $bid->junkshop_id = $junkshop->ulid;
@@ -119,6 +117,18 @@ class BidController extends Controller
         $bid->status = 'pending';
         $bid->is_bulk_order = $request->has('is_bulk_order') ? $request->is_bulk_order : false;
         $bid->wanted_material_id = $request->wanted_material_id;
+        
+        // Set bidding-related fields if enabled
+        $bid->is_bidding_enabled = $request->has('is_bidding_enabled') ? $request->is_bidding_enabled : false;
+        
+        if ($bid->is_bidding_enabled) {
+            $bid->start_date = $request->start_date;
+            $bid->end_date = $request->end_date;
+            $bid->starting_bid = $request->starting_bid;
+            // Initialize current_bid with starting_bid
+            $bid->current_bid = $request->starting_bid;
+        }
+        
         $bid->save();
 
         // Load relationships
@@ -181,10 +191,15 @@ class BidController extends Controller
         }
 
         $user = Auth::user();
+        
+        // Check if user is a merchant or junkshop owner
         $merchant = $user->merchant;
-
-        // Only the merchant who created the bid can update it
-        if (!$merchant || $merchant->ulid !== $bid->merchant_id) {
+        $junkshop = $user->junkshop;
+        
+        $isMerchant = $merchant && $merchant->ulid === $bid->merchant_id;
+        $isJunkshopOwner = $junkshop && $junkshop->ulid === $bid->junkshop_id;
+        
+        if (!$isMerchant && !$isJunkshopOwner) {
             return response()->json([
                 'message' => 'You do not have permission to update this bid'
             ], 403);
@@ -197,12 +212,27 @@ class BidController extends Controller
             ], 400);
         }
 
-        $validator = Validator::make($request->all(), [
-            'quantity' => 'sometimes|numeric|min:0.1',
-            'price_per_kg' => 'sometimes|numeric|min:0',
-            'notes' => 'nullable|string',
-            'expiry_date' => 'nullable|date|after:today',
-        ]);
+        // Different validation rules based on user role
+        if ($isJunkshopOwner) {
+            $validator = Validator::make($request->all(), [
+                'quantity' => 'sometimes|numeric|min:0.1',
+                'price_per_kg' => 'sometimes|numeric|min:0',
+                'notes' => 'nullable|string',
+                'expiry_date' => 'nullable|date|after:today',
+                'is_bidding_enabled' => 'boolean',
+                'start_date' => 'nullable|date|required_if:is_bidding_enabled,true',
+                'end_date' => 'nullable|date|required_if:is_bidding_enabled,true|after:start_date',
+                'starting_bid' => 'nullable|numeric|min:0|required_if:is_bidding_enabled,true',
+            ]);
+        } else {
+            // Merchant validation (can't update bidding settings)
+            $validator = Validator::make($request->all(), [
+                'quantity' => 'sometimes|numeric|min:0.1',
+                'price_per_kg' => 'sometimes|numeric|min:0',
+                'notes' => 'nullable|string',
+                'expiry_date' => 'nullable|date|after:today',
+            ]);
+        }
 
         if ($validator->fails()) {
             return response()->json([
@@ -211,13 +241,56 @@ class BidController extends Controller
             ], 422);
         }
 
-        // Update the bid
-        $bid->update($request->only([
-            'quantity',
-            'price_per_kg',
-            'notes',
-            'expiry_date',
-        ]));
+        // Update basic fields
+        if ($request->has('quantity')) {
+            $bid->quantity = $request->quantity;
+        }
+        
+        if ($request->has('price_per_kg')) {
+            $bid->price_per_kg = $request->price_per_kg;
+        }
+        
+        if ($request->has('notes')) {
+            $bid->notes = $request->notes;
+        }
+        
+        if ($request->has('expiry_date')) {
+            $bid->expiry_date = $request->expiry_date;
+        }
+        
+        // Only junkshop owners can update bidding settings
+        if ($isJunkshopOwner) {
+            if ($request->has('is_bidding_enabled')) {
+                $bid->is_bidding_enabled = $request->is_bidding_enabled;
+                
+                if ($bid->is_bidding_enabled) {
+                    $bid->start_date = $request->start_date;
+                    $bid->end_date = $request->end_date;
+                    $bid->starting_bid = $request->starting_bid;
+                    // Reset current bid when changing starting bid
+                    $bid->current_bid = $request->starting_bid;
+                    $bid->current_bidder_id = null;
+                }
+            } else if ($bid->is_bidding_enabled) {
+                // Update bidding fields if already enabled
+                if ($request->has('start_date')) {
+                    $bid->start_date = $request->start_date;
+                }
+                
+                if ($request->has('end_date')) {
+                    $bid->end_date = $request->end_date;
+                }
+                
+                if ($request->has('starting_bid')) {
+                    $bid->starting_bid = $request->starting_bid;
+                    // Reset current bid when changing starting bid
+                    $bid->current_bid = $request->starting_bid;
+                    $bid->current_bidder_id = null;
+                }
+            }
+        }
+        
+        $bid->save();
 
         // Load relationships
         $bid->load(['junkshop', 'item']);
@@ -571,5 +644,87 @@ class BidController extends Controller
         $bid->save();        // Load the item relationship        $bid->load('item');
 
         return response()->json($bid);
+    }
+
+    /**
+     * Enable bidding on an existing bid
+     */
+    public function enableBidding(Request $request, string $ulid): JsonResponse
+    {
+        $bid = Bid::where('ulid', $ulid)->first();
+
+        if (!$bid) {
+            return response()->json([
+                'message' => 'Bid not found'
+            ], 404);
+        }
+
+        $user = Auth::user();
+        $junkshop = $user->junkshop;
+
+        if (!$junkshop || $junkshop->ulid !== $bid->junkshop_id) {
+            return response()->json([
+                'message' => 'You do not have permission to enable bidding on this item'
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'starting_bid' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Update bidding fields
+        $bid->is_bidding_enabled = true;
+        $bid->start_date = $request->start_date;
+        $bid->end_date = $request->end_date;
+        $bid->starting_bid = $request->starting_bid;
+        $bid->current_bid = $request->starting_bid; // Initialize current bid with starting bid
+        $bid->current_bidder_id = null;
+        $bid->save();
+
+        return response()->json([
+            'message' => 'Bidding enabled successfully',
+            'bid' => $bid
+        ]);
+    }
+
+    /**
+     * Disable bidding on an existing bid
+     */
+    public function disableBidding(string $ulid): JsonResponse
+    {
+        $bid = Bid::where('ulid', $ulid)->first();
+
+        if (!$bid) {
+            return response()->json([
+                'message' => 'Bid not found'
+            ], 404);
+        }
+
+        $user = Auth::user();
+        $junkshop = $user->junkshop;
+
+        if (!$junkshop || $junkshop->ulid !== $bid->junkshop_id) {
+            return response()->json([
+                'message' => 'You do not have permission to disable bidding on this item'
+            ], 403);
+        }
+
+        // Update bidding fields
+        $bid->is_bidding_enabled = false;
+        $bid->save();
+
+        return response()->json([
+            'message' => 'Bidding disabled successfully',
+            'bid' => $bid
+        ]);
     }
 }
