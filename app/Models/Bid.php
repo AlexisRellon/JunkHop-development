@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Symfony\Component\Uid\Ulid;
 
@@ -19,15 +21,21 @@ class Bid extends Model
         'merchant_id',
         'junkshop_id',
         'item_id',
+        'wanted_material_id',
         'quantity',
         'price_per_kg',
-        'grade',
+        'starting_bid',
+        'current_bid',
+        'current_bidder_id',
         'notes',
-        'expiration_date',
+        'expiry_date',
+        'start_date',
+        'end_date',
         'status',
-        'accepted_at',
-        'rejected_at',
-        'wanted_material_id',
+        'rejection_reason',
+        'is_bulk_order',
+        'is_bidding_enabled',
+        'bidding_processed',
     ];
 
     /**
@@ -36,12 +44,18 @@ class Bid extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'quantity' => 'decimal:2',
-        'price_per_kg' => 'decimal:2',
-        'total_price' => 'decimal:2',
-        'expiration_date' => 'date',
+        'quantity' => 'float',
+        'price_per_kg' => 'float',
+        'starting_bid' => 'float',
+        'current_bid' => 'float',
+        'expiry_date' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
         'accepted_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'is_bulk_order' => 'boolean',
+        'is_bidding_enabled' => 'boolean',
+        'bidding_processed' => 'boolean',
     ];    /**
      * Boot function from Laravel.
      */
@@ -95,6 +109,14 @@ class Bid extends Model
     {
         return $this->belongsTo(WantedMaterial::class);
     }
+    
+    /**
+     * Get the bid history for this bid.
+     */
+    public function history(): HasMany
+    {
+        return $this->hasMany(BidHistory::class);
+    }
 
     /**
      * Scope a query to only include pending bids.
@@ -134,23 +156,35 @@ class Bid extends Model
     }
 
     /**
-     * Calculate the total value of the bid.
+     * Check if bidding is currently active for this bid.
      *
-     * @return float
+     * @return bool
      */
-    public function getTotalValueAttribute()
+    public function isBiddingActive(): bool
     {
-        return $this->quantity * $this->price_per_unit;
+        if (!$this->is_bidding_enabled || !$this->start_date || !$this->end_date) {
+            return false;
+        }
+        
+        $now = now();
+        return $now >= $this->start_date && $now <= $this->end_date;
     }
 
     /**
-     * Find a bid by its ULID
+     * Calculate the minimum bid amount based on the JunkHop algorithm.
      *
-     * @param string $ulid
-     * @return static|null
+     * @return float
      */
-    public static function findByUlid(string $ulid)
+    public function calculateMinimumBid(): float
     {
-        return static::where('ulid', $ulid)->first();
+        $startingBid = $this->starting_bid ?? $this->price_per_kg;
+        $currentBid = $this->current_bid ?? 0;
+        
+        if ($currentBid == 0) {
+            return $startingBid;
+        }
+        
+        // JunkHop algorithm: Current bid + 5% increment
+        return $currentBid * 1.05;
     }
 }

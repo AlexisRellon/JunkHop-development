@@ -48,14 +48,13 @@ class Junkshop extends Model
     public function items()
     {
         return $this->belongsToMany(Item::class, 'junkshop_items', 'junkshop_id', 'item_id')
-            ->withPivot('id')
-            ->withTimestamps();
+            ->withPivot('id');
     }
 
     /**
-     * Get the owner of the junkshop.
+     * Get the user that owns the junkshop.
      */
-    public function owner()
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'ulid');
     }
