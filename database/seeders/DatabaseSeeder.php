@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             PopulateUsersSeeder::class,
             ItemSeeder::class,           // Add items first
             PopulateJunkshopSeeder::class, // Then create junkshops with items
+            VerifiedBidsSeeder::class,   // Add verified bids
         ]);
 
         // Reset cached roles and permissions
