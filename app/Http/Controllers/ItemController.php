@@ -178,4 +178,13 @@ class ItemController extends Controller
 
         return response()->json(['message' => 'Item deleted successfully']);
     }
+
+    /**
+     * Get all available items.
+     */
+    public function getAllItems(): JsonResponse
+    {
+        $items = Item::all(['id', 'name', 'quantity']);
+        return response()->json($items);
+    }
 }

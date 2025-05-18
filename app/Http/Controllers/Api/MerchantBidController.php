@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Bid;
 use App\Models\BidHistory;
 use App\Models\Merchant;
+use App\Models\MerchantPreference;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,13 @@ class MerchantBidController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $user = Auth::user();
+        $merchant = $user->merchant;
+
+        // Get merchant's preferences
+        $preferences = MerchantPreference::where('merchant_id', $user->ulid)->get();
+        $preferredItemIds = $preferences->pluck('item_id')->toArray();
+
         $query = Bid::with(['junkshop', 'item'])
             ->where('is_bidding_enabled', true)
             ->where('status', 'accepted')
@@ -28,16 +36,11 @@ class MerchantBidController extends Controller
             ->whereNotNull('end_date')
             ->whereNotNull('starting_bid')
             ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->orderBy('end_date', 'asc');
+            ->where('end_date', '>=', now());
 
         // Apply filters if provided
         if ($request->has('item_id')) {
             $query->where('item_id', $request->item_id);
-        }
-
-        if ($request->has('grade')) {
-            $query->where('grade', $request->grade);
         }
 
         if ($request->has('min_price')) {
@@ -48,7 +51,41 @@ class MerchantBidController extends Controller
             $query->where('starting_bid', '<=', $request->max_price);
         }
 
+        // Get the bids
         $bids = $query->get();
+
+        // Calculate preference score for each bid
+        $bids = $bids->map(function ($bid) use ($preferences) {
+            $preference = $preferences->firstWhere('item_id', $bid->item_id);
+            
+            if ($preference) {
+                // Calculate price match score (0-100)
+                $priceScore = 0;
+                if ($bid->starting_bid >= $preference->min_price && $bid->starting_bid <= $preference->max_price) {
+                    $priceScore = 100;
+                } elseif ($bid->starting_bid < $preference->min_price) {
+                    $diff = $preference->min_price - $bid->starting_bid;
+                    $range = $preference->min_price * 0.5; // 50% below min price
+                    $priceScore = max(0, 100 * (1 - $diff / $range));
+                } else {
+                    $diff = $bid->starting_bid - $preference->max_price;
+                    $range = $preference->max_price * 0.5; // 50% above max price
+                    $priceScore = max(0, 100 * (1 - $diff / $range));
+                }
+                
+                $bid->preference_score = $priceScore;
+            } else {
+                $bid->preference_score = 0;
+            }
+            
+            return $bid;
+        });
+
+        // Sort bids by preference score (descending) and end date (ascending)
+        $bids = $bids->sortBy([
+            ['preference_score', 'desc'],
+            ['end_date', 'asc']
+        ])->values();
 
         // Add remaining time for each bid
         $bids->each(function ($bid) {
