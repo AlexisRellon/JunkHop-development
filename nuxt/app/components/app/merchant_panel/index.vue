@@ -159,6 +159,54 @@
             </div>
           </UCard>
         </div>
+
+        <!-- Material Preferences Section -->
+        <div class="mb-8" v-if="merchant.ulid && interestedItems.length > 0">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-medium text-gray-700 dark:text-gray-200">Material Preferences</h2>
+            <UButton
+              color="emerald"
+              variant="soft"
+              size="sm"
+              icon="i-heroicons-cog-6-tooth"
+              @click="openPreferencesModal"
+            >
+              Update Preferences
+            </UButton>
+          </div>
+          
+          <UCard class="dark:bg-gray-800 dark:border-gray-700 shadow-sm">
+            <div v-if="isLoadingPreferences" class="py-4 flex justify-center">
+              <UIcon name="i-heroicons-arrow-path" class="animate-spin text-emerald-500 w-6 h-6" />
+            </div>
+            
+            <div v-else class="divide-y dark:divide-gray-700">
+              <div v-for="item in interestedItems" :key="item.id" class="p-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">{{ item.name }}</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Preferred Price Range: 
+                      <span class="font-medium text-emerald-600 dark:text-emerald-400">
+                        ₱{{ materialPreferences[item.id]?.minPrice || '0' }} - 
+                        ₱{{ materialPreferences[item.id]?.maxPrice || '0' }}
+                      </span>
+                      per kg
+                    </p>
+                  </div>
+                  <UButton
+                    color="emerald"
+                    variant="ghost"
+                    icon="i-heroicons-pencil-square"
+                    size="sm"
+                    @click="editItemPreference(item)"
+                    square
+                  />
+                </div>
+              </div>
+            </div>
+          </UCard>
+        </div>
       </div>
     </div>
     </div>
@@ -235,6 +283,69 @@
     confirm-color="amber"
     confirm-icon="i-heroicons-trash"
   />
+
+  <!-- Material Preferences Modal -->
+  <UModal v-model="showPreferencesModal" :ui="{ width: 'sm:max-w-lg' }">
+    <UCard class="dark:bg-gray-800">
+      <template #header>
+        <div class="flex justify-between items-center">
+          <h3 class="text-xl font-semibold dark:text-white">
+            {{ selectedItem ? `Update ${selectedItem.name} Preferences` : 'Material Preferences' }}
+          </h3>
+          <UButton
+            color="gray" 
+            variant="ghost"
+            icon="i-heroicons-x-mark"
+            @click="closePreferencesModal"
+            size="sm"
+            square
+          />
+        </div>
+      </template>
+      
+      <UForm :state="preferenceForm" class="space-y-4" @submit="savePreferences">
+        <div v-if="selectedItem">
+          <UFormGroup label="Minimum Price (₱/kg)" name="minPrice">
+            <UInput
+              v-model="preferenceForm.minPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Enter minimum price"
+            />
+          </UFormGroup>
+          
+          <UFormGroup label="Maximum Price (₱/kg)" name="maxPrice">
+            <UInput
+              v-model="preferenceForm.maxPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Enter maximum price"
+            />
+          </UFormGroup>
+        </div>
+        
+        <div class="flex justify-end gap-2 mt-6">
+          <UButton
+            color="gray"
+            variant="ghost"
+            @click="closePreferencesModal"
+          >
+            Cancel
+          </UButton>
+          
+          <UButton
+            type="submit"
+            color="emerald"
+            :loading="isSavingPreferences"
+          >
+            Save Preferences
+          </UButton>
+        </div>
+      </UForm>
+    </UCard>
+  </UModal>
 </template>
 
 <script setup>
@@ -295,6 +406,11 @@ const isEditingProfile = ref(false);
 const interestedItems = ref([]);
 const showRemoveConfirmation = ref(false);
 const itemToRemove = ref(null);
+const showPreferencesModal = ref(false);
+const selectedItem = ref(null);
+const isLoadingPreferences = ref(false);
+const isSavingPreferences = ref(false);
+const materialPreferences = ref({});
 
 // Form state
 const formState = reactive({
@@ -302,6 +418,11 @@ const formState = reactive({
   address: '',
   contact: '',
   description: ''
+});
+
+const preferenceForm = reactive({
+  minPrice: '',
+  maxPrice: ''
 });
 
 // Fetch the merchant's profile
@@ -322,6 +443,9 @@ const fetchMerchantProfile = async () => {
       
       // Fetch item interests
       fetchInterests();
+      
+      // Also fetch material preferences
+      await fetchMaterialPreferences();
     }
   } catch (error) {
     console.error('Failed to fetch merchant profile:', error);
@@ -354,6 +478,24 @@ const fetchInterests = async () => {
     });
   } finally {
     isLoadingItems.value = false;
+  }
+};
+
+// Fetch material preferences
+const fetchMaterialPreferences = async () => {
+  try {
+    isLoadingPreferences.value = true;
+    const response = await $fetch('/merchant/material-preferences');
+    materialPreferences.value = response;
+  } catch (error) {
+    console.error('Failed to fetch material preferences:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to load material preferences.',
+      color: 'red'
+    });
+  } finally {
+    isLoadingPreferences.value = false;
   }
 };
 
@@ -432,6 +574,72 @@ const removeItemInterest = async (itemId) => {
       description: 'Failed to remove interest. Please try again.',
       color: 'red'
     });
+  }
+};
+
+// Open the material preferences modal
+const openPreferencesModal = () => {
+  showPreferencesModal.value = true;
+};
+
+// Close the material preferences modal
+const closePreferencesModal = () => {
+  showPreferencesModal.value = false;
+  selectedItem.value = null;
+  preferenceForm.minPrice = '';
+  preferenceForm.maxPrice = '';
+};
+
+// Edit item preference
+const editItemPreference = (item) => {
+  selectedItem.value = item;
+  preferenceForm.minPrice = materialPreferences.value[item.id]?.minPrice || '';
+  preferenceForm.maxPrice = materialPreferences.value[item.id]?.maxPrice || '';
+  showPreferencesModal.value = true;
+};
+
+// Save material preferences
+const savePreferences = async () => {
+  if (!selectedItem.value) return;
+  
+  try {
+    isSavingPreferences.value = true;
+    
+    const response = await $fetch(`/merchant/material-preferences/${selectedItem.value.id}`, {
+      method: 'POST',
+      body: {
+        minPrice: parseFloat(preferenceForm.minPrice),
+        maxPrice: parseFloat(preferenceForm.maxPrice)
+      }
+    });
+    
+    if (response) {
+      // Update local state
+      materialPreferences.value = {
+        ...materialPreferences.value,
+        [selectedItem.value.id]: {
+          minPrice: parseFloat(preferenceForm.minPrice),
+          maxPrice: parseFloat(preferenceForm.maxPrice)
+        }
+      };
+      
+      toast.add({
+        title: 'Preferences Updated',
+        description: `Price preferences for ${selectedItem.value.name} have been updated.`,
+        color: 'green'
+      });
+      
+      closePreferencesModal();
+    }
+  } catch (error) {
+    console.error('Failed to save material preferences:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to save preferences. Please try again.',
+      color: 'red'
+    });
+  } finally {
+    isSavingPreferences.value = false;
   }
 };
 

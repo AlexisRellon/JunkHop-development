@@ -580,7 +580,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watchEffect } from 'vue';
 
 
 const toast = useToast();
@@ -1033,6 +1033,59 @@ const formatDate = (dateString) => {
     month: 'short',
     day: 'numeric'
   });
+};
+
+// State for tracking updates
+const lastBidStatusCheck = ref(Date.now());
+const statusCheckInterval = 20000; // 20 seconds
+
+// Setup watchEffect for real-time bid status updates
+watchEffect(async () => {
+  if (!isLoading.value) {
+    const currentTime = Date.now();
+    if (currentTime - lastBidStatusCheck.value >= statusCheckInterval) {
+      await checkBidStatusUpdates();
+      lastBidStatusCheck.value = currentTime;
+    }
+  }
+});
+
+// Check for bid status updates
+const checkBidStatusUpdates = async () => {
+  try {
+    const [newBids, newStats] = await Promise.all([
+      $fetch('/bidding/my-bids'),
+      $fetch('/bidding/statistics')
+    ]);
+    
+    // Check for status changes
+    const statusChanges = myBids.value.filter(oldBid => {
+      const newBid = newBids.find(bid => bid.ulid === oldBid.ulid);
+      return newBid && newBid.status !== oldBid.status;
+    });
+
+    // Update data if there are changes
+    if (statusChanges.length > 0 || JSON.stringify(bidStats.value) !== JSON.stringify(newStats)) {
+      // Update bids and stats
+      myBids.value = newBids;
+      bidStats.value = newStats;
+
+      // Notify about status changes
+      statusChanges.forEach(bid => {
+        const newStatus = newBids.find(newBid => newBid.ulid === bid.ulid)?.status;
+        if (newStatus) {
+          toast.add({
+            title: 'Bid Status Update',
+            description: `Your bid for ${bid.item_name} has been ${newStatus}`,
+            color: getStatusColor(newStatus),
+            timeout: 7000
+          });
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error checking bid status updates:', error);
+  }
 };
 
 // Define page metadata

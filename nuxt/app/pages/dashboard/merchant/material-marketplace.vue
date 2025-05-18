@@ -73,13 +73,36 @@
       <UCard
         v-for="bid in marketplaceListings" 
         :key="bid.ulid"
-        class="dark:bg-gray-800 transition-all hover:border-teal-500"
+        class="dark:bg-gray-800 transition-all"
+        :class="{
+          'ring-2 ring-emerald-500': bid.preference_score > 80,
+          'ring-2 ring-amber-500': bid.preference_score > 50 && bid.preference_score <= 80,
+          'hover:border-teal-500': !bid.preference_score
+        }"
       >
         <template #header>
-          <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold">{{ bid.item?.name }}</h3>
-            <UBadge v-if="bid.is_bidding_enabled" color="amber">Bidding Open</UBadge>
-            <UBadge v-else color="emerald">Verified</UBadge>
+          <div class="flex justify-between items-center">          <div class="flex items-center gap-2">
+            <div class="flex flex-col">
+              <h3 class="text-lg font-semibold flex items-center gap-2">
+                {{ bid.item?.name }}
+                <UBadge 
+                  v-if="bid.preference_score > 0" 
+                  :color="getPreferenceScoreColor(bid.preference_score)"
+                  class="text-xs"
+                >
+                  {{ Math.round(bid.preference_score) }}% Match
+                </UBadge>
+              </h3>
+              <div class="flex gap-2 mt-1">
+                <UBadge 
+                  v-if="bid.is_bidding_enabled" 
+                  :color="isBiddingActive(bid) ? 'amber' : 'gray'"
+                >
+                  {{ isBiddingActive(bid) ? 'Bidding Open' : 'Bidding Closed' }}
+                </UBadge>
+              </div>
+            </div>
+          </div>
           </div>
         </template>
         
@@ -119,7 +142,7 @@
         </div>
         
         <template #footer>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-2">
             <UButton
               color="blue"
               variant="ghost"
@@ -130,27 +153,18 @@
               View Details
             </UButton>
             
-            <UButton
-              v-if="bid.is_bidding_enabled && isBiddingActive(bid)"
-              color="amber"
-              variant="soft"
-              icon="i-heroicons-currency-dollar"
-              size="sm"
-              @click="openBidModal(bid)"
-            >
-              Place Bid
-            </UButton>
-            
-            <UButton
-              v-else
-              color="teal"
-              variant="soft"
-              icon="i-heroicons-phone"
-              size="sm"
-              @click="contactJunkshop(bid)"
-            >
-              Contact
-            </UButton>
+            <div class="flex gap-2">
+              <UButton
+                v-if="bid.is_bidding_enabled && isBiddingActive(bid)"
+                color="amber"
+                variant="solid"
+                icon="i-heroicons-currency-dollar"
+                size="sm"
+                @click="openBidModal(bid)"
+              >
+                Place Bid
+              </UButton>
+            </div>
           </div>
         </template>
       </UCard>
@@ -216,10 +230,6 @@
               <UBadge :color="getBiddingStatusColor(selectedBid)">{{ getBiddingStatusText(selectedBid) }}</UBadge>
             </div>
           </div>
-          <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Total Value</div>
-            <div class="font-medium text-green-600 dark:text-green-400">₱{{ formatPrice(selectedBid.quantity * (selectedBid.starting_bid || selectedBid.price_per_kg)) }}</div>
-          </div>
         </div>
         
         <div v-if="selectedBid.notes">
@@ -242,7 +252,7 @@
               <div v-for="(historyItem, index) in bidHistory" :key="index" 
                    class="relative mb-2 last:mb-0">
                 <!-- Timeline node -->
-                <div class="absolute left-[-1.25rem] top-2 w-4 h-4 rounded-full border-2 border-amber-400 dark:border-amber-600" 
+                <div class="absolute -left-[1.40rem] top-5 w-4 h-4 rounded-full border-2 border-amber-400 dark:border-amber-600" 
                      :class="{'bg-amber-400 dark:bg-amber-600': historyItem.is_current_user, 'bg-white dark:bg-gray-800': !historyItem.is_current_user}">
                 </div>
                 
@@ -470,7 +480,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watchEffect } from 'vue';
 
 const toast = useToast();
 // const auth = useAuth();
@@ -489,6 +499,10 @@ const bidError = ref(null);
 const showBidSuccessModal = ref(false);
 const bidHistory = ref([]);
 const isLoadingBidHistory = ref(false);
+
+// State for tracking updates
+const lastFetchTimestamp = ref(Date.now());
+const pollingInterval = 30000; // 30 seconds
 
 // Computed values
 const isValidBid = computed(() => {
@@ -531,21 +545,27 @@ const fetchMarketplaceListings = async () => {
   try {
     isLoadingMarketplace.value = true;
     
-    // Build query parameters
+    // Use the new personalized marketplace endpoint that applies the matching algorithm
     const params = new URLSearchParams();
     if (filters.itemId) params.append('item_id', filters.itemId);
     if (filters.minPrice) params.append('min_price', filters.minPrice);
     if (filters.maxPrice) params.append('max_price', filters.maxPrice);
     if (filters.grade) params.append('grade', filters.grade);
     if (filters.biddingOnly) params.append('bidding_only', true);
-    
-    const url = `/marketplace/bids${params.toString() ? `?${params.toString()}` : ''}`;
+
+    // Use the new endpoint that includes preference scoring
+    const url = `/marketplace/materials${params.toString() ? `?${params.toString()}` : ''}`;
     const response = await $fetch(url);
-    
-    marketplaceListings.value = response;
+
+    // Sort by preference score in descending order
+    marketplaceListings.value = response.sort((a, b) => b.preference_score - a.preference_score);
   } catch (error) {
-    console.error('Failed to fetch marketplace listings', error);
-    toast.error('Failed to load marketplace listings');
+    console.error('Failed to fetch marketplace listings:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to load marketplace listings',
+      color: 'red'
+    });
   } finally {
     isLoadingMarketplace.value = false;
   }
@@ -612,13 +632,18 @@ const contactJunkshop = (bid) => {
 
 // Check if bidding is active for this bid
 const isBiddingActive = (bid) => {
-  if (!bid.is_bidding_enabled || !bid.start_date || !bid.end_date) return false;
+  // If bidding is not enabled, it's not active
+  if (!bid.is_bidding_enabled) return false;
   
   const now = new Date();
-  const startDate = new Date(bid.start_date);
+  
+  // If no end date, consider it as ongoing
+  if (!bid.end_date) return true;
+  
   const endDate = new Date(bid.end_date);
   
-  return now >= startDate && now <= endDate;
+  // If we have an end date, check if we're before it
+  return now <= endDate;
 };
 
 // Get bidding status text
@@ -776,4 +801,163 @@ const calculateTimeRemaining = (endDateStr) => {
 definePageMeta({
   middleware: ['auth', 'role-merchant']
 });
+
+// Preference score color mapping
+const getPreferenceScoreColor = (score) => {
+  if (score >= 80) return 'emerald';
+  if (score >= 50) return 'amber';
+  return 'gray';
+};
+
+// Fetch available bids with preference scoring
+const fetchAvailableBids = async () => {
+  try {
+    loading.value = true;
+    const response = await $fetch('/marketplace/materials');
+    
+    // Sort bids by preference score in descending order
+    availableBids.value = response.sort((a, b) => b.preference_score - a.preference_score);
+  } catch (error) {
+    console.error('Failed to fetch bids:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to load marketplace listings',
+      color: 'red'
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Setup watchEffect for real-time updates
+watchEffect(async () => {
+  // Only start polling when not loading and we have initial data
+  if (!isLoadingMarketplace.value && marketplaceListings.value.length > 0) {
+    const checkUpdates = async () => {
+      try {
+        const response = await $fetch('/marketplace/materials');
+        
+        // Compare new data with existing data
+        const currentListings = marketplaceListings.value;
+        const newListings = response;
+        
+        let hasChanges = false;
+        let notificationsSent = 0;
+
+        // Check for new or changed listings
+        newListings.forEach(newListing => {
+          const existing = currentListings.find(item => item.ulid === newListing.ulid);
+          
+          // New listing with high preference score
+          if (!existing && newListing.preference_score >= 50) {
+            hasChanges = true;
+            if (notificationsSent < 3) { // Limit notifications to prevent spam
+              toast.add({
+                title: 'New Matching Material',
+                description: `${newListing.item.name} matches your preferences (${Math.round(newListing.preference_score)}% match)`,
+                color: newListing.preference_score >= 80 ? 'emerald' : 'amber',
+                timeout: 8000
+              });
+              notificationsSent++;
+            }
+          }
+          // Existing listing with price change
+          else if (existing && existing.current_bid !== newListing.current_bid 
+            && newListing.preference_score >= 50 && notificationsSent < 3) {
+            hasChanges = true;
+            toast.add({
+              title: 'Bid Update',
+              description: `${newListing.item.name}: New bid ₱${newListing.current_bid}`,
+              color: 'amber',
+              timeout: 5000
+            });
+            notificationsSent++;
+          }
+        });
+
+        // Update listings if there are changes
+        if (hasChanges) {
+          marketplaceListings.value = newListings.sort((a, b) => b.preference_score - a.preference_score);
+        }
+
+      } catch (error) {
+        console.error('Error checking for updates:', error);
+      }
+    };
+
+    // Initial check
+    await checkUpdates();
+
+    // Set up polling interval
+    const pollTimer = setInterval(checkUpdates, pollingInterval);
+
+    // Cleanup
+    return () => clearInterval(pollTimer);
+  }
+});
+
+// Check for marketplace updates
+const checkForUpdates = async () => {
+  try {
+    const response = await $fetch('/marketplace/materials');
+    
+    // Compare new data with existing data
+    const newListings = response;
+    const changes = {
+      new: [],
+      updated: [],
+      removed: []
+    };
+
+    // Check for new or updated listings
+    newListings.forEach(newListing => {
+      const existingListing = marketplaceListings.value.find(item => item.ulid === newListing.ulid);
+      
+      if (!existingListing) {
+        changes.new.push(newListing);
+      } else if (JSON.stringify(existingListing) !== JSON.stringify(newListing)) {
+        changes.updated.push(newListing);
+      }
+    });
+
+    // Check for removed listings
+    marketplaceListings.value.forEach(existing => {
+      if (!newListings.find(item => item.ulid === existing.ulid)) {
+        changes.removed.push(existing);
+      }
+    });
+
+    // If there are any changes, update the UI and notify the user
+    if (changes.new.length || changes.updated.length || changes.removed.length) {
+      marketplaceListings.value = newListings;
+
+      // Notify about new listings matching preferences
+      changes.new.forEach(listing => {
+        if (listing.preference_score >= 80) {
+          toast.add({
+            title: 'New Matching Material',
+            description: `${listing.item.name} is now available with ${Math.round(listing.preference_score)}% match to your preferences`,
+            color: 'emerald',
+            timeout: 8000
+          });
+        }
+      });
+
+      // Notify about price updates on interested items
+      changes.updated.forEach(listing => {
+        const old = marketplaceListings.value.find(item => item.ulid === listing.ulid);
+        if (old && old.current_bid !== listing.current_bid && listing.preference_score >= 50) {
+          toast.add({
+            title: 'Bid Update',
+            description: `Current bid for ${listing.item.name} has changed to ₱${listing.current_bid}`,
+            color: 'amber',
+            timeout: 5000
+          });
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error checking for updates:', error);
+  }
+};
 </script>

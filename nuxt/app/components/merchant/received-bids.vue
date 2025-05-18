@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watchEffect } from 'vue';
 
 const toast = useToast();
 const loading = ref(true);
@@ -179,6 +179,56 @@ const getBidStatusColor = (status) => {
 // Format bid status for display
 const formatBidStatus = (status) => {
   return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+// State for tracking updates
+const lastBidCheck = ref(Date.now());
+const bidCheckInterval = 15000; // 15 seconds
+
+// Setup watchEffect for real-time bid updates
+watchEffect(async () => {
+  if (!loading.value) {
+    const currentTime = Date.now();
+    if (currentTime - lastBidCheck.value >= bidCheckInterval) {
+      await checkNewBids();
+      lastBidCheck.value = currentTime;
+    }
+  }
+});
+
+// Check for new bids
+const checkNewBids = async () => {
+  try {
+    const response = await $fetch('/material-bids/received-bids');
+    
+    // Compare with existing bids
+    const newBids = response.filter(newBid => 
+      !receivedBids.value.find(existingBid => existingBid.ulid === newBid.ulid)
+    );
+
+    // If there are new bids, update the list and notify
+    if (newBids.length > 0) {
+      receivedBids.value = response;
+      
+      // Notify about new bids
+      newBids.forEach(bid => {
+        toast.add({
+          title: 'New Bid Received',
+          description: `New bid received for ${bid.material_name} from ${bid.junkshop_name}`,
+          color: 'teal',
+          timeout: 6000
+        });
+      });
+    } else {
+      // Still update the list for other changes (status updates, etc.)
+      const hasChanges = JSON.stringify(response) !== JSON.stringify(receivedBids.value);
+      if (hasChanges) {
+        receivedBids.value = response;
+      }
+    }
+  } catch (error) {
+    console.error('Error checking for new bids:', error);
+  }
 };
 
 // Load data on component mount
