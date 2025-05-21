@@ -117,6 +117,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Junkshop::class);
     }
+    
+    /**
+     * Get the first junkshop owned by the user (for convenience).
+     */
+    public function junkshop()
+    {
+        return $this->hasOne(Junkshop::class, 'user_id', 'ulid');
+    }
 
     /**
      * Get the merchant profile associated with the user.
