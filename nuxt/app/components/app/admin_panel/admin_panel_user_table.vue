@@ -84,6 +84,7 @@
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="User name"
                 autofocus
+                :disabled="isEditing"
               >
                 <template #leading>
                   <UIcon name="mdi-account" class="text-gray-400"></UIcon>
@@ -99,6 +100,7 @@
                 id="email"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="User email"
+                :disabled="isEditing"
               >
                 <template #leading>
                   <UIcon name="mdi-at" class="text-gray-100" />

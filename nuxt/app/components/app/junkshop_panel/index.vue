@@ -260,8 +260,8 @@
       <div v-if="currentTabKey === 'bids'" class="mb-6 mx-8">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-medium text-gray-700 dark:text-gray-200">Bid Management</h2>
-          <UButton size="sm" color="amber" variant="soft" icon="i-heroicons-arrow-path" :loading="isBidLoading"
-            @click="fetchBids" :tooltip="{ text: 'Refresh Bids' }" square />
+          <!-- <UButton size="sm" color="amber" variant="soft" icon="i-heroicons-arrow-path" :loading="isBidLoading"
+            @click="fetchBids" :tooltip="{ text: 'Refresh Bids' }" square /> -->
         </div>
 
         <UCard class="p-5">

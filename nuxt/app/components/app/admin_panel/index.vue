@@ -137,7 +137,7 @@
         </div>
 
         <!-- Analytics Section - Only User Growth Chart -->
-        <div class="mb-8">
+        <!-- <div class="mb-8">
           <h2 class="text-lg font-medium text-gray-700 dark:text-gray-200 mb-4">Analytics</h2>
           <UCard class="p-4">
             <div class="mb-4 flex justify-between items-center">
@@ -150,13 +150,13 @@
               />
             </div>
             <div class="h-64">
-              <!-- Chart component will go here - using a placeholder for now -->
+              
               <div class="h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p class="text-gray-500 dark:text-gray-400">User Growth Chart</p>
               </div>
             </div>
           </UCard>
-        </div>
+        </div> -->
 
         <!-- Recent Activity Section -->
         <div class="mb-8">

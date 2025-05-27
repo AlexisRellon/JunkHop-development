@@ -6,7 +6,7 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
+    <!-- <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
       <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Filter Materials</h3>
       
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -51,7 +51,7 @@
           Apply Filters
         </UButton>
       </div>
-    </div>
+    </div> -->
 
     <!-- Listings Grid -->
     <div v-if="isLoadingMarketplace" class="py-12 flex justify-center">
@@ -561,11 +561,11 @@ const fetchMarketplaceListings = async () => {
     marketplaceListings.value = response.sort((a, b) => b.preference_score - a.preference_score);
   } catch (error) {
     console.error('Failed to fetch marketplace listings:', error);
-    toast.add({
-      title: 'Error',
-      description: 'Failed to load marketplace listings',
-      color: 'red'
-    });
+    // toast.add({
+    //   title: 'Error',
+    //   description: 'Failed to load marketplace listings',
+    //   color: 'red'
+    // });
   } finally {
     isLoadingMarketplace.value = false;
   }
@@ -819,11 +819,11 @@ const fetchAvailableBids = async () => {
     availableBids.value = response.sort((a, b) => b.preference_score - a.preference_score);
   } catch (error) {
     console.error('Failed to fetch bids:', error);
-    toast.add({
-      title: 'Error',
-      description: 'Failed to load marketplace listings',
-      color: 'red'
-    });
+    // toast.add({
+    //   title: 'Error',
+    //   description: 'Failed to load marketplace listings',
+    //   color: 'red'
+    // });
   } finally {
     loading.value = false;
   }
@@ -852,12 +852,12 @@ watchEffect(async () => {
           if (!existing && newListing.preference_score >= 50) {
             hasChanges = true;
             if (notificationsSent < 3) { // Limit notifications to prevent spam
-              toast.add({
-                title: 'New Matching Material',
-                description: `${newListing.item.name} matches your preferences (${Math.round(newListing.preference_score)}% match)`,
-                color: newListing.preference_score >= 80 ? 'emerald' : 'amber',
-                timeout: 8000
-              });
+                  // toast.add({
+                  //   title: 'New Matching Material',
+                  //   description: `${newListing.item.name} matches your preferences (${Math.round(newListing.preference_score)}% match)`,
+                  //   color: newListing.preference_score >= 80 ? 'emerald' : 'amber',
+                  //   timeout: 8000
+                  // });
               notificationsSent++;
             }
           }
@@ -865,12 +865,12 @@ watchEffect(async () => {
           else if (existing && existing.current_bid !== newListing.current_bid 
             && newListing.preference_score >= 50 && notificationsSent < 3) {
             hasChanges = true;
-            toast.add({
-              title: 'Bid Update',
-              description: `${newListing.item.name}: New bid ₱${newListing.current_bid}`,
-              color: 'amber',
-              timeout: 5000
-            });
+            // toast.add({
+            //   title: 'Bid Update',
+            //   description: `${newListing.item.name}: New bid ₱${newListing.current_bid}`,
+            //   color: 'amber',
+            //   timeout: 5000
+            // });
             notificationsSent++;
           }
         });
@@ -947,12 +947,12 @@ const checkForUpdates = async () => {
       changes.updated.forEach(listing => {
         const old = marketplaceListings.value.find(item => item.ulid === listing.ulid);
         if (old && old.current_bid !== listing.current_bid && listing.preference_score >= 50) {
-          toast.add({
-            title: 'Bid Update',
-            description: `Current bid for ${listing.item.name} has changed to ₱${listing.current_bid}`,
-            color: 'amber',
-            timeout: 5000
-          });
+          // toast.add({
+          //   title: 'Bid Update',
+          //   description: `Current bid for ${listing.item.name} has changed to ₱${listing.current_bid}`,
+          //   color: 'amber',
+          //   timeout: 5000
+          // });
         }
       });
     }

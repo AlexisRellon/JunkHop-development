@@ -87,6 +87,7 @@
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop name"
                 autofocus
+                :disabled="isEditingJunkshop"
               >
                 <template #leading>
                   <UIcon name="mdi-factory" class="text-gray-400"></UIcon>
@@ -102,6 +103,7 @@
                 id="address"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop address"
+                :disabled="isEditingJunkshop"
               >
                 <template #leading>
                   <UIcon name="mdi-map-marker" class="text-gray-400"></UIcon>
@@ -117,6 +119,7 @@
                 id="contact"
                 class="relative w-full mt-1 text-gray-900 bg-white border-gray-300 rounded-md shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
                 placeholder="Junkshop contact"
+                :disabled="isEditingJunkshop"
               >
                 <template #leading>
                   <UIcon name="mdi-phone" class="text-gray-400"></UIcon>
