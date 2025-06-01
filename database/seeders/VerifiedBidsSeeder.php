@@ -33,7 +33,7 @@ class VerifiedBidsSeeder extends Seeder
         for ($i = 0; $i < 15; $i++) {
             $junkshop = $faker->randomElement($junkshops);
             $item = $faker->randomElement($items);
-            $quantity = $faker->randomFloat(2, 5, 100);
+            $quantity = $faker->numberBetween(10, 1000);
             $pricePerKg = $faker->randomFloat(2, 10, 50);
             $startingBid = $quantity * $pricePerKg;
             $currentBid = $startingBid + $faker->randomFloat(2, 1, 50);
